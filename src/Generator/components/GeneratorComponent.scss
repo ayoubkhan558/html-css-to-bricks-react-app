@@ -1,0 +1,28 @@
+.inline-styles-handling {
+  margin-bottom: 1rem;
+
+  &__label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  &__options {
+    display: flex;
+    gap: 1rem;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  &__radio {
+    margin-right: 0.5rem;
+  }
+
+  &__text {
+    font-size: 0.875rem;
+  }
+}

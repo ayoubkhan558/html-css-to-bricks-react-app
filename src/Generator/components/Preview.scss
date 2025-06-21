@@ -1,0 +1,33 @@
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  background: #2b2c2f;
+  border-radius: 8px;
+  overflow: hidden;
+
+  h3 {
+    font-size: 1rem;
+    color: #ffffff;
+    margin: 0;
+    padding: 1rem 1.25rem;
+    background: #3a3b3e;
+    font-weight: 600;
+  }
+
+  &__container {
+    position: relative;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    min-height: 500px;
+    height: calc(100% - 315px);
+  }
+
+  &__iframe {
+    width: 100%;
+    height: auto;
+    height: 100%;
+    border: none;
+    background: white;
+  }
+}
