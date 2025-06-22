@@ -185,20 +185,26 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Determine element type
   if (tag === 'section' || tag === 'footer' || tag === 'header' || node.classList.contains('section')) {
     name = 'section';
+    element.label = 'Section';
   } else if (tag === 'nav' || node.classList.contains('container')) {
     name = tag === 'nav' ? 'nav' : 'container';
+    element.label = tag === 'nav' ? 'Navigation' : 'Container';
   } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
     name = 'heading';
+    element.label = `Heading ${tag.replace('h', '')}`;
   } else if (['time', 'mark'].includes(tag)) {
     name = 'text-basic';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
+    element.label = tag === 'time' ? 'Time' : 'Mark';
   } else if (['p', 'span', 'address'].includes(tag)) {
     name = 'text-basic';
+    element.label = tag === 'p' ? 'Paragraph' : tag === 'span' ? 'Inline Text' : 'Address';
   } else if (['blockquote'].includes(tag)) {
     name = 'text-basic';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
+    element.label = 'Blockquote';
 
     // Create child element for the actual text content
     const textElement = {
@@ -216,27 +222,35 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     return [element, textElement];
   } else if (tag === 'img') {
     name = 'image';
+    element.label = 'Image';
   } else if (tag === 'a') {
     name = 'text-link';
+    element.label = 'Link';
   } else if (tag === 'button') {
     name = 'button';
+    element.label = 'Button';
     element.settings.style = "primary";
     element.settings.tag = "button";
     element.settings.size = "md";
   } else if (tag === 'svg') {
     name = 'svg';
+    element.label = 'SVG';
   } else if (tag === 'form') {
     name = 'form';
+    element.label = 'Form';
     const formElement = processFormElement(node);
     formElement.id = elementId;
     formElement.parent = parentId;
     Object.assign(element, formElement);
   } else if (['ul', 'ol'].includes(tag)) {
     name = 'list';
+    element.label = tag === 'ul' ? 'Unordered List' : 'Ordered List';
   } else if (tag === 'li') {
     name = 'list-item';
+    element.label = 'List Item';
   } else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
     name = 'div';
+    element.label = 'Table';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
     if (tag === 'tr') {
@@ -258,12 +272,14 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     element.settings.customTag = tag;
   } else if (tag === 'audio') {
     name = 'audio';
+    element.label = 'Audio';
     element.settings.source = 'external';
     element.settings.external = node.querySelector('source')?.getAttribute('src') || node.getAttribute('src') || '';
     element.settings.loop = node.hasAttribute('loop');
     element.settings.autoplay = node.hasAttribute('autoplay');
   } else if (tag === 'video') {
     name = 'video';
+    element.label = 'Video';
     const videoSrc = node.querySelector('source')?.getAttribute('src') || node.getAttribute('src') || '';
     const posterSrc = node.getAttribute('poster') || '';
 
@@ -326,11 +342,13 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     if (!hasComplexContent) {
       // Text-only list: convert to rich text
       element.name = 'text';
+      element.label = 'List';
       element.settings.tag = tag;
       element.settings.text = node.innerHTML.trim();
     } else {
       // Complex list: convert to div with nested divs for li
       element.name = 'div';
+      element.label = 'List';
       element.settings.tag = tag;
 
       listItems.forEach((li, index) => {
@@ -502,7 +520,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Skip form fields handled by processFormElement
   if (node.closest('form') && ['input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
     return null;
-  }
+  } 
 
   allElements.push(element);
   return element;
