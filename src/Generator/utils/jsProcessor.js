@@ -1,34 +1,20 @@
+import { getUniqueId } from './utils';
 // JavaScript processing utilities
 
-export function processJavaScript(js, globalElements = []) {
-  if (!js.trim()) return { globalElements };
-  
-  const scriptId = getUniqueId();
-  const containerId = getUniqueId();
-  
-  globalElements.push({
-    id: scriptId,
-    name: 'code',
-    settings: {
-      code: js,
-      execute: true,
-      codeType: 'js',
-      _position: 'after',
-    },
-  });
-  
+export function processJavaScript(js, parentId = '0') {
+  if (!js || !js.trim()) return null;
+
   return {
-    container: {
-      id: containerId,
-      name: 'container',
-      settings: { _hidden: true },
-      children: [scriptId],
-    },
-    globalElements
+    id: getUniqueId(),
+    name: 'code',
+    parent: parentId,
+    children: [],
+    settings: {
+      executeCode: true,
+      noRoot: true,
+      javascriptCode: js.trim()
+    }
   };
 }
 
-// Helper function to generate unique IDs
-function getUniqueId() {
-  return Math.random().toString(36).substr(2, 9);
-}
+

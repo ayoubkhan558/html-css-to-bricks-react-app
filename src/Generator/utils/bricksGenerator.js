@@ -15,19 +15,18 @@ const createBricksStructure = (html, css = '', js = '') => {
 
     // Optionally process JavaScript additions
     if (js && js.trim()) {
-      const {
-        container,
-        globalElements: updatedElements = []
-      } = processJavaScript(js, result.globalElements || []);
+      const rootElement = result.content.find((el) => el.parent === '0');
+      const parentId = rootElement ? rootElement.id : '0';
+      const jsElement = processJavaScript(js, parentId);
 
-      if (container) {
-        result.content.push(container);
+      if (jsElement) {
+        result.content.push(jsElement);
+        // attach as child of parent element
+        const parentEl = result.content.find(el => el.id === parentId);
+        if (parentEl && Array.isArray(parentEl.children)) {
+          parentEl.children.push(jsElement.id);
+        }
       }
-
-      result.globalElements = [
-        ...(result.globalElements || []),
-        ...updatedElements
-      ];
     }
 
     // Ensure version is correct

@@ -48,6 +48,7 @@ This tool is designed to help Bricks Builder users quickly convert their existin
 - [ ] Add support for more CSS properties
 - [ ] Add support for more JS features  
 - [ ] Add support for CSS Variables
+- [ ] Add support for CSS Media Queries
 - [ ] Add support for inline styles to classes and inline embed
 
 ## Known Bugs
