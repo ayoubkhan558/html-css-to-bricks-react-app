@@ -153,12 +153,12 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       if (parentEl && parentEl.closest && (parentEl.closest('form') || parentEl.closest('button'))) {
         return null;
       }
-      const textElement = { 
+      const textElement = {
         id: getUniqueId(),
         name: 'text-basic',
         parent: parentId,
         children: [],
-        settings: { 
+        settings: {
           text: node.textContent.trim(),
           tag: 'p'
         }
@@ -170,7 +170,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   }
 
   const tag = node.tagName.toLowerCase();
-  
+
   // Initialize element
   let name = 'div';
   const elementId = getUniqueId();
@@ -189,8 +189,31 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     name = tag === 'nav' ? 'nav' : 'container';
   } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
     name = 'heading';
+  } else if (['time', 'mark'].includes(tag)) {
+    name = 'text-basic';
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
   } else if (['p', 'span', 'address'].includes(tag)) {
     name = 'text-basic';
+  } else if (['blockquote'].includes(tag)) {
+    name = 'text-basic';
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
+    
+    // Create child element for the actual text content
+    const textElement = {
+      id: getUniqueId(),
+      name: 'text-basic',
+      parent: elementId,
+      children: [],
+      settings: {
+        text: node.textContent.trim(),
+        tag: 'p'
+      }
+    };
+    element.children.push(textElement.id);
+    allElements.push(textElement);
+    return [element, textElement];
   } else if (tag === 'img') {
     name = 'image';
   } else if (tag === 'a') {
@@ -209,24 +232,76 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     name = 'list';
   } else if (tag === 'li') {
     name = 'list-item';
-  }
-
-  // Handle semantic HTML elements
-  const semanticTags = ['header', 'footer', 'nav', 'main', 'article', 'aside'];
-  if (semanticTags.includes(tag)) {
+  } else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
+    name = 'div';
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
+    if (tag === 'tr') {
+      element.settings.style = 'display: flex; width: 100%;';
+    } else if (['th', 'td'].includes(tag)) {
+      element.settings.style = 'flex: 1; padding: 8px;';
+    }
+  } else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
+    name = 'div';
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
+  } else if (['figure', 'figcaption'].includes(tag)) {
     name = 'section';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
+  } else if (['pre', 'code'].includes(tag)) {
+    name = 'text-basic';
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
+  } else if (tag === 'audio') {
+    name = 'audio';
+    element.settings.source = 'external';
+    element.settings.external = node.querySelector('source')?.getAttribute('src') || node.getAttribute('src') || '';
+    element.settings.loop = node.hasAttribute('loop');
+    element.settings.autoplay = node.hasAttribute('autoplay');
+  } else if (tag === 'video') {
+    name = 'video';
+    const videoSrc = node.querySelector('source')?.getAttribute('src') || node.getAttribute('src') || '';
+    const posterSrc = node.getAttribute('poster') || '';
+
+    element.settings = {
+      videoType: 'file',
+      youTubeId: '',
+      youtubeControls: true,
+      vimeoByline: true,
+      vimeoTitle: true,
+      vimeoPortrait: true,
+      fileControls: node.hasAttribute('controls'),
+      fileUrl: videoSrc,
+      fileAutoplay: node.hasAttribute('autoplay'),
+      fileLoop: node.hasAttribute('loop'),
+      fileMute: node.hasAttribute('muted'),
+      fileInline: node.hasAttribute('playsinline'),
+      filePreload: node.getAttribute('preload') || 'auto',
+      ...(posterSrc && {
+        videoPoster: {
+          url: posterSrc,
+          external: true,
+          filename: posterSrc.split('/').pop() || 'poster.jpg'
+        }
+      })
+    };
+
+    // Handle width/height as inline styles
+    if (node.hasAttribute('width') || node.hasAttribute('height')) {
+      element.settings.style = [
+        node.getAttribute('width') ? `width: ${node.getAttribute('width')}px` : '',
+        node.getAttribute('height') ? `height: ${node.getAttribute('height')}px` : ''
+      ].filter(Boolean).join('; ');
+    }
   }
 
   element.name = name;
 
   // Generate default class if element has no classes
   if (!node.className && !['form', 'input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
-    const defaultClass = `${tag}-${getUniqueId().substring(0,4)}`;
+    const defaultClass = `${tag}-${getUniqueId().substring(0, 4)}`;
     node.classList.add(defaultClass);
-    
-    // Add to global classes
     if (!globalClasses.some(c => c.name === defaultClass)) {
       globalClasses.push({
         id: getUniqueId(),
@@ -239,8 +314,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Handle lists (ul/ol)
   if (['ul', 'ol'].includes(tag)) {
     const listItems = Array.from(node.children).filter(child => child.tagName.toLowerCase() === 'li');
-    const hasComplexContent = listItems.some(li => 
-      Array.from(li.childNodes).some(n => 
+    const hasComplexContent = listItems.some(li =>
+      Array.from(li.childNodes).some(n =>
         n.nodeType === Node.ELEMENT_NODE && n.tagName.toLowerCase() !== 'br'
       )
     );
@@ -302,14 +377,18 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       }
       const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements);
       if (childElement) {
-        element.children.push(childElement.id);
+        if (Array.isArray(childElement)) {
+          childElement.forEach(c => element.children.push(c.id));
+        } else {
+          element.children.push(childElement.id);
+        }
       }
     });
   }
 
   // Handle attributes
   const handleAttributes = (node, element) => {
-    const elementSpecificAttrs = ['id', 'class', 'style', 'href', 'src', 'alt', 'title', 'type', 'name', 'value', 'placeholder', 'required', 'disabled', 'checked', 'selected', 'multiple', 'rows', 'cols'];
+    const elementSpecificAttrs = ['id', 'class', 'style', 'href', 'src', 'alt', 'title', 'type', 'name', 'value', 'placeholder', 'required', 'disabled', 'checked', 'selected', 'multiple', 'rows', 'cols', 'controls', 'autoplay', 'loop', 'muted', 'playsinline', 'preload', 'poster'];
     const customAttributes = [];
 
     if (tag === 'a' && node.hasAttribute('href')) {
@@ -339,7 +418,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   handleAttributes(node, element);
 
-  // Handle CSS classes - including pseudo-classes
+  // Handle CSS classes
   if (node.classList && node.classList.length > 0) {
     const classNames = Array.from(node.classList);
     element.settings.className = classNames.join(' ');
@@ -352,48 +431,15 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         targetClass = {
           id: classId,
           name: cls,
-          settings: {}
+          settings: cssRulesMap[cls] ? parseCssDeclarations(cssRulesMap[cls], cls) : {}
         };
-        
-        // Process base styles
-        if (cssRulesMap[cls]) {
-          const baseStyles = parseCssDeclarations(cssRulesMap[cls], cls);
-          Object.assign(targetClass.settings, baseStyles);
-        }
-        
-        // Process all pseudo-classes to match exact required structure
-        ['hover', 'active', 'focus', 'visited'].forEach(pseudo => {
-          const pseudoKey = `${cls}:${pseudo}`;
-          if (cssRulesMap[pseudoKey]) {
-            const pseudoStyles = parseCssDeclarations(cssRulesMap[pseudoKey], cls);
-            
-            // Create nested pseudo-class object
-            targetClass.settings[pseudo] = {};
-            
-            // Add individual properties to pseudo-class object
-            Object.entries(pseudoStyles).forEach(([prop, value]) => {
-              // Handle special cases (like _cssCustom)
-              if (prop === '_cssCustom') {
-                targetClass.settings[pseudo][prop] = value;
-              } else {
-                // Convert property names (remove underscore)
-                const cleanProp = prop.startsWith('_') ? prop.substring(1) : prop;
-                targetClass.settings[pseudo][prop] = value;
-                
-                // Also add the property:pseudo format
-                targetClass.settings[`${prop}:${pseudo}`] = value;
-              }
-            });
-          }
-        });
-        
         globalClasses.push(targetClass);
         cssGlobalClasses.push(classId);
       } else {
         cssGlobalClasses.push(targetClass.id);
       }
     });
-    
+
     if (cssGlobalClasses.length > 0) {
       element.settings._cssGlobalClasses = cssGlobalClasses;
     }
@@ -469,7 +515,11 @@ const convertHtmlToBricks = (html, css) => {
     Array.from(doc.body.childNodes).forEach(node => {
       const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements);
       if (element) {
-        content.push(element);
+        if (Array.isArray(element)) {
+          content.push(...element);
+        } else {
+          content.push(element);
+        }
       }
     });
 
