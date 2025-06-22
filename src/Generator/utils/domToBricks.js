@@ -425,18 +425,37 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     const cssGlobalClasses = [];
 
     classNames.forEach(cls => {
-      let targetClass = globalClasses.find(c => c.name === cls);
-      if (!targetClass) {
+      if (!globalClasses.some(c => c.name === cls)) {
         const classId = getUniqueId();
-        targetClass = {
+        let targetClass = {
           id: classId,
           name: cls,
-          settings: cssRulesMap[cls] ? parseCssDeclarations(cssRulesMap[cls], cls) : {}
+          settings: {}
         };
+
+        // Process base styles
+        if (cssRulesMap[cls]) {
+          const baseStyles = parseCssDeclarations(cssRulesMap[cls], cls);
+          Object.assign(targetClass.settings, baseStyles);
+        }
+
+        // Process pseudo-classes
+        ['hover', 'active', 'focus', 'visited'].forEach(pseudo => {
+          const pseudoKey = `${cls}:${pseudo}`;
+          if (cssRulesMap[pseudoKey]) {
+            const pseudoStyles = parseCssDeclarations(cssRulesMap[pseudoKey], cls);
+            targetClass.settings[pseudo] = {};
+            Object.entries(pseudoStyles).forEach(([prop, value]) => {
+              targetClass.settings[pseudo][prop] = value;
+              targetClass.settings[`${prop}:${pseudo}`] = value;
+            });
+          }
+        });
+
         globalClasses.push(targetClass);
         cssGlobalClasses.push(classId);
       } else {
-        cssGlobalClasses.push(targetClass.id);
+        cssGlobalClasses.push(globalClasses.find(c => c.name === cls).id);
       }
     });
 
