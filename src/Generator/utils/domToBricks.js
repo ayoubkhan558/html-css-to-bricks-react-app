@@ -254,20 +254,37 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
     if (tag === 'tr') {
+      element.label = 'Table Row';
       element.settings.style = 'display: flex; width: 100%;';
-    } else if (['th', 'td'].includes(tag)) {
+    } else if (['tbody'].includes(tag)) {
+      element.label = 'Table Body';
+      element.settings.style = 'flex: 1; padding: 8px;';
+    } else if (['theader'].includes(tag)) {
+      element.label = 'Table Header';
+      element.settings.style = 'flex: 1; padding: 8px;';
+    } else if (['tfoot'].includes(tag)) {
+      element.label = 'Table Footer';
+      element.settings.style = 'flex: 1; padding: 8px;';
+    } else if (['th'].includes(tag)) {
+      element.label = 'Table Head';
+      element.settings.style = 'flex: 1; padding: 8px;';
+    } else if (['td'].includes(tag)) {
+      element.label = 'Cell';
       element.settings.style = 'flex: 1; padding: 8px;';
     }
   } else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
     name = 'div';
+    element.label = 'Canvas';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
   } else if (['figure', 'figcaption'].includes(tag)) {
     name = 'section';
+    element.label = 'Figure';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
   } else if (['pre', 'code'].includes(tag)) {
     name = 'text-basic';
+    element.label = 'Pre';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
   } else if (tag === 'audio') {
@@ -520,7 +537,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Skip form fields handled by processFormElement
   if (node.closest('form') && ['input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
     return null;
-  } 
+  }
 
   allElements.push(element);
   return element;
