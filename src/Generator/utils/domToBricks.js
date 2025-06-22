@@ -199,7 +199,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     name = 'text-basic';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
-    
+
     // Create child element for the actual text content
     const textElement = {
       id: getUniqueId(),
@@ -220,6 +220,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     name = 'text-link';
   } else if (tag === 'button') {
     name = 'button';
+    element.settings.style = "primary";
+    element.settings.tag = "button";
+    element.settings.size = "md";
   } else if (tag === 'svg') {
     name = 'svg';
   } else if (tag === 'form') {
