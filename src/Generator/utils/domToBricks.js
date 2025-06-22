@@ -421,7 +421,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Handle CSS classes
   if (node.classList && node.classList.length > 0) {
     const classNames = Array.from(node.classList);
-    element.settings.className = classNames.join(' ');
     const cssGlobalClasses = [];
 
     classNames.forEach(cls => {
@@ -449,6 +448,15 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
               targetClass.settings[pseudo][prop] = value;
               targetClass.settings[`${prop}:${pseudo}`] = value;
             });
+          }
+        });
+
+        // Process responsive styles
+        ['tablet', 'tablet_portrait', 'mobile', 'mobile_landscape', 'mobile_portrait'].forEach(breakpoint => {
+          const breakpointKey = `${cls}:${breakpoint}`;
+          if (cssRulesMap[breakpointKey]) {
+            const breakpointStyles = parseCssDeclarations(cssRulesMap[breakpointKey], cls);
+            targetClass.settings[`_${breakpoint.replace('_', '-')}`] = breakpointStyles;
           }
         });
 
