@@ -1,81 +1,42 @@
 import { getUniqueId } from '../utils';
 
-export const processTextElement = (node) => {
-  const tag = node.tagName.toLowerCase();
-  const elementId = getUniqueId();
-  
-  let name, label;
-  
-  if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
-    name = 'heading';
-    label = `Heading ${tag.replace('h', '')}`;
-  } else if (['p', 'span', 'address'].includes(tag)) {
-    name = 'text-basic';
-    label = tag === 'p' ? 'Paragraph' : tag === 'span' ? 'Inline Text' : 'Address';
-  } else if (['time', 'mark'].includes(tag)) {
-    name = 'text-basic';
-    label = tag === 'time' ? 'Time' : 'Mark';
-  } else if (tag === 'blockquote') {
-    name = 'text-basic';
-    label = 'Blockquote';
-  } else if (['pre', 'code'].includes(tag)) {
-    name = 'text-basic';
-    label = 'Code';
-  }
-
-  const element = {
-    id: elementId,
-    name,
-    parent: 0,
-    children: [],
-    settings: {
-      text: node.textContent.trim(),
-      tag: ['time', 'mark', 'blockquote', 'pre', 'code'].includes(tag) ? 'custom' : tag
-    }
-  };
-
-  if (['time', 'mark', 'blockquote', 'pre', 'code'].includes(tag)) {
-    element.settings.customTag = tag;
-  }
-
-  if (tag === 'blockquote') {
-    // Create child element for the actual text content
+const processTextNode = (node, parentId, allElements) => {
+  if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
     const textElement = {
       id: getUniqueId(),
       name: 'text-basic',
-      parent: elementId,
+      parent: parentId,
       children: [],
       settings: {
         text: node.textContent.trim(),
         tag: 'p'
       }
     };
-    element.children.push(textElement.id);
-    return [element, textElement];
+    allElements.push(textElement);
+    return textElement;
   }
-
-  return element;
+  return null;
 };
 
-export const processLinkElement = (node) => {
-  const elementId = getUniqueId();
-  
+const processTextElement = (node, elementId, allElements) => {
+  const tag = node.tagName.toLowerCase();
   const element = {
     id: elementId,
-    name: 'text-link',
-    parent: 0,
+    name: 'text-basic',
+    parent: '0',
     children: [],
     settings: {
-      text: node.textContent.trim(),
-      link: {
-        type: 'external',
-        url: node.getAttribute('href') || '',
-        noFollow: node.getAttribute('rel')?.includes('nofollow') || false,
-        openInNewWindow: node.getAttribute('target') === '_blank',
-        noReferrer: node.getAttribute('rel')?.includes('noreferrer') || false
-      }
+      tag: ['p', 'span', 'address'].includes(tag) ? tag : 'custom',
+      ...(['time', 'mark', 'blockquote', 'pre', 'code'].includes(tag) && { customTag: tag })
     }
   };
 
+  if (['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'address', 'span', 'a'].includes(tag)) {
+    element.settings.text = node.textContent.trim();
+  }
+
+  allElements.push(element);
   return element;
 };
+
+export { processTextNode, processTextElement };

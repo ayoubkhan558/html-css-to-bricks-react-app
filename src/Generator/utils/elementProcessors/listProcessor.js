@@ -1,17 +1,7 @@
 import { getUniqueId } from '../utils';
 
-export const processListElement = (node, cssRulesMap, parentId, globalClasses, allElements) => {
+const processList = (node, elementId, allElements) => {
   const tag = node.tagName.toLowerCase();
-  const elementId = getUniqueId();
-  
-  const element = {
-    id: elementId,
-    name: 'div',
-    parent: parentId,
-    children: [],
-    settings: { tag }
-  };
-
   const listItems = Array.from(node.children).filter(child => child.tagName.toLowerCase() === 'li');
   const hasComplexContent = listItems.some(li =>
     Array.from(li.childNodes).some(n =>
@@ -21,12 +11,29 @@ export const processListElement = (node, cssRulesMap, parentId, globalClasses, a
 
   if (!hasComplexContent) {
     // Text-only list: convert to rich text
-    element.name = 'text';
-    element.settings.text = node.innerHTML.trim();
-    return element;
+    return {
+      id: elementId,
+      name: 'text',
+      parent: '0',
+      children: [],
+      settings: {
+        tag,
+        text: node.innerHTML.trim()
+      },
+      label: tag === 'ul' ? 'Unordered List' : 'Ordered List'
+    };
   }
 
   // Complex list: convert to div with nested divs for li
+  const element = {
+    id: elementId,
+    name: 'div',
+    parent: '0',
+    children: [],
+    settings: { tag },
+    label: tag === 'ul' ? 'Unordered List' : 'Ordered List'
+  };
+
   listItems.forEach((li, index) => {
     const liId = getUniqueId();
     const liElement = {
@@ -37,29 +44,6 @@ export const processListElement = (node, cssRulesMap, parentId, globalClasses, a
       settings: { tag: 'li' }
     };
 
-    // Process li children
-    Array.from(li.childNodes).forEach(child => {
-      if (child.nodeType === Node.ELEMENT_NODE) {
-        const childElement = domNodeToBricks(child, cssRulesMap, liId, globalClasses, allElements);
-        if (childElement) {
-          liElement.children.push(childElement.id);
-        }
-      } else if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
-        const textElement = {
-          id: getUniqueId(),
-          name: 'text-basic',
-          parent: liId,
-          children: [],
-          settings: {
-            text: child.textContent.trim(),
-            tag: 'span'
-          }
-        };
-        allElements.push(textElement);
-        liElement.children.push(textElement.id);
-      }
-    });
-
     allElements.push(liElement);
     element.children.push(liId);
   });
@@ -67,38 +51,4 @@ export const processListElement = (node, cssRulesMap, parentId, globalClasses, a
   return element;
 };
 
-export const processListItemElement = (node, cssRulesMap, parentId, globalClasses, allElements) => {
-  const elementId = getUniqueId();
-  const element = {
-    id: elementId,
-    name: 'div',
-    parent: parentId,
-    children: [],
-    settings: { tag: 'li' }
-  };
-
-  // Process children
-  Array.from(node.childNodes).forEach(child => {
-    if (child.nodeType === Node.ELEMENT_NODE) {
-      const childElement = domNodeToBricks(child, cssRulesMap, elementId, globalClasses, allElements);
-      if (childElement) {
-        element.children.push(childElement.id);
-      }
-    } else if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
-      const textElement = {
-        id: getUniqueId(),
-        name: 'text-basic',
-        parent: elementId,
-        children: [],
-        settings: {
-          text: child.textContent.trim(),
-          tag: 'span'
-        }
-      };
-      allElements.push(textElement);
-      element.children.push(textElement.id);
-    }
-  });
-
-  return element;
-};
+export { processList };

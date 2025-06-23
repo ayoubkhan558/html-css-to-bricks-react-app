@@ -1,45 +1,47 @@
 import { getUniqueId } from '../utils';
 
-export const processTableElement = (node, cssRulesMap, parentId, globalClasses, allElements) => {
+const processTableElement = (node, elementId) => {
   const tag = node.tagName.toLowerCase();
-  const elementId = getUniqueId();
-  
   const element = {
     id: elementId,
     name: 'div',
-    parent: parentId,
+    parent: '0',
     children: [],
     settings: {
       tag: 'custom',
       customTag: tag
-    }
+    },
+    label: 'Table'
   };
 
-  if (tag === 'tr') {
-    element.settings.style = 'display: flex; width: 100%;';
-  } else if (['tbody', 'thead', 'tfoot'].includes(tag)) {
-    element.settings.style = 'flex: 1; padding: 8px;';
-  } else if (tag === 'th') {
-    element.settings.style = 'flex: 1; padding: 8px;';
-  } else if (tag === 'td') {
-    element.settings.style = 'flex: 1; padding: 8px;';
+  switch (tag) {
+    case 'tr':
+      element.label = 'Table Row';
+      element.settings.style = 'display: flex; width: 100%;';
+      break;
+    case 'tbody':
+      element.label = 'Table Body';
+      element.settings.style = 'flex: 1; padding: 8px;';
+      break;
+    case 'thead':
+      element.label = 'Table Header';
+      element.settings.style = 'flex: 1; padding: 8px;';
+      break;
+    case 'tfoot':
+      element.label = 'Table Footer';
+      element.settings.style = 'flex: 1; padding: 8px;';
+      break;
+    case 'th':
+      element.label = 'Table Head';
+      element.settings.style = 'flex: 1; padding: 8px;';
+      break;
+    case 'td':
+      element.label = 'Cell';
+      element.settings.style = 'flex: 1; padding: 8px;';
+      break;
   }
-
-  // Process children
-  Array.from(node.childNodes).forEach(childNode => {
-    if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
-      return;
-    }
-    
-    const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements);
-    if (childElement) {
-      if (Array.isArray(childElement)) {
-        childElement.forEach(c => element.children.push(c.id));
-      } else {
-        element.children.push(childElement.id);
-      }
-    }
-  });
 
   return element;
 };
+
+export { processTableElement };

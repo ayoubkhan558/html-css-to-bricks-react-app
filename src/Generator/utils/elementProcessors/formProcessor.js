@@ -1,6 +1,5 @@
 import { getUniqueId } from '../utils';
 
-// Map HTML input types to Bricks form field types
 const getBricksFieldType = (node) => {
   const type = (node.getAttribute('type') || 'text').toLowerCase();
   const tagName = node.tagName.toLowerCase();
@@ -18,7 +17,6 @@ const getBricksFieldType = (node) => {
   }
 };
 
-// Process form field attributes
 const processFormField = (form, node) => {
   const tagName = node.tagName.toLowerCase();
   if (!['input', 'select', 'textarea', 'button'].includes(tagName)) return null;
@@ -132,21 +130,4 @@ export const processFormElement = (formNode) => {
   });
 
   return formElement;
-};
-
-export const processFormFieldElement = (node) => {
-  if (node.closest('form')) {
-    return null; // Skip fields that are part of a form (handled by processFormElement)
-  }
-  
-  const field = processFormField(document.createElement('div'), node);
-  if (!field) return null;
-  
-  return {
-    id: getUniqueId(),
-    name: field.type === 'checkbox' ? 'checkbox' : 'input',
-    parent: 0,
-    children: [],
-    settings: field
-  };
 };
