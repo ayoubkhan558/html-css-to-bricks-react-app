@@ -483,58 +483,84 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   handleAttributes(node, element);
 
-  // Handle CSS classes
-  if (node.classList && node.classList.length > 0) {
-    const classNames = Array.from(node.classList);
-    const cssGlobalClasses = [];
+    // Determine / create primary global class for this element
+  const attrClassNames = node.classList ? Array.from(node.classList) : [];
+  const primaryClassName = attrClassNames.length > 0 ? attrClassNames[0] : `auto-${tag}`;
 
-    classNames.forEach(cls => {
-      if (!globalClasses.some(c => c.name === cls)) {
-        const classId = getUniqueId();
-        let targetClass = {
-          id: classId,
-          name: cls,
-          settings: {}
-        };
-
-        // Process base styles
-        if (cssRulesMap[cls]) {
-          const baseStyles = parseCssDeclarations(cssRulesMap[cls], cls);
-          Object.assign(targetClass.settings, baseStyles);
-        }
-
-        // Process pseudo-classes
-        ['hover', 'active', 'focus', 'visited'].forEach(pseudo => {
-          const pseudoKey = `${cls}:${pseudo}`;
-          if (cssRulesMap[pseudoKey]) {
-            const pseudoStyles = parseCssDeclarations(cssRulesMap[pseudoKey], cls);
-            targetClass.settings[pseudo] = {};
-            Object.entries(pseudoStyles).forEach(([prop, value]) => {
-              targetClass.settings[pseudo][prop] = value;
-              targetClass.settings[`${prop}:${pseudo}`] = value;
-            });
-          }
-        });
-
-        // Process responsive styles
-        ['tablet', 'tablet_portrait', 'mobile', 'mobile_landscape', 'mobile_portrait'].forEach(breakpoint => {
-          const breakpointKey = `${cls}:${breakpoint}`;
-          if (cssRulesMap[breakpointKey]) {
-            const breakpointStyles = parseCssDeclarations(cssRulesMap[breakpointKey], cls);
-            targetClass.settings[`_${breakpoint.replace('_', '-')}`] = breakpointStyles;
-          }
-        });
-
-        globalClasses.push(targetClass);
-        cssGlobalClasses.push(classId);
+  // Deep merge utility to preserve nested objects
+  const mergeSettings = (target, source) => {
+    Object.entries(source).forEach(([key, value]) => {
+      if (
+        value && typeof value === 'object' && !Array.isArray(value) &&
+        key in target && typeof target[key] === 'object' && !Array.isArray(target[key])
+      ) {
+        mergeSettings(target[key], value);
       } else {
-        cssGlobalClasses.push(globalClasses.find(c => c.name === cls).id);
+        target[key] = value;
       }
     });
+  };
 
-    if (cssGlobalClasses.length > 0) {
-      element.settings._cssGlobalClasses = cssGlobalClasses;
+  let primaryClassObj = globalClasses.find(c => c.name === primaryClassName);
+  if (!primaryClassObj) {
+    primaryClassObj = { id: getUniqueId(), name: primaryClassName, settings: {} };
+    globalClasses.push(primaryClassObj);
+  }
+  const primaryClassId = primaryClassObj.id;
+
+  // Merge styles in specificity order into primary class settings
+  if (cssRulesMap[tag]) {
+    mergeSettings(primaryClassObj.settings, parseCssDeclarations(cssRulesMap[tag], primaryClassName));
+  }
+
+  attrClassNames.forEach(cls => {
+    // Merge standalone class selector styles
+    if (cssRulesMap[cls]) {
+      mergeSettings(primaryClassObj.settings, parseCssDeclarations(cssRulesMap[cls], primaryClassName));
     }
+
+    // Merge combined tag + class selector styles (e.g., 'button.primary-btn')
+    const combinedKey = `${tag}.${cls}`;
+    if (cssRulesMap[combinedKey]) {
+      mergeSettings(primaryClassObj.settings, parseCssDeclarations(cssRulesMap[combinedKey], primaryClassName));
+    }
+  });
+
+  // Merge selectors that target this tag via an ancestor class (e.g., 'simple-section button')
+  let ancestor = node.parentElement;
+  while (ancestor) {
+    if (ancestor.classList && ancestor.classList.length) {
+      Array.from(ancestor.classList).forEach(ancCls => {
+        const descKey = `${ancCls} ${tag}`;
+        if (cssRulesMap[descKey]) {
+          mergeSettings(primaryClassObj.settings, parseCssDeclarations(cssRulesMap[descKey], primaryClassName));
+        }
+      });
+    }
+    ancestor = ancestor.parentElement;
+  }
+
+  if (node.hasAttribute('id')) {
+    const idVal = node.getAttribute('id');
+    const idKey = `#${idVal}`;
+    if (cssRulesMap[idKey]) {
+      mergeSettings(primaryClassObj.settings, parseCssDeclarations(cssRulesMap[idKey], primaryClassName));
+    }
+  }
+
+  // Attach global class to element
+  element.settings._cssGlobalClasses = [primaryClassId];
+
+    // Also include the remaining class names (besides primary) to the element
+  if (attrClassNames.length > 1) {
+    attrClassNames.slice(1).forEach(cls => {
+      let obj = globalClasses.find(c => c.name === cls);
+      if (!obj) {
+        obj = { id: getUniqueId(), name: cls, settings: {} };
+        globalClasses.push(obj);
+      }
+      element.settings._cssGlobalClasses.push(obj.id);
+    });
   }
 
   // Handle specific element content

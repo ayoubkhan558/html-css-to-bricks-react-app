@@ -3,14 +3,14 @@
 // Convert basic color names to hex; pass through hex values
 export function toHex(raw) {
   if (!raw) return null;
-  const basic = { 
-    red: '#ff0000', 
-    green: '#008000', 
-    blue: '#0000ff', 
-    black: '#000000', 
-    white: '#ffffff', 
-    gray: '#808080', 
-    grey: '#808080' 
+  const basic = {
+    red: '#ff0000',
+    green: '#008000',
+    blue: '#0000ff',
+    black: '#000000',
+    white: '#ffffff',
+    gray: '#808080',
+    grey: '#808080'
   };
   const trimmed = raw.trim().toLowerCase();
   if (trimmed.startsWith('#')) return trimmed;
@@ -22,7 +22,7 @@ export function toHex(raw) {
 function rgbToHex(color) {
   if (!color) return '#000000';
   if (color.startsWith('#')) return color;
-  
+
   // Handle rgb/rgba colors
   const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
   if (rgbMatch) {
@@ -37,13 +37,13 @@ function rgbToHex(color) {
 // Parse numeric values, removing 'px' unit but keeping other units
 const parseValue = (value) => {
   if (typeof value !== 'string') return value;
-  
+
   // Handle CSS variables
   if (value.startsWith('var(')) return value;
-  
+
   // Handle calc() and other CSS functions
   if (value.includes('(')) return value;
-  
+
   // Handle numbers with units
   const numMatch = value.match(/^(-?\d*\.?\d+)([a-z%]*)$/);
   if (numMatch) {
@@ -55,7 +55,7 @@ const parseValue = (value) => {
     // For other units (%, em, rem, deg, etc.), keep the unit
     return value;
   }
-  
+
   return value;
 };
 
@@ -113,7 +113,7 @@ export const CSS_PROP_MAPPERS = {
     settings._typography = settings._typography || {};
     settings._typography['text-wrap'] = val;
   },
-  
+
   // Background
   'background-color': (val, settings) => {
     const hex = toHex(val);
@@ -150,7 +150,7 @@ export const CSS_PROP_MAPPERS = {
     settings._background = settings._background || {};
     settings._background.blendMode = val;
   },
-  
+
   // Border
   border: (val, settings) => {
     const [width, style, color] = val.split(' ').filter(Boolean);
@@ -206,7 +206,7 @@ export const CSS_PROP_MAPPERS = {
       settings._border.color = { hex };
     }
   },
-  
+
   // Spacing
   margin: (val, settings) => {
     const values = val.split(' ').map(v => parseValue(v));
@@ -226,7 +226,7 @@ export const CSS_PROP_MAPPERS = {
       left: values[3] || (values[1] || values[0])
     };
   },
-  
+
   // Sizing
   width: (val, settings) => {
     settings._width = parseValue(val);
@@ -246,7 +246,7 @@ export const CSS_PROP_MAPPERS = {
   'max-height': (val, settings) => {
     settings._heightMax = parseValue(val);
   },
-  
+
   // Position
   position: (val, settings) => {
     settings._position = val;
@@ -266,7 +266,7 @@ export const CSS_PROP_MAPPERS = {
   'z-index': (val, settings) => {
     settings._zIndex = parseValue(val);
   },
-  
+
   // Flexbox
   display: (val, settings) => {
     settings._display = val;
@@ -301,7 +301,7 @@ export const CSS_PROP_MAPPERS = {
   'gap': (val, settings) => {
     settings._gap = parseValue(val);
   },
-  
+
   // Effects
   'opacity': (val, settings) => {
     settings._opacity = parseValue(val);
@@ -324,7 +324,7 @@ export const CSS_PROP_MAPPERS = {
   'isolation': (val, settings) => {
     settings._isolation = val;
   },
-  
+
   // Transforms
   'transform': (val, settings) => {
     settings._transform = settings._transform || {};
@@ -334,7 +334,7 @@ export const CSS_PROP_MAPPERS = {
       const match = transform.match(/(\w+)\(([^)]+)\)/);
       if (match) {
         const [_, fn, value] = match;
-        
+
         // Process each value in the transform function
         const processedValues = value.split(',').map(v => {
           const trimmed = v.trim();
@@ -352,15 +352,15 @@ export const CSS_PROP_MAPPERS = {
           }
           return trimmed;
         });
-        
+
         // Join multiple values with space (e.g., for translate3d)
         const processedValue = processedValues.join(' ');
-        
+
         settings._transform[fn] = processedValue;
       }
     });
   },
-  
+
   // Box Shadow
   'box-shadow': (val, settings) => {
     // Don't set box shadow in global classes, it should be in the element settings
@@ -369,7 +369,7 @@ export const CSS_PROP_MAPPERS = {
       settings._boxShadow = boxShadow;
     }
   },
-  
+
   // Text Shadow
   'text-shadow': (val, settings) => {
     const parts = val.split(' ');
@@ -384,12 +384,12 @@ export const CSS_PROP_MAPPERS = {
       };
     }
   },
-  
+
   // Transition
   'transition': (val, settings) => {
     settings._cssTransition = val;
   },
-  
+
   // Scroll
   'scroll-snap-type': (val, settings) => {
     settings._scrollSnapType = val;
@@ -400,12 +400,12 @@ export const CSS_PROP_MAPPERS = {
   'scroll-snap-stop': (val, settings) => {
     settings._scrollSnapStop = val;
   },
-  
+
   // CSS Classes
   'css-classes': (val, settings) => {
     settings._cssClasses = val;
   },
-  
+
   // CSS Filters
   'filter': (val, settings) => {
     settings._cssFilters = settings._cssFilters || {};
@@ -420,12 +420,12 @@ export const CSS_PROP_MAPPERS = {
       }
     });
   },
-  
+
   // Special mapper for pseudo-classes
   '_pseudo': (value, settings, pseudoClass) => {
     if (!settings._pseudo) settings._pseudo = {};
     if (!settings._pseudo[pseudoClass]) settings._pseudo[pseudoClass] = {};
-    
+
     // Handle nested properties for pseudo-classes
     if (value.startsWith('_')) {
       // Handle Bricks-specific properties like _background, _typography
@@ -436,7 +436,7 @@ export const CSS_PROP_MAPPERS = {
       const [prop, val] = value.split(':').map(s => s.trim());
       const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
       const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
-      
+
       if (mapper) {
         const pseudoSettings = {};
         mapper(val, pseudoSettings);
@@ -444,25 +444,25 @@ export const CSS_PROP_MAPPERS = {
       }
     }
   },
-  
+
   // Background mapper
   '_background': (value, settings) => {
     settings._background = settings._background || {};
-    
+
     // Handle pseudo-class states (hover, active, etc.)
     if (typeof value === 'object') {
       Object.assign(settings._background, value);
-    } 
+    }
     // Handle regular color values
     else {
       settings._background.color = parseColor(value);
     }
   },
-  
+
   // Border mapper
   '_border': (value, settings) => {
     settings._border = settings._border || {};
-    
+
     // Handle pseudo-class states
     if (typeof value === 'object') {
       Object.assign(settings._border, value);
@@ -472,11 +472,11 @@ export const CSS_PROP_MAPPERS = {
       // Parse border shorthand
     }
   },
-  
+
   // Transform mapper
   '_transform': (value, settings) => {
     settings._transform = settings._transform || {};
-    
+
     // Handle pseudo-class states
     if (typeof value === 'object') {
       Object.assign(settings._transform, value);
@@ -500,28 +500,28 @@ const supportedProperties = [
 export function parseCssDeclarations(cssText, className = '') {
   const settings = {};
   const customRules = {};
-  
+
   // Remove any newlines and extra spaces
   const cleanCss = cssText.replace(/\s+/g, ' ').replace(/\s*([:;{}])\s*/g, '$1').trim();
   const declarations = cleanCss.split(';').filter(Boolean);
-  
+
   declarations.forEach(decl => {
     if (!decl.trim()) return;
-    
+
     const colonIndex = decl.indexOf(':');
     if (colonIndex === -1) return;
-    
+
     const prop = decl.slice(0, colonIndex).trim();
     const value = decl.slice(colonIndex + 1).trim();
-    
+
     if (!prop || !value) return;
-    
+
     // Check for pseudo-class in property name (shouldn't happen in raw CSS, but just in case)
     const pseudoMatch = prop.match(/(.*):(hover|active|focus|visited)$/);
     if (pseudoMatch) {
       const baseProp = pseudoMatch[1];
       const pseudoClass = pseudoMatch[2];
-      
+
       if (baseProp === 'transform') {
         if (!settings['_transform:' + pseudoClass]) settings['_transform:' + pseudoClass] = {};
         const scaleValue = value.match(/scale\(([^)]+)\)/)?.[1];
@@ -531,10 +531,10 @@ export function parseCssDeclarations(cssText, className = '') {
         }
         return;
       }
-      
+
       const bricksProp = baseProp.startsWith('_') ? baseProp : `_${baseProp.replace(/-([a-z])/g, (_, l) => l.toUpperCase())}`;
       const mapper = CSS_PROP_MAPPERS[bricksProp] || CSS_PROP_MAPPERS[baseProp];
-      
+
       if (mapper) {
         const pseudoSettings = {};
         mapper(value, pseudoSettings);
@@ -542,13 +542,13 @@ export function parseCssDeclarations(cssText, className = '') {
       }
       return;
     }
-    
+
     // Handle Bricks' pseudo-class format (property:pseudo)
     const bricksPseudoMatch = prop.match(/^(_[a-zA-Z]+):(hover|active|focus|visited)$/);
     if (bricksPseudoMatch) {
       const baseProp = bricksPseudoMatch[1];
       const pseudoClass = bricksPseudoMatch[2];
-      
+
       if (CSS_PROP_MAPPERS[baseProp]) {
         const pseudoSettings = {};
         CSS_PROP_MAPPERS[baseProp](value, pseudoSettings);
@@ -556,11 +556,11 @@ export function parseCssDeclarations(cssText, className = '') {
       }
       return;
     }
-    
+
     // Handle regular properties
     const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
     const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
-    
+
     if (mapper) {
       try {
         mapper(value, settings);
@@ -579,7 +579,7 @@ export function parseCssDeclarations(cssText, className = '') {
       }
     }
   });
-  
+
   if (Object.keys(customRules).length > 0) {
     const fallbackClassName = className || '%root%';
     const cssRules = Object.keys(customRules).map(prop => {
@@ -588,7 +588,7 @@ export function parseCssDeclarations(cssText, className = '') {
     }).join('; ');
     settings._cssCustom = `${fallbackClassName} {\n  ${cssRules};\n}`;
   }
-  
+
   return settings;
 }
 
@@ -602,34 +602,34 @@ export function convertToBricks(html, css) {
   // Parse the HTML to get button text
   const buttonTextMatch = html.match(/>([^<]+)</);
   const buttonText = buttonTextMatch ? buttonTextMatch[1].trim() : '';
-  
+
   // Extract class name from HTML
   const classMatch = html.match(/class=["']([^"']+)["']/);
   const className = classMatch ? classMatch[1] : 'custom-button';
-  
+
   // Parse CSS
   const cssMap = buildCssMap(css);
   const cssClass = Object.keys(cssMap)[0];
   const cssBody = cssMap[cssClass] || '';
-  
+
   // Parse CSS declarations
   const settings = parseCssDeclarations(cssBody, className);
-  
+
   // Clean up _cssCustom array by removing any properties that are already mapped
   if (settings._cssCustom && Array.isArray(settings._cssCustom)) {
     const mappedProps = [
-      'color', 'font-size', 'background-color', 'border', 'border-radius', 
+      'color', 'font-size', 'background-color', 'border', 'border-radius',
       'cursor', 'padding', 'margin'
     ];
-    
+
     // Convert mapped props to a regex pattern
     const mappedPropsPattern = new RegExp(`^(${mappedProps.join('|')}):`);
-    
+
     // Filter out any properties that match our mapped props
     settings._cssCustom = settings._cssCustom.filter(prop => {
       return !mappedPropsPattern.test(prop);
     });
-    
+
     // Format _cssCustom as a proper CSS rule
     if (settings._cssCustom && Array.isArray(settings._cssCustom) && settings._cssCustom.length > 0) {
       // Filter out any empty strings and remove duplicates
@@ -646,10 +646,10 @@ export function convertToBricks(html, css) {
       settings._cssCustom = '';
     }
   }
-  
+
   // Generate a random ID for the global class
   const classId = Math.random().toString(36).substring(2, 8);
-  
+
   return {
     content: [{
       id: Math.random().toString(36).substring(2, 8),
@@ -679,64 +679,121 @@ export function convertToBricks(html, css) {
 }
 
 export function buildCssMap(cssText) {
+  // Strip CSS comments to avoid comment text blocking selector parsing
+  cssText = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
   const map = {};
+
   // Match CSS rules, handling nested rules and media queries
   const regex = /([^{]+)\s*{([^}]*)}/g;
   let match;
-  
+
   while ((match = regex.exec(cssText))) {
     const selector = match[1].trim();
     const body = match[2].trim();
-    
-    // Extract class names (e.g., `.btn`, `.foo-bar:hover`, `header .hero__wrapper`) and simple tag selectors
+
+    // Split multiple selectors separated by commas
     const selectors = selector.split(',');
+
     selectors.forEach(sel => {
       const trimmedSel = sel.trim();
       if (!trimmedSel) return;
 
-      // Capture all class names within this selector (may include pseudo-classes / combinators)
-      const classRegex = /\.([A-Za-z0-9_-]+)(?::([a-z]+))?/g;
-      let classMatch;
-      while ((classMatch = classRegex.exec(trimmedSel)) !== null) {
-        const className = classMatch[1];
-        const pseudoClass = classMatch[2];
-        
-        if (pseudoClass) {
-          // Store pseudo-class variant separately
-          const pseudoKey = `${className}:${pseudoClass}`;
-          if (!map[pseudoKey]) {
-            map[pseudoKey] = body;
-          }
-        } else {
-          // Store base class
-          if (!map[className]) {
-            map[className] = body;
-          }
-        }
-      }
-      // If selector is a lone class (e.g., `.foo`) handle above logic; otherwise handled by regex
-      if (trimmedSel.startsWith('.')) {
-        const parts = trimmedSel.replace(/^[.\s]+/, '').split(':');
-        const loneClass = parts[0];
-        if (!map[loneClass]) {
-          map[loneClass] = body;
-        }
-        // If there's a pseudo-class, store it separately
-        if (parts.length > 1) {
-          const pseudoKey = `${loneClass}:${parts[1]}`;
-          if (!map[pseudoKey]) {
-            map[pseudoKey] = body;
-          }
-        }
-      }
+      // Extract the target element from complex selectors
+      const targetElements = extractTargetElements(trimmedSel);
 
-      // Capture simple tag selectors that have no combinators/pseudo
-      const tagCandidate = trimmedSel.replace(/:[^\s]*/, '').trim();
-      if (/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(tagCandidate)) {
-        map[tagCandidate.toLowerCase()] = body;
-      }
+      targetElements.forEach(target => {
+        if (!map[target]) {
+          map[target] = body;
+        } else {
+          map[target] += `; ${body}`;
+        }
+      });
     });
   }
-  
+
   return map;
+}
+
+function extractTargetElements(selector) {
+  const targets = [];
+
+  // Remove pseudo-classes/elements for analysis but keep them for the key
+  const pseudoMatch = selector.match(/^(.+?)(::?[a-z-]+(?:\([^)]*\))?)$/);
+  let baseSel = pseudoMatch ? pseudoMatch[1].trim() : selector;
+  const pseudoPart = pseudoMatch ? pseudoMatch[2] : '';
+
+  // Handle different types of selectors
+
+  // 1. Simple selectors (tag, class, id)
+  if (/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(baseSel)) {
+    // Simple tag selector like "p"
+    targets.push(baseSel.toLowerCase() + pseudoPart);
+  } else if (/^\.[a-zA-Z_-][a-zA-Z0-9_-]*$/.test(baseSel)) {
+    // Simple class selector like ".highlight-text"
+    targets.push(baseSel + pseudoPart);
+  } else if (/^#[a-zA-Z_-][a-zA-Z0-9_-]*$/.test(baseSel)) {
+    // Simple ID selector like "#main-para"
+    targets.push(baseSel + pseudoPart);
+  }
+  // 2. Complex selectors with combinators
+  else {
+    // Split by combinators (space, >, +, ~)
+    const parts = baseSel.split(/\s*([>+~])\s*|\s+/);
+    const lastPart = parts[parts.length - 1];
+
+    if (lastPart) {
+      // Check if the last part is a tag selector
+      if (/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(lastPart)) {
+        targets.push(lastPart.toLowerCase() + pseudoPart);
+      }
+      // Check if the last part is a class selector
+      else if (/^\.[a-zA-Z_-][a-zA-Z0-9_-]*$/.test(lastPart)) {
+        targets.push(lastPart + pseudoPart);
+      }
+      // Check if the last part is an ID selector
+      else if (/^#[a-zA-Z_-][a-zA-Z0-9_-]*$/.test(lastPart)) {
+        targets.push(lastPart + pseudoPart);
+      }
+      // Handle compound selectors (e.g., "div.class", "p#id")
+      else {
+        // Extract tag name if present
+        const tagMatch = lastPart.match(/^([a-zA-Z][a-zA-Z0-9_-]*)/);
+        if (tagMatch) {
+          targets.push(tagMatch[1].toLowerCase() + pseudoPart);
+        }
+
+        // Extract class names
+        const classMatches = lastPart.match(/\.[a-zA-Z_-][a-zA-Z0-9_-]*/g);
+        if (classMatches) {
+          classMatches.forEach(className => {
+            targets.push(className + pseudoPart);
+          });
+        }
+
+        // Extract ID
+        const idMatch = lastPart.match(/#[a-zA-Z_-][a-zA-Z0-9_-]*/);
+        if (idMatch) {
+          targets.push(idMatch[0] + pseudoPart);
+        }
+      }
+    }
+
+    // Also extract all individual classes and IDs from the entire selector
+    // This handles cases where intermediate selectors might also be relevant
+    const allClasses = baseSel.match(/\.[a-zA-Z_-][a-zA-Z0-9_-]*/g);
+    if (allClasses) {
+      allClasses.forEach(className => {
+        targets.push(className + pseudoPart);
+      });
+    }
+
+    const allIds = baseSel.match(/#[a-zA-Z_-][a-zA-Z0-9_-]*/g);
+    if (allIds) {
+      allIds.forEach(idName => {
+        targets.push(idName + pseudoPart);
+      });
+    }
+  }
+
+  return [...new Set(targets)]; // Remove duplicates
 }
