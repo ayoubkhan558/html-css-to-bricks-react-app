@@ -1,4 +1,4 @@
-# HTML to Bricks - Bricks Structure Generator
+# Code2Bricks - HTML CSS JS to Bricks
 
 This tool is designed to help Bricks Builder users quickly convert their existing HTML/CSS/JS into the proper JSON structure that Bricks Builder can import, saving significant development time when migrating or creating new templates.
 

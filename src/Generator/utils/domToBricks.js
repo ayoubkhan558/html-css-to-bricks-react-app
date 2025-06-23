@@ -259,7 +259,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     } else if (['tbody'].includes(tag)) {
       element.label = 'Table Body';
       element.settings.style = 'flex: 1; padding: 8px;';
-    } else if (['theader'].includes(tag)) {
+    } else if (['thead'].includes(tag)) {
       element.label = 'Table Header';
       element.settings.style = 'flex: 1; padding: 8px;';
     } else if (['tfoot'].includes(tag)) {
@@ -334,9 +334,14 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   element.name = name;
 
+  // Determine / create primary global class for this element
+  const attrClassNames = node.classList ? Array.from(node.classList) : [];
+  const randomId = Math.random().toString(36).substring(2, 8);
+  const primaryClassName = attrClassNames.length > 0 ? attrClassNames[0] : `${tag}-${randomId}`;
+
   // Generate default class if element has no classes
   if (!node.className && !['form', 'input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
-    const defaultClass = `${tag}-${getUniqueId().substring(0, 4)}`;
+    const defaultClass = primaryClassName;
     node.classList.add(defaultClass);
     if (!globalClasses.some(c => c.name === defaultClass)) {
       globalClasses.push({
