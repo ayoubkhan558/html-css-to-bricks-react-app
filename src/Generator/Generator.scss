@@ -1,10 +1,10 @@
-
 .generator {
   background: #1e1e2d;
   color: #fff;
   font-family: 'Inter', sans-serif;
   overflow: hidden;
   position: relative;
+  min-height: 100vh;
 
   &__header {
     padding: 20px;
@@ -149,9 +149,8 @@
 
   &__output-options {
     display: flex;
+    align-items: center;
     gap: 20px;
-    padding: 12px 0;
-    margin-bottom: 12px;
     border-bottom: 1px solid #2b2b40;
 
     .generator__toggle {
@@ -198,7 +197,11 @@
         }
       }
 
-
+      &-label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
     }
   }
 
