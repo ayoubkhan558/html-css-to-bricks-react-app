@@ -1,78 +1,70 @@
 import { toHex, parseValue } from '../cssParser';
 
-// Parse box-shadow CSS property
-export function parseBoxShadow(boxShadow) {
-  if (!boxShadow || boxShadow === 'none') {
-    return null;
+// Helper to parse filter values (removes units and converts to string)
+const parseFilterValue = (value) => {
+  if (typeof value !== 'string') return value;
+  const numMatch = value.match(/^(-?\d*\.?\d+)/);
+  return numMatch ? numMatch[1] : value;
+};
+
+// Individual filter mappers
+export const filterMappers = {
+  'blur': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    settings._cssFilters.blur = parseFilterValue(val);
+  },
+  'brightness': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    settings._cssFilters.brightness = parseFilterValue(val);
+  },
+  'contrast': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    settings._cssFilters.contrast = parseFilterValue(val);
+  },
+  'hue-rotate': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    settings._cssFilters.hueRotate = parseFilterValue(val);
+  },
+  'invert': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    settings._cssFilters.invert = parseFilterValue(val);
+  },
+  'opacity': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    settings._cssFilters.opacity = parseFilterValue(val);
+  },
+  'saturate': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    settings._cssFilters.saturate = parseFilterValue(val);
+  },
+  'sepia': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    settings._cssFilters.sepia = parseFilterValue(val);
   }
-
-  // Handle multiple shadows (comma-separated)
-  const shadows = boxShadow.split(',').map(s => s.trim());
-  
-  return shadows.map(shadow => {
-    // Parse inset, offsets, blur, spread, and color
-    const parts = shadow.split(/\s+/);
-    const result = {
-      inset: false,
-      offsetX: '0px',
-      offsetY: '0px',
-      blur: '0px',
-      spread: '0px',
-      color: 'rgba(0,0,0,0.5)'
-    };
-
-    // Check for inset
-    if (parts.includes('inset')) {
-      result.inset = true;
-      parts.splice(parts.indexOf('inset'), 1);
-    }
-
-    // Parse color (last value if it's a color, otherwise default)
-    const lastPart = parts[parts.length - 1];
-    if (lastPart && (lastPart.startsWith('#') || lastPart.startsWith('rgb') || lastPart.startsWith('hsl'))) {
-      result.color = lastPart;
-      parts.pop();
-    }
-
-    // Parse numeric values
-    const numbers = parts.map(part => {
-      const num = parseValue(part);
-      return isNaN(num) ? '0px' : `${num}px`;
-    });
-
-    // Assign values based on count
-    if (numbers.length >= 1) result.offsetX = numbers[0];
-    if (numbers.length >= 2) result.offsetY = numbers[1];
-    if (numbers.length >= 3) result.blur = numbers[2];
-    if (numbers.length >= 4) result.spread = numbers[3];
-
-    return result;
-  });
-}
+};
 
 export const effectsMappers = {
-  'opacity': (val, settings) => {
-    settings._effects = settings._effects || {};
-    settings._effects.opacity = parseFloat(val);
-  },
-  'box-shadow': (val, settings) => {
-    settings._effects = settings._effects || {};
-    settings._effects.boxShadow = parseBoxShadow(val);
-  },
   'filter': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    
+    // Handle combined filter property (e.g. 'blur(5px) brightness(1.2)')
+    const filters = val.match(/\b(blur|brightness|contrast|hue-rotate|invert|opacity|saturate|sepia)\(([^)]+)\)/g) || [];
+    
+    filters.forEach(filter => {
+      const match = filter.match(/(\w+)\(([^)]+)\)/);
+      if (match) {
+        const [_, fn, value] = match;
+        const mapper = filterMappers[fn];
+        if (mapper) mapper(value, settings);
+      }
+    });
+    
+    // Also store the original filter string
     settings._effects = settings._effects || {};
     settings._effects.filter = val;
   },
   'backdrop-filter': (val, settings) => {
     settings._effects = settings._effects || {};
     settings._effects.backdropFilter = val;
-  },
-  'mix-blend-mode': (val, settings) => {
-    settings._effects = settings._effects || {};
-    settings._effects.mixBlendMode = val;
-  },
-  'isolation': (val, settings) => {
-    settings._effects = settings._effects || {};
-    settings._effects.isolation = val;
   }
 };

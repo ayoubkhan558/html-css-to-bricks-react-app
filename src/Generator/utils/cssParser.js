@@ -629,7 +629,7 @@ export function convertToBricks(html, css) {
   if (settings._cssCustom && Array.isArray(settings._cssCustom)) {
     const mappedProps = [
       'color', 'font-size', 'background-color', 'border', 'border-radius', 
-      'cursor', 'padding', 'margin'
+      'cursor', 'padding', 'margin', 'box-shadow'
     ];
     
     // Convert mapped props to a regex pattern
