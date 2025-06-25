@@ -495,8 +495,11 @@ export function parseCssDeclarations(cssText, className = '') {
   const settings = {};
   const customRules = {};
 
+  // Remove CSS comments
+  const commentlessCss = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
+
   // Remove any newlines and extra spaces
-  const cleanCss = cssText.replace(/\s+/g, ' ').replace(/\s*([:;{}])\s*/g, '$1').trim();
+  const cleanCss = commentlessCss.replace(/\s+/g, ' ').replace(/\s*([:;{}])\s*/g, '$1').trim();
   const declarations = cleanCss.split(';').filter(Boolean);
 
   declarations.forEach(decl => {
@@ -678,11 +681,13 @@ export function convertToBricks(html, css) {
 
 export function buildCssMap(cssText) {
   const map = {};
+  // Remove CSS comments first
+  const cleanedCss = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
   // Match CSS rules, handling nested rules and media queries
   const regex = /([^{]+)\s*{([^}]*)}/g;
   let match;
 
-  while ((match = regex.exec(cssText))) {
+  while ((match = regex.exec(cleanedCss))) {
     const selector = match[1].trim();
     const body = match[2].trim();
 
