@@ -9,6 +9,8 @@ import { borderBoxShadowMappers } from './propertyMappers/boder-box-shadow';
 import { parseBoxShadow } from './propertyMappers/mapperUtils';
 import { filterMappers, effectsMappers, transitionsMappers } from './propertyMappers/filters-transitions';
 import { scrollSnapMappers } from './propertyMappers/layout-scroll-snap';
+import { gridMappers } from './propertyMappers/content-grid';
+import { flexboxMappers } from './propertyMappers/content-flexbox';
 
 // Convert basic color names to hex; pass through hex values
 export function toHex(val) {
@@ -82,6 +84,41 @@ export const parseValue = (value) => {
 
 // CSS properties Bricks has native controls for and how to map them
 export const CSS_PROP_MAPPERS = {
+  // Content Tab - Grid
+  'display': gridMappers['display'],
+  'grid-gap': gridMappers['grid-gap'],
+  'gap': gridMappers['gap'],
+  'grid-row-gap': gridMappers['grid-row-gap'],
+  'grid-column-gap': gridMappers['grid-column-gap'],
+  'grid-template-columns': gridMappers['grid-template-columns'],
+  'grid-template-rows': gridMappers['grid-template-rows'],
+  'grid-template-areas': gridMappers['grid-template-areas'],
+  'grid-auto-columns': gridMappers['grid-auto-columns'],
+  'grid-auto-rows': gridMappers['grid-auto-rows'],
+  'grid-auto-flow': gridMappers['grid-auto-flow'],
+  'grid-column': gridMappers['grid-column'],
+  'grid-row': gridMappers['grid-row'],
+  'grid-area': gridMappers['grid-area'],
+  'justify-items': gridMappers['justify-items'],
+  'align-items': gridMappers['align-items'],
+  'justify-content': gridMappers['justify-content'],
+  'align-content': gridMappers['align-content'],
+  'order': gridMappers['order'],
+  // Content Tab - Flexbox
+  'display': flexboxMappers['display'],
+  'flex-direction': flexboxMappers['flex-direction'],
+  'flex-wrap': flexboxMappers['flex-wrap'],
+  'justify-content': flexboxMappers['justify-content'],
+  'align-items': flexboxMappers['align-items'],
+  'align-content': flexboxMappers['align-content'],
+  'flex-grow': flexboxMappers['flex-grow'],
+  'flex-shrink': flexboxMappers['flex-shrink'],
+  'flex-basis': flexboxMappers['flex-basis'],
+  'align-self': flexboxMappers['align-self'],
+  'order': flexboxMappers['order'],
+  'gap': flexboxMappers['gap'],
+  'row-gap': flexboxMappers['row-gap'],
+  'column-gap': flexboxMappers['column-gap'],
   // Layout Mappers
   // Layout - Spacing - Margin - Padding
   'margin': spacingMappers['margin'],
@@ -109,46 +146,6 @@ export const CSS_PROP_MAPPERS = {
   'bottom': positionMappers['bottom'],
   'left': positionMappers['left'],
   'z-index': positionMappers['z-index'],
-  // Flexbox
-  display: (val, settings) => {
-    settings._display = val;
-  },
-  'flex-direction': (val, settings) => {
-    settings._flexDirection = val;
-  },
-  'justify-content': (val, settings) => {
-    settings._justifyContent = val;
-  },
-  'align-items': (val, settings) => {
-    settings._alignItems = val;
-  },
-  'flex-wrap': (val, settings) => {
-    settings._flexWrap = val;
-  },
-  'flex-grow': (val, settings) => {
-    settings._flexGrow = parseValue(val);
-  },
-  'flex-shrink': (val, settings) => {
-    settings._flexShrink = parseValue(val);
-  },
-  'flex-basis': (val, settings) => {
-    settings._flexBasis = parseValue(val);
-  },
-  'align-self': (val, settings) => {
-    settings._alignSelf = val;
-  },
-  'order': (val, settings) => {
-    settings._order = parseValue(val);
-  },
-  'gap': (val, settings) => {
-    settings._gap = parseValue(val);
-  },
-  'row-gap': (val, settings) => {
-    settings._rowGap = parseValue(val);
-  },
-  'column-gap': (val, settings) => {
-    settings._columnGap = parseValue(val);
-  },
   // Layout- Scroll Snap
   'scroll-snap-type': scrollSnapMappers['scroll-snap-type'],
   'scroll-snap-align': scrollSnapMappers['scroll-snap-align'],
@@ -382,9 +379,12 @@ export function parseCssDeclarations(cssText, className = '') {
     if (!settings._skipTransitionCustom) {
       settings._cssCustom = `${fallbackClassName} {\n  ${cssRules};\n}`;
     }
+    if (!settings._skipGapCustom) {
+      // Existing custom CSS generation for gaps
+    }
+    settings._skipTransitionCustom = false;
+    settings._skipGapCustom = false;
   }
-
-  settings._skipTransitionCustom = false;
 
   return settings;
 }

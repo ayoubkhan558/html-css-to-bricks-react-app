@@ -11,15 +11,19 @@ export const gridMappers = {
   
   'grid-gap': (val, settings) => {
     settings._gridGap = parseValue(val);
+    settings._skipGapCustom = true; // Prevent duplicate in _cssCustom
   },
   'gap': (val, settings) => {
     settings._gridGap = parseValue(val);
+    settings._skipGapCustom = true; // Prevent duplicate in _cssCustom
   },
   'grid-row-gap': (val, settings) => {
-    settings._gridRowGap = parseValue(val);
+    settings._gridGap = parseValue(val);
+    settings._skipGapCustom = true; // Prevent duplicate in _cssCustom
   },
   'grid-column-gap': (val, settings) => {
-    settings._gridColumnGap = parseValue(val);
+    settings._gridGap = parseValue(val);
+    settings._skipGapCustom = true; // Prevent duplicate in _cssCustom
   },
   
   'grid-template-columns': (val, settings) => {
@@ -74,7 +78,6 @@ export const gridMappers = {
 
 // Export individual mappers for direct import
 export const displayGridMapper = gridMappers['display'];
-export const gridGapMapper = gridMappers['grid-gap'];
 export const gridTemplateColumnsMapper = gridMappers['grid-template-columns'];
 export const gridTemplateRowsMapper = gridMappers['grid-template-rows'];
 export const gridAutoFlowMapper = gridMappers['grid-auto-flow'];
