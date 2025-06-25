@@ -57,10 +57,10 @@ export const parseValue = (value) => {
   if (numMatch) {
     const num = numMatch[1];
     const unit = numMatch[2];
-    
+
     // For px values, we just want the number
     if (unit === 'px') return num;
-    
+
     // For other units (%, em, rem, deg, etc.), keep the unit
     return value;
   }
@@ -189,19 +189,6 @@ export const CSS_PROP_MAPPERS = {
   // Transform
   'transform': (val, settings) => {
     settings._transform = val;
-  },
-
-  // Box Shadow
-  'box-shadow': (val, settings) => {
-    // Don't set box shadow in global classes, it should be in the element settings
-    if (!settings._isGlobalClass) {
-      const boxShadow = parseBoxShadow(val);
-      settings._boxShadow = boxShadow;
-
-      // Also set in _effects for consistency with other effects
-      settings._effects = settings._effects || {};
-      settings._effects.boxShadow = boxShadow;
-    }
   },
 
   // Text Shadow
