@@ -1,6 +1,7 @@
 // CSS parsing utilities
-import { parseBoxShadow } from './propertyMappers/effects';
-
+import { spacingMappers } from './propertyMappers/layout-spacing';
+import { sizingMappers } from './propertyMappers/layout-sizing';
+import { parseBoxShadow } from './propertyMappers/mapperUtils';
 
 // Convert basic color names to hex; pass through hex values
 export function toHex(raw) {
@@ -16,8 +17,8 @@ export function toHex(raw) {
   };
   const trimmed = raw.trim().toLowerCase();
   if (trimmed.startsWith('#')) return trimmed;
-  if (trimmed.startsWith('rgb') || trimmed.startsWith('hsl')) return null; // Skip complex colors for now
-  return basic[trimmed] || null;
+  if (basic[trimmed]) return basic[trimmed];
+  return rgbToHex(trimmed);
 }
 
 // Helper to convert rgb/rgba to hex
@@ -37,7 +38,7 @@ function rgbToHex(color) {
 }
 
 // Parse numeric values, removing 'px' unit but keeping other units
-const parseValue = (value) => {
+export const parseValue = (value) => {
   if (typeof value !== 'string') return value;
 
   // Handle CSS variables
@@ -49,11 +50,12 @@ const parseValue = (value) => {
   // Handle numbers with units
   const numMatch = value.match(/^(-?\d*\.?\d+)([a-z%]*)$/);
   if (numMatch) {
-    const [, num, unit] = numMatch;
-    // For unitless values, return as number
-    if (unit === '') return parseFloat(num);
-    // For px values, return as number
-    if (unit === 'px') return parseFloat(num);
+    const num = numMatch[1];
+    const unit = numMatch[2];
+    
+    // For px values, we just want the number
+    if (unit === 'px') return num;
+    
     // For other units (%, em, rem, deg, etc.), keep the unit
     return value;
   }
@@ -63,45 +65,35 @@ const parseValue = (value) => {
 
 // CSS properties Bricks has native controls for and how to map them
 export const CSS_PROP_MAPPERS = {
-  // Spacing
-  margin: (val, settings) => {
-    const values = val.split(' ').map(v => parseValue(v));
-    settings._margin = {
-      top: values[0],
-      right: values[1] || values[0],
-      bottom: values[2] || values[0],
-      left: values[3] || (values[1] || values[0])
-    };
-  },
-  padding: (val, settings) => {
-    const values = val.split(' ').map(v => parseValue(v));
-    settings._padding = {
-      top: values[0],
-      right: values[1] || values[0],
-      bottom: values[2] || values[0],
-      left: values[3] || (values[1] || values[0])
-    };
-  },
+  // Spacing - Margin - Padding
+  'margin': spacingMappers['margin'],
+  'margin-top': spacingMappers['margin-top'],
+  'margin-right': spacingMappers['margin-right'],
+  'margin-bottom': spacingMappers['margin-bottom'],
+  'margin-left': spacingMappers['margin-left'],
+  'padding': spacingMappers['padding'],
+  'padding-top': spacingMappers['padding-top'],
+  'padding-right': spacingMappers['padding-right'],
+  'padding-bottom': spacingMappers['padding-bottom'],
+  'padding-left': spacingMappers['padding-left'],
 
+  'gap': (val, settings) => {
+    settings._gap = parseValue(val);
+  },
+  'row-gap': (val, settings) => {
+    settings._rowGap = parseValue(val);
+  },
+  'column-gap': (val, settings) => {
+    settings._columnGap = parseValue(val);
+  },
   // Sizing
-  width: (val, settings) => {
-    settings._width = parseValue(val);
-  },
-  'min-width': (val, settings) => {
-    settings._widthMin = parseValue(val);
-  },
-  'max-width': (val, settings) => {
-    settings._widthMax = parseValue(val);
-  },
-  height: (val, settings) => {
-    settings._height = parseValue(val);
-  },
-  'min-height': (val, settings) => {
-    settings._heightMin = parseValue(val);
-  },
-  'max-height': (val, settings) => {
-    settings._heightMax = parseValue(val);
-  },
+  'width': sizingMappers['width'],
+  'height': sizingMappers['height'],
+  'min-width': sizingMappers['min-width'],
+  'max-width': sizingMappers['max-width'],
+  'min-height': sizingMappers['min-height'],
+  'max-height': sizingMappers['max-height'],
+  'aspect-ratio': sizingMappers['aspect-ratio'],
 
   // Position
   position: (val, settings) => {
@@ -153,9 +145,6 @@ export const CSS_PROP_MAPPERS = {
   },
   'order': (val, settings) => {
     settings._order = parseValue(val);
-  },
-  'gap': (val, settings) => {
-    settings._gap = parseValue(val);
   },
 
   // Effects

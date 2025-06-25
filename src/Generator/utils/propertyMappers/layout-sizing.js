@@ -1,32 +1,34 @@
-import { parseValue } from '../cssParserUtils';
+import { parseValue } from '../cssParser';
 
 export const sizingMappers = {
   'width': (val, settings) => {
-    settings._sizing = settings._sizing || {};
-    settings._sizing.width = parseValue(val);
+    settings._width = parseValue(val);
   },
   'height': (val, settings) => {
-    settings._sizing = settings._sizing || {};
-    settings._sizing.height = parseValue(val);
+    settings._height = parseValue(val);
   },
   'min-width': (val, settings) => {
-    settings._sizing = settings._sizing || {};
-    settings._sizing.minWidth = parseValue(val);
-  },
-  'min-height': (val, settings) => {
-    settings._sizing = settings._sizing || {};
-    settings._sizing.minHeight = parseValue(val);
+    settings._widthMin = parseValue(val);
   },
   'max-width': (val, settings) => {
-    settings._sizing = settings._sizing || {};
-    settings._sizing.maxWidth = parseValue(val);
+    settings._widthMax = parseValue(val);
+  },
+  'min-height': (val, settings) => {
+    settings._heightMin = parseValue(val);
   },
   'max-height': (val, settings) => {
-    settings._sizing = settings._sizing || {};
-    settings._sizing.maxHeight = parseValue(val);
+    settings._heightMax = parseValue(val);
   },
   'aspect-ratio': (val, settings) => {
-    settings._sizing = settings._sizing || {};
-    settings._sizing.aspectRatio = val;
+    settings._aspectRatio = val;
   }
 };
+
+// Export individual mappers for direct import
+export const widthMapper = sizingMappers['width'];
+export const heightMapper = sizingMappers['height'];
+export const minWidthMapper = sizingMappers['min-width'];
+export const maxWidthMapper = sizingMappers['max-width'];
+export const minHeightMapper = sizingMappers['min-height'];
+export const maxHeightMapper = sizingMappers['max-height'];
+export const aspectRatioMapper = sizingMappers['aspect-ratio'];
