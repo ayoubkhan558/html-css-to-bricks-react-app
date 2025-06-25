@@ -1,4 +1,7 @@
 // CSS parsing utilities
+import { displayMappers } from './propertyMappers/display';
+import { gridMappers } from './propertyMappers/content-grid';
+import { flexboxMappers } from './propertyMappers/content-flexbox';
 import { spacingMappers } from './propertyMappers/layout-spacing';
 import { sizingMappers } from './propertyMappers/layout-sizing';
 import { positionMappers } from './propertyMappers/layout-position';
@@ -9,8 +12,6 @@ import { borderBoxShadowMappers } from './propertyMappers/boder-box-shadow';
 import { parseBoxShadow } from './propertyMappers/mapperUtils';
 import { filterMappers, effectsMappers, transitionsMappers } from './propertyMappers/filters-transitions';
 import { scrollSnapMappers } from './propertyMappers/layout-scroll-snap';
-import { gridMappers } from './propertyMappers/content-grid';
-import { flexboxMappers } from './propertyMappers/content-flexbox';
 
 // Convert basic color names to hex; pass through hex values
 export function toHex(val) {
@@ -84,8 +85,8 @@ export const parseValue = (value) => {
 
 // CSS properties Bricks has native controls for and how to map them
 export const CSS_PROP_MAPPERS = {
+  'display': displayMappers['display'],
   // Content Tab - Grid
-  'display': gridMappers['display'],
   'grid-gap': gridMappers['grid-gap'],
   'gap': gridMappers['gap'],
   'grid-row-gap': gridMappers['grid-row-gap'],
@@ -104,21 +105,6 @@ export const CSS_PROP_MAPPERS = {
   'justify-content': gridMappers['justify-content'],
   'align-content': gridMappers['align-content'],
   'order': gridMappers['order'],
-  // Content Tab - Flexbox
-  'display': flexboxMappers['display'],
-  'flex-direction': flexboxMappers['flex-direction'],
-  'flex-wrap': flexboxMappers['flex-wrap'],
-  'justify-content': flexboxMappers['justify-content'],
-  'align-items': flexboxMappers['align-items'],
-  'align-content': flexboxMappers['align-content'],
-  'flex-grow': flexboxMappers['flex-grow'],
-  'flex-shrink': flexboxMappers['flex-shrink'],
-  'flex-basis': flexboxMappers['flex-basis'],
-  'align-self': flexboxMappers['align-self'],
-  'order': flexboxMappers['order'],
-  'gap': flexboxMappers['gap'],
-  'row-gap': flexboxMappers['row-gap'],
-  'column-gap': flexboxMappers['column-gap'],
   // Layout Mappers
   // Layout - Spacing - Margin - Padding
   'margin': spacingMappers['margin'],

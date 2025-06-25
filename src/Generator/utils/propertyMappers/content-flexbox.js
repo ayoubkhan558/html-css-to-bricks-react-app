@@ -1,10 +1,5 @@
 // Flexbox Property Mappers
 export const flexboxMappers = {
-  'display': (val, settings) => {
-    if (val === 'flex' || val === 'inline-flex') {
-      settings._display = val;
-    }
-  },
   'flex-direction': (val, settings) => {
     settings._flexDirection = val;
   },
