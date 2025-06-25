@@ -1,4 +1,6 @@
 // CSS parsing utilities
+import { parseBoxShadow } from './propertyMappers/effects';
+
 
 // Convert basic color names to hex; pass through hex values
 export function toHex(raw) {
@@ -367,6 +369,10 @@ export const CSS_PROP_MAPPERS = {
     if (!settings._isGlobalClass) {
       const boxShadow = parseBoxShadow(val);
       settings._boxShadow = boxShadow;
+      
+      // Also set in _effects for consistency with other effects
+      settings._effects = settings._effects || {};
+      settings._effects.boxShadow = boxShadow;
     }
   },
   
@@ -572,11 +578,15 @@ export function parseCssDeclarations(cssText, className = '') {
     } else {
       // Handle box-shadow specially
       if (prop.toLowerCase() === 'box-shadow') {
-        settings._boxShadow = parseBoxShadow(value);
-      } else {
-        if (!customRules[prop]) customRules[prop] = {};
-        customRules[prop][value] = true;
-      }
+        const boxShadow = parseBoxShadow(value);
+        settings._boxShadow = boxShadow;
+        // Also set in _effects for consistency with other effects
+        settings._effects = settings._effects || {};
+        settings._effects.boxShadow = boxShadow;
+        return;
+      } 
+      if (!customRules[prop]) customRules[prop] = {};
+      customRules[prop][value] = true;
     }
   });
   
