@@ -66,7 +66,7 @@
     gap: 0.5rem;
 
     label {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 3px;
       font-size: 0.875rem;
@@ -157,6 +157,7 @@
     .generator__toggle {
       display: flex;
       align-items: center;
+      flex-wrap: nowrap;
       gap: 8px;
       cursor: pointer;
       font-size: 14px;
@@ -281,7 +282,7 @@
     }
 
     label {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: space-between;
       font-size: 0.9375rem;

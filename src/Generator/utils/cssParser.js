@@ -5,6 +5,7 @@ import { positionMappers } from './propertyMappers/layout-position';
 import { layoutMiscMappers } from './propertyMappers/layout-misc';
 import { typographyMappers } from './propertyMappers/typography';
 import { backgroundMappers } from './propertyMappers/background';
+import { borderBoxShadowMappers } from './propertyMappers/boder-box-shadow';
 import { parseBoxShadow } from './propertyMappers/mapperUtils';
 
 // Convert basic color names to hex; pass through hex values
@@ -174,76 +175,20 @@ export const CSS_PROP_MAPPERS = {
   'background-blend-mode': backgroundMappers['background-blend-mode'],
 
   // Border
-  'border': (val, settings) => {
-    settings._border = settings._border || {};
-    settings._border.style = val;
-  },
-  'border-radius': (val, settings) => {
-    const values = val.split(' ').map(v => parseValue(v));
-    settings._border = settings._border || {};
-    settings._border.radius = {
-      top: values[0],
-      right: values[1] || values[0],
-      bottom: values[2] || values[0],
-      left: values[3] || (values[1] || values[0])
-    };
-  },
-  'border-width': (val, settings) => {
-    const values = val.split(' ').map(v => parseValue(v));
-    settings._border = settings._border || {};
-    settings._border.width = {
-      top: values[0],
-      right: values[1] || values[0],
-      bottom: values[2] || values[0],
-      left: values[3] || (values[1] || values[0])
-    };
-  },
-  'border-style': (val, settings) => {
-    settings._border = settings._border || {};
-    settings._border.style = val;
-  },
-  'border-color': (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
-      settings._border = settings._border || {};
-      settings._border.color = { hex };
-    }
-  },
+  'box-shadow': borderBoxShadowMappers['box-shadow'],
+  'border': borderBoxShadowMappers['border'],
+  'border-width': borderBoxShadowMappers['border-width'],
+  'border-style': borderBoxShadowMappers['border-style'],
+  'border-color': borderBoxShadowMappers['border-color'],
+  'border-radius': borderBoxShadowMappers['border-radius'],
+  'border-top-width': borderBoxShadowMappers['border-top-width'],
+  'border-right-width': borderBoxShadowMappers['border-right-width'],
+  'border-bottom-width': borderBoxShadowMappers['border-bottom-width'],
+  'border-left-width': borderBoxShadowMappers['border-left-width'],
 
-  // Transforms
+  // Transform
   'transform': (val, settings) => {
-    settings._transform = settings._transform || {};
-    // Parse transform properties like translateX, rotate, scale, etc.
-    const transforms = val.match(/(\w+)\(([^)]+)\)/g) || [];
-    transforms.forEach(transform => {
-      const match = transform.match(/(\w+)\(([^)]+)\)/);
-      if (match) {
-        const [_, fn, value] = match;
-
-        // Process each value in the transform function
-        const processedValues = value.split(',').map(v => {
-          const trimmed = v.trim();
-          // For translate functions, remove 'px' but keep other units
-          if (fn.startsWith('translate')) {
-            return trimmed.endsWith('px') ? trimmed.slice(0, -2) : trimmed;
-          }
-          // For rotate and skew functions, keep the unit (usually 'deg')
-          if (fn.startsWith('rotate') || fn.startsWith('skew')) {
-            return trimmed;
-          }
-          // For scale functions, ensure it's a number without units
-          if (fn.startsWith('scale')) {
-            return parseFloat(trimmed);
-          }
-          return trimmed;
-        });
-
-        // Join multiple values with space (e.g., for translate3d)
-        const processedValue = processedValues.join(' ');
-
-        settings._transform[fn] = processedValue;
-      }
-    });
+    settings._transform = val;
   },
 
   // Box Shadow

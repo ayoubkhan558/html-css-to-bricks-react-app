@@ -37,48 +37,32 @@ export const borderBoxShadowMappers = {
     settings._border = settings._border || {};
     settings._border.radius = parseValue(val);
   },
-  'border-top': (val, settings) => {
-    const parts = val.split(' ');
-    if (parts.length >= 3) {
-      settings._border = settings._border || { top: {} };
-      settings._border.top = {
-        width: parseValue(parts[0]),
-        style: parts[1],
-        color: { hex: toHex(parts[2]) }
-      };
-    }
+  'border-top-width': (val, settings) => {
+    settings._border = settings._border || { top: {} };
+    settings._border.top.width = parseValue(val);
   },
-  'border-right': (val, settings) => {
-    const parts = val.split(' ');
-    if (parts.length >= 3) {
-      settings._border = settings._border || { right: {} };
-      settings._border.right = {
-        width: parseValue(parts[0]),
-        style: parts[1],
-        color: { hex: toHex(parts[2]) }
-      };
-    }
+  'border-right-width': (val, settings) => {
+    settings._border = settings._border || { right: {} };
+    settings._border.right.width = parseValue(val);
   },
-  'border-bottom': (val, settings) => {
-    const parts = val.split(' ');
-    if (parts.length >= 3) {
-      settings._border = settings._border || { bottom: {} };
-      settings._border.bottom = {
-        width: parseValue(parts[0]),
-        style: parts[1],
-        color: { hex: toHex(parts[2]) }
-      };
-    }
+  'border-bottom-width': (val, settings) => {
+    settings._border = settings._border || { bottom: {} };
+    settings._border.bottom.width = parseValue(val);
   },
-  'border-left': (val, settings) => {
-    const parts = val.split(' ');
-    if (parts.length >= 3) {
-      settings._border = settings._border || { left: {} };
-      settings._border.left = {
-        width: parseValue(parts[0]),
-        style: parts[1],
-        color: { hex: toHex(parts[2]) }
-      };
-    }
+  'border-left-width': (val, settings) => {
+    settings._border = settings._border || { left: {} };
+    settings._border.left.width = parseValue(val);
   }
 };
+
+// Export individual mappers for direct import
+export const boxShadowMapper = borderBoxShadowMappers['box-shadow'];
+export const borderMapper = borderBoxShadowMappers['border'];
+export const borderWidthMapper = borderBoxShadowMappers['border-width'];
+export const borderStyleMapper = borderBoxShadowMappers['border-style'];
+export const borderColorMapper = borderBoxShadowMappers['border-color'];
+export const borderRadiusMapper = borderBoxShadowMappers['border-radius'];
+export const borderTopWidthMapper = borderBoxShadowMappers['border-top-width'];
+export const borderRightWidthMapper = borderBoxShadowMappers['border-right-width'];
+export const borderBottomWidthMapper = borderBoxShadowMappers['border-bottom-width'];
+export const borderLeftWidthMapper = borderBoxShadowMappers['border-left-width'];
