@@ -229,24 +229,20 @@ domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], a
 
   // Process attributes first
   const attributeSettings = processAttributes(node, tag);
+  Object.assign(element.settings, attributeSettings);
+
   // Process CSS classes
   const { elementSettings: classSettings } = processCssClasses(node, cssRulesMap, globalClasses);
-  
+  Object.assign(element.settings, classSettings);
+
   // Route to appropriate processor based on element type
   if (['p', 'span', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'address'].includes(tag)) {
     const textElement = processTextElement(node, elementId, allElements);
     if (textElement) {
-      // Merge previously extracted attribute & class settings so they aren't lost
-      Object.assign(textElement.settings, attributeSettings, classSettings);
       textElement.parent = parentId;
       return textElement;
     }
-  }
-
-  // Apply attribute & class settings to the generic element
-  Object.assign(element.settings, attributeSettings, classSettings);
-
-  if (tag === 'img') {
+  } else if (tag === 'img') {
     const imgElement = processImage(node, elementId);
     imgElement.parent = parentId;
     return imgElement;
