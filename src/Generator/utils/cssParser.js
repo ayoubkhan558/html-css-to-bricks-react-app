@@ -7,22 +7,23 @@ import { typographyMappers } from './propertyMappers/typography';
 import { backgroundMappers } from './propertyMappers/background';
 import { borderBoxShadowMappers } from './propertyMappers/boder-box-shadow';
 import { parseBoxShadow } from './propertyMappers/mapperUtils';
-import { filterMappers, effectsMappers, transitionsMappers } from './propertyMappers/filters';
+import { filterMappers, effectsMappers, transitionsMappers } from './propertyMappers/filters-transitions';
+import { scrollSnapMappers } from './propertyMappers/layout-scroll-snap';
 
 // Convert basic color names to hex; pass through hex values
 export function toHex(val) {
   if (!val) return null;
-  
+
   // Preserve rgb/rgba colors as-is
   if (val.startsWith('rgb')) {
     return val;
   }
-  
+
   // Handle hex colors
   if (val.startsWith('#')) {
     return val.length === 4 || val.length === 7 ? val : null;
   }
-  
+
   // Handle named colors
   const namedColors = {
     'red': '#ff0000',
@@ -33,7 +34,7 @@ export function toHex(val) {
     'gray': '#808080',
     'grey': '#808080'
   };
-  
+
   return namedColors[val.toLowerCase()] || null;
 }
 
@@ -81,6 +82,7 @@ export const parseValue = (value) => {
 
 // CSS properties Bricks has native controls for and how to map them
 export const CSS_PROP_MAPPERS = {
+  // Layout Mappers
   // Layout - Spacing - Margin - Padding
   'margin': spacingMappers['margin'],
   'margin-top': spacingMappers['margin-top'],
@@ -92,16 +94,6 @@ export const CSS_PROP_MAPPERS = {
   'padding-right': spacingMappers['padding-right'],
   'padding-bottom': spacingMappers['padding-bottom'],
   'padding-left': spacingMappers['padding-left'],
-
-  'gap': (val, settings) => {
-    settings._gap = parseValue(val);
-  },
-  'row-gap': (val, settings) => {
-    settings._rowGap = parseValue(val);
-  },
-  'column-gap': (val, settings) => {
-    settings._columnGap = parseValue(val);
-  },
   // Layout - Sizing
   'width': sizingMappers['width'],
   'height': sizingMappers['height'],
@@ -110,7 +102,6 @@ export const CSS_PROP_MAPPERS = {
   'min-height': sizingMappers['min-height'],
   'max-height': sizingMappers['max-height'],
   'aspect-ratio': sizingMappers['aspect-ratio'],
-
   // Layout - Position
   'position': positionMappers['position'],
   'top': positionMappers['top'],
@@ -118,7 +109,6 @@ export const CSS_PROP_MAPPERS = {
   'bottom': positionMappers['bottom'],
   'left': positionMappers['left'],
   'z-index': positionMappers['z-index'],
-
   // Flexbox
   display: (val, settings) => {
     settings._display = val;
@@ -150,6 +140,19 @@ export const CSS_PROP_MAPPERS = {
   'order': (val, settings) => {
     settings._order = parseValue(val);
   },
+  'gap': (val, settings) => {
+    settings._gap = parseValue(val);
+  },
+  'row-gap': (val, settings) => {
+    settings._rowGap = parseValue(val);
+  },
+  'column-gap': (val, settings) => {
+    settings._columnGap = parseValue(val);
+  },
+  // Layout- Scroll Snap
+  'scroll-snap-type': scrollSnapMappers['scroll-snap-type'],
+  'scroll-snap-align': scrollSnapMappers['scroll-snap-align'],
+  'scroll-snap-stop': scrollSnapMappers['scroll-snap-stop'],
   // Layout - Misc
   'pointer-events': layoutMiscMappers['pointer-events'],
   'mix-blend-mode': layoutMiscMappers['mix-blend-mode'],
@@ -160,6 +163,7 @@ export const CSS_PROP_MAPPERS = {
   'overflow-x': layoutMiscMappers['overflow-x'],
   'overflow-y': layoutMiscMappers['overflow-y'],
   'visibility': layoutMiscMappers['visibility'],
+  // End Layout Mappers
 
   // Typography
   'color': typographyMappers['color'],
@@ -197,40 +201,20 @@ export const CSS_PROP_MAPPERS = {
   'border-bottom-width': borderBoxShadowMappers['border-bottom-width'],
   'border-left-width': borderBoxShadowMappers['border-left-width'],
 
-  // Transform
-  'transform': (val, settings) => {
-    settings._transform = val;
-  },
+  // Transform 
+  '_transform': (value, settings) => {
+    settings._transform = settings._transform || {};
 
-  // Text Shadow
-  'text-shadow': (val, settings) => {
-    const parts = val.split(' ');
-    if (parts.length >= 3) {
-      settings._typography = settings._typography || {};
-      settings._typography.textShadow = settings._typography.textShadow || { values: {} };
-      settings._typography.textShadow.values = {
-        offsetX: parseValue(parts[0]),
-        offsetY: parseValue(parts[1]),
-        blur: parseValue(parts[2]),
-        color: toHex(parts[3]) ? { hex: toHex(parts[3]) } : undefined
-      };
+    // Handle pseudo-class states
+    if (typeof value === 'object') {
+      Object.assign(settings._transform, value);
     }
-  },
-
-  // Scroll
-  'scroll-snap-type': (val, settings) => {
-    settings._scrollSnapType = val;
-  },
-  'scroll-snap-align': (val, settings) => {
-    settings._scrollSnapAlign = val;
-  },
-  'scroll-snap-stop': (val, settings) => {
-    settings._scrollSnapStop = val;
-  },
-
-  // CSS Classes
-  'css-classes': (val, settings) => {
-    settings._cssClasses = val;
+    // Handle regular transform values
+    else if (value.includes('scale')) {
+      const scaleValue = value.match(/scale\(([^)]+)\)/)[1];
+      settings._transform.scaleX = `scaleX(${scaleValue})`;
+      settings._transform.scaleY = `scaleY(${scaleValue})`;
+    }
   },
 
   // CSS Filters - Transition
@@ -250,6 +234,11 @@ export const CSS_PROP_MAPPERS = {
   'transition-duration': transitionsMappers['transition-duration'],
   'transition-timing-function': transitionsMappers['transition-timing-function'],
   'transition-delay': transitionsMappers['transition-delay'],
+
+  // CSS Classes & ID
+  'css-classes': (val, settings) => {
+    settings._cssClasses = val;
+  },
 
   // Special mapper for pseudo-classes
   '_pseudo': (value, settings, pseudoClass) => {
@@ -274,50 +263,6 @@ export const CSS_PROP_MAPPERS = {
       }
     }
   },
-
-  // Background mapper
-  '_background': (value, settings) => {
-    settings._background = settings._background || {};
-
-    // Handle pseudo-class states (hover, active, etc.)
-    if (typeof value === 'object') {
-      Object.assign(settings._background, value);
-    }
-    // Handle regular color values
-    else {
-      settings._background.color = parseColor(value);
-    }
-  },
-
-  // Border mapper
-  '_border': (value, settings) => {
-    settings._border = settings._border || {};
-
-    // Handle pseudo-class states
-    if (typeof value === 'object') {
-      Object.assign(settings._border, value);
-    }
-    // Handle regular border values
-    else if (typeof value === 'string') {
-      // Parse border shorthand
-    }
-  },
-
-  // Transform mapper
-  '_transform': (value, settings) => {
-    settings._transform = settings._transform || {};
-
-    // Handle pseudo-class states
-    if (typeof value === 'object') {
-      Object.assign(settings._transform, value);
-    }
-    // Handle regular transform values
-    else if (value.includes('scale')) {
-      const scaleValue = value.match(/scale\(([^)]+)\)/)[1];
-      settings._transform.scaleX = `scaleX(${scaleValue})`;
-      settings._transform.scaleY = `scaleY(${scaleValue})`;
-    }
-  }
 };
 
 // List of supported CSS properties that have direct mappings in Bricks
