@@ -5,14 +5,14 @@ import { parseBoxShadow } from './propertyMappers/effects';
 // Convert basic color names to hex; pass through hex values
 export function toHex(raw) {
   if (!raw) return null;
-  const basic = { 
-    red: '#ff0000', 
-    green: '#008000', 
-    blue: '#0000ff', 
-    black: '#000000', 
-    white: '#ffffff', 
-    gray: '#808080', 
-    grey: '#808080' 
+  const basic = {
+    red: '#ff0000',
+    green: '#008000',
+    blue: '#0000ff',
+    black: '#000000',
+    white: '#ffffff',
+    gray: '#808080',
+    grey: '#808080'
   };
   const trimmed = raw.trim().toLowerCase();
   if (trimmed.startsWith('#')) return trimmed;
@@ -24,7 +24,7 @@ export function toHex(raw) {
 function rgbToHex(color) {
   if (!color) return '#000000';
   if (color.startsWith('#')) return color;
-  
+
   // Handle rgb/rgba colors
   const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
   if (rgbMatch) {
@@ -39,13 +39,13 @@ function rgbToHex(color) {
 // Parse numeric values, removing 'px' unit but keeping other units
 const parseValue = (value) => {
   if (typeof value !== 'string') return value;
-  
+
   // Handle CSS variables
   if (value.startsWith('var(')) return value;
-  
+
   // Handle calc() and other CSS functions
   if (value.includes('(')) return value;
-  
+
   // Handle numbers with units
   const numMatch = value.match(/^(-?\d*\.?\d+)([a-z%]*)$/);
   if (numMatch) {
@@ -57,12 +57,129 @@ const parseValue = (value) => {
     // For other units (%, em, rem, deg, etc.), keep the unit
     return value;
   }
-  
+
   return value;
 };
 
 // CSS properties Bricks has native controls for and how to map them
 export const CSS_PROP_MAPPERS = {
+  // Spacing
+  margin: (val, settings) => {
+    const values = val.split(' ').map(v => parseValue(v));
+    settings._margin = {
+      top: values[0],
+      right: values[1] || values[0],
+      bottom: values[2] || values[0],
+      left: values[3] || (values[1] || values[0])
+    };
+  },
+  padding: (val, settings) => {
+    const values = val.split(' ').map(v => parseValue(v));
+    settings._padding = {
+      top: values[0],
+      right: values[1] || values[0],
+      bottom: values[2] || values[0],
+      left: values[3] || (values[1] || values[0])
+    };
+  },
+
+  // Sizing
+  width: (val, settings) => {
+    settings._width = parseValue(val);
+  },
+  'min-width': (val, settings) => {
+    settings._widthMin = parseValue(val);
+  },
+  'max-width': (val, settings) => {
+    settings._widthMax = parseValue(val);
+  },
+  height: (val, settings) => {
+    settings._height = parseValue(val);
+  },
+  'min-height': (val, settings) => {
+    settings._heightMin = parseValue(val);
+  },
+  'max-height': (val, settings) => {
+    settings._heightMax = parseValue(val);
+  },
+
+  // Position
+  position: (val, settings) => {
+    settings._position = val;
+  },
+  top: (val, settings) => {
+    settings._top = parseValue(val);
+  },
+  right: (val, settings) => {
+    settings._right = parseValue(val);
+  },
+  bottom: (val, settings) => {
+    settings._bottom = parseValue(val);
+  },
+  left: (val, settings) => {
+    settings._left = parseValue(val);
+  },
+  'z-index': (val, settings) => {
+    settings._zIndex = parseValue(val);
+  },
+
+  // Flexbox
+  display: (val, settings) => {
+    settings._display = val;
+  },
+  'flex-direction': (val, settings) => {
+    settings._flexDirection = val;
+  },
+  'justify-content': (val, settings) => {
+    settings._justifyContent = val;
+  },
+  'align-items': (val, settings) => {
+    settings._alignItems = val;
+  },
+  'flex-wrap': (val, settings) => {
+    settings._flexWrap = val;
+  },
+  'flex-grow': (val, settings) => {
+    settings._flexGrow = parseValue(val);
+  },
+  'flex-shrink': (val, settings) => {
+    settings._flexShrink = parseValue(val);
+  },
+  'flex-basis': (val, settings) => {
+    settings._flexBasis = parseValue(val);
+  },
+  'align-self': (val, settings) => {
+    settings._alignSelf = val;
+  },
+  'order': (val, settings) => {
+    settings._order = parseValue(val);
+  },
+  'gap': (val, settings) => {
+    settings._gap = parseValue(val);
+  },
+
+  // Effects
+  'opacity': (val, settings) => {
+    settings._opacity = parseValue(val);
+  },
+  'visibility': (val, settings) => {
+    settings._visibility = val;
+  },
+  'overflow': (val, settings) => {
+    settings._overflow = val;
+  },
+  'cursor': (val, settings) => {
+    settings._cursor = val;
+  },
+  'pointer-events': (val, settings) => {
+    settings._pointerEvents = val;
+  },
+  'mix-blend-mode': (val, settings) => {
+    settings._mixBlendMode = val;
+  },
+  'isolation': (val, settings) => {
+    settings._isolation = val;
+  },
   // Typography
   color: (val, settings) => {
     const hex = toHex(val);
@@ -115,7 +232,7 @@ export const CSS_PROP_MAPPERS = {
     settings._typography = settings._typography || {};
     settings._typography['text-wrap'] = val;
   },
-  
+
   // Background
   'background-color': (val, settings) => {
     const hex = toHex(val);
@@ -152,7 +269,7 @@ export const CSS_PROP_MAPPERS = {
     settings._background = settings._background || {};
     settings._background.blendMode = val;
   },
-  
+
   // Border
   border: (val, settings) => {
     const [width, style, color] = val.split(' ').filter(Boolean);
@@ -208,125 +325,7 @@ export const CSS_PROP_MAPPERS = {
       settings._border.color = { hex };
     }
   },
-  
-  // Spacing
-  margin: (val, settings) => {
-    const values = val.split(' ').map(v => parseValue(v));
-    settings._margin = {
-      top: values[0],
-      right: values[1] || values[0],
-      bottom: values[2] || values[0],
-      left: values[3] || (values[1] || values[0])
-    };
-  },
-  padding: (val, settings) => {
-    const values = val.split(' ').map(v => parseValue(v));
-    settings._padding = {
-      top: values[0],
-      right: values[1] || values[0],
-      bottom: values[2] || values[0],
-      left: values[3] || (values[1] || values[0])
-    };
-  },
-  
-  // Sizing
-  width: (val, settings) => {
-    settings._width = parseValue(val);
-  },
-  'min-width': (val, settings) => {
-    settings._widthMin = parseValue(val);
-  },
-  'max-width': (val, settings) => {
-    settings._widthMax = parseValue(val);
-  },
-  height: (val, settings) => {
-    settings._height = parseValue(val);
-  },
-  'min-height': (val, settings) => {
-    settings._heightMin = parseValue(val);
-  },
-  'max-height': (val, settings) => {
-    settings._heightMax = parseValue(val);
-  },
-  
-  // Position
-  position: (val, settings) => {
-    settings._position = val;
-  },
-  top: (val, settings) => {
-    settings._top = parseValue(val);
-  },
-  right: (val, settings) => {
-    settings._right = parseValue(val);
-  },
-  bottom: (val, settings) => {
-    settings._bottom = parseValue(val);
-  },
-  left: (val, settings) => {
-    settings._left = parseValue(val);
-  },
-  'z-index': (val, settings) => {
-    settings._zIndex = parseValue(val);
-  },
-  
-  // Flexbox
-  display: (val, settings) => {
-    settings._display = val;
-  },
-  'flex-direction': (val, settings) => {
-    settings._flexDirection = val;
-  },
-  'justify-content': (val, settings) => {
-    settings._justifyContent = val;
-  },
-  'align-items': (val, settings) => {
-    settings._alignItems = val;
-  },
-  'flex-wrap': (val, settings) => {
-    settings._flexWrap = val;
-  },
-  'flex-grow': (val, settings) => {
-    settings._flexGrow = parseValue(val);
-  },
-  'flex-shrink': (val, settings) => {
-    settings._flexShrink = parseValue(val);
-  },
-  'flex-basis': (val, settings) => {
-    settings._flexBasis = parseValue(val);
-  },
-  'align-self': (val, settings) => {
-    settings._alignSelf = val;
-  },
-  'order': (val, settings) => {
-    settings._order = parseValue(val);
-  },
-  'gap': (val, settings) => {
-    settings._gap = parseValue(val);
-  },
-  
-  // Effects
-  'opacity': (val, settings) => {
-    settings._opacity = parseValue(val);
-  },
-  'visibility': (val, settings) => {
-    settings._visibility = val;
-  },
-  'overflow': (val, settings) => {
-    settings._overflow = val;
-  },
-  'cursor': (val, settings) => {
-    settings._cursor = val;
-  },
-  'pointer-events': (val, settings) => {
-    settings._pointerEvents = val;
-  },
-  'mix-blend-mode': (val, settings) => {
-    settings._mixBlendMode = val;
-  },
-  'isolation': (val, settings) => {
-    settings._isolation = val;
-  },
-  
+
   // Transforms
   'transform': (val, settings) => {
     settings._transform = settings._transform || {};
@@ -336,7 +335,7 @@ export const CSS_PROP_MAPPERS = {
       const match = transform.match(/(\w+)\(([^)]+)\)/);
       if (match) {
         const [_, fn, value] = match;
-        
+
         // Process each value in the transform function
         const processedValues = value.split(',').map(v => {
           const trimmed = v.trim();
@@ -354,28 +353,28 @@ export const CSS_PROP_MAPPERS = {
           }
           return trimmed;
         });
-        
+
         // Join multiple values with space (e.g., for translate3d)
         const processedValue = processedValues.join(' ');
-        
+
         settings._transform[fn] = processedValue;
       }
     });
   },
-  
+
   // Box Shadow
   'box-shadow': (val, settings) => {
     // Don't set box shadow in global classes, it should be in the element settings
     if (!settings._isGlobalClass) {
       const boxShadow = parseBoxShadow(val);
       settings._boxShadow = boxShadow;
-      
+
       // Also set in _effects for consistency with other effects
       settings._effects = settings._effects || {};
       settings._effects.boxShadow = boxShadow;
     }
   },
-  
+
   // Text Shadow
   'text-shadow': (val, settings) => {
     const parts = val.split(' ');
@@ -390,12 +389,12 @@ export const CSS_PROP_MAPPERS = {
       };
     }
   },
-  
+
   // Transition
   'transition': (val, settings) => {
     settings._cssTransition = val;
   },
-  
+
   // Scroll
   'scroll-snap-type': (val, settings) => {
     settings._scrollSnapType = val;
@@ -406,12 +405,12 @@ export const CSS_PROP_MAPPERS = {
   'scroll-snap-stop': (val, settings) => {
     settings._scrollSnapStop = val;
   },
-  
+
   // CSS Classes
   'css-classes': (val, settings) => {
     settings._cssClasses = val;
   },
-  
+
   // CSS Filters
   'filter': (val, settings) => {
     settings._cssFilters = settings._cssFilters || {};
@@ -426,12 +425,12 @@ export const CSS_PROP_MAPPERS = {
       }
     });
   },
-  
+
   // Special mapper for pseudo-classes
   '_pseudo': (value, settings, pseudoClass) => {
     if (!settings._pseudo) settings._pseudo = {};
     if (!settings._pseudo[pseudoClass]) settings._pseudo[pseudoClass] = {};
-    
+
     // Handle nested properties for pseudo-classes
     if (value.startsWith('_')) {
       // Handle Bricks-specific properties like _background, _typography
@@ -442,7 +441,7 @@ export const CSS_PROP_MAPPERS = {
       const [prop, val] = value.split(':').map(s => s.trim());
       const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
       const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
-      
+
       if (mapper) {
         const pseudoSettings = {};
         mapper(val, pseudoSettings);
@@ -450,25 +449,25 @@ export const CSS_PROP_MAPPERS = {
       }
     }
   },
-  
+
   // Background mapper
   '_background': (value, settings) => {
     settings._background = settings._background || {};
-    
+
     // Handle pseudo-class states (hover, active, etc.)
     if (typeof value === 'object') {
       Object.assign(settings._background, value);
-    } 
+    }
     // Handle regular color values
     else {
       settings._background.color = parseColor(value);
     }
   },
-  
+
   // Border mapper
   '_border': (value, settings) => {
     settings._border = settings._border || {};
-    
+
     // Handle pseudo-class states
     if (typeof value === 'object') {
       Object.assign(settings._border, value);
@@ -478,11 +477,11 @@ export const CSS_PROP_MAPPERS = {
       // Parse border shorthand
     }
   },
-  
+
   // Transform mapper
   '_transform': (value, settings) => {
     settings._transform = settings._transform || {};
-    
+
     // Handle pseudo-class states
     if (typeof value === 'object') {
       Object.assign(settings._transform, value);
@@ -506,28 +505,28 @@ const supportedProperties = [
 export function parseCssDeclarations(cssText, className = '') {
   const settings = {};
   const customRules = {};
-  
+
   // Remove any newlines and extra spaces
   const cleanCss = cssText.replace(/\s+/g, ' ').replace(/\s*([:;{}])\s*/g, '$1').trim();
   const declarations = cleanCss.split(';').filter(Boolean);
-  
+
   declarations.forEach(decl => {
     if (!decl.trim()) return;
-    
+
     const colonIndex = decl.indexOf(':');
     if (colonIndex === -1) return;
-    
+
     const prop = decl.slice(0, colonIndex).trim();
     const value = decl.slice(colonIndex + 1).trim();
-    
+
     if (!prop || !value) return;
-    
+
     // Check for pseudo-class in property name (shouldn't happen in raw CSS, but just in case)
     const pseudoMatch = prop.match(/(.*):(hover|active|focus|visited)$/);
     if (pseudoMatch) {
       const baseProp = pseudoMatch[1];
       const pseudoClass = pseudoMatch[2];
-      
+
       if (baseProp === 'transform') {
         if (!settings['_transform:' + pseudoClass]) settings['_transform:' + pseudoClass] = {};
         const scaleValue = value.match(/scale\(([^)]+)\)/)?.[1];
@@ -537,10 +536,10 @@ export function parseCssDeclarations(cssText, className = '') {
         }
         return;
       }
-      
+
       const bricksProp = baseProp.startsWith('_') ? baseProp : `_${baseProp.replace(/-([a-z])/g, (_, l) => l.toUpperCase())}`;
       const mapper = CSS_PROP_MAPPERS[bricksProp] || CSS_PROP_MAPPERS[baseProp];
-      
+
       if (mapper) {
         const pseudoSettings = {};
         mapper(value, pseudoSettings);
@@ -548,13 +547,13 @@ export function parseCssDeclarations(cssText, className = '') {
       }
       return;
     }
-    
+
     // Handle Bricks' pseudo-class format (property:pseudo)
     const bricksPseudoMatch = prop.match(/^(_[a-zA-Z]+):(hover|active|focus|visited)$/);
     if (bricksPseudoMatch) {
       const baseProp = bricksPseudoMatch[1];
       const pseudoClass = bricksPseudoMatch[2];
-      
+
       if (CSS_PROP_MAPPERS[baseProp]) {
         const pseudoSettings = {};
         CSS_PROP_MAPPERS[baseProp](value, pseudoSettings);
@@ -562,11 +561,11 @@ export function parseCssDeclarations(cssText, className = '') {
       }
       return;
     }
-    
+
     // Handle regular properties
     const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
     const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
-    
+
     if (mapper) {
       try {
         mapper(value, settings);
@@ -584,12 +583,12 @@ export function parseCssDeclarations(cssText, className = '') {
         settings._effects = settings._effects || {};
         settings._effects.boxShadow = boxShadow;
         return;
-      } 
+      }
       if (!customRules[prop]) customRules[prop] = {};
       customRules[prop][value] = true;
     }
   });
-  
+
   if (Object.keys(customRules).length > 0) {
     const fallbackClassName = className || '%root%';
     const cssRules = Object.keys(customRules).map(prop => {
@@ -598,7 +597,7 @@ export function parseCssDeclarations(cssText, className = '') {
     }).join('; ');
     settings._cssCustom = `${fallbackClassName} {\n  ${cssRules};\n}`;
   }
-  
+
   return settings;
 }
 
@@ -612,34 +611,34 @@ export function convertToBricks(html, css) {
   // Parse the HTML to get button text
   const buttonTextMatch = html.match(/>([^<]+)</);
   const buttonText = buttonTextMatch ? buttonTextMatch[1].trim() : '';
-  
+
   // Extract class name from HTML
   const classMatch = html.match(/class=["']([^"']+)["']/);
   const className = classMatch ? classMatch[1] : 'custom-button';
-  
+
   // Parse CSS
   const cssMap = buildCssMap(css);
   const cssClass = Object.keys(cssMap)[0];
   const cssBody = cssMap[cssClass] || '';
-  
+
   // Parse CSS declarations
   const settings = parseCssDeclarations(cssBody, className);
-  
+
   // Clean up _cssCustom array by removing any properties that are already mapped
   if (settings._cssCustom && Array.isArray(settings._cssCustom)) {
     const mappedProps = [
-      'color', 'font-size', 'background-color', 'border', 'border-radius', 
+      'color', 'font-size', 'background-color', 'border', 'border-radius',
       'cursor', 'padding', 'margin', 'box-shadow'
     ];
-    
+
     // Convert mapped props to a regex pattern
     const mappedPropsPattern = new RegExp(`^(${mappedProps.join('|')}):`);
-    
+
     // Filter out any properties that match our mapped props
     settings._cssCustom = settings._cssCustom.filter(prop => {
       return !mappedPropsPattern.test(prop);
     });
-    
+
     // Format _cssCustom as a proper CSS rule
     if (settings._cssCustom && Array.isArray(settings._cssCustom) && settings._cssCustom.length > 0) {
       // Filter out any empty strings and remove duplicates
@@ -656,10 +655,10 @@ export function convertToBricks(html, css) {
       settings._cssCustom = '';
     }
   }
-  
+
   // Generate a random ID for the global class
   const classId = Math.random().toString(36).substring(2, 8);
-  
+
   return {
     content: [{
       id: Math.random().toString(36).substring(2, 8),
@@ -693,11 +692,11 @@ export function buildCssMap(cssText) {
   // Match CSS rules, handling nested rules and media queries
   const regex = /([^{]+)\s*{([^}]*)}/g;
   let match;
-  
+
   while ((match = regex.exec(cssText))) {
     const selector = match[1].trim();
     const body = match[2].trim();
-    
+
     // Extract class names (e.g., `.btn`, `.foo-bar:hover`, `header .hero__wrapper`) and simple tag selectors
     const selectors = selector.split(',');
     selectors.forEach(sel => {
@@ -710,7 +709,7 @@ export function buildCssMap(cssText) {
       while ((classMatch = classRegex.exec(trimmedSel)) !== null) {
         const className = classMatch[1];
         const pseudoClass = classMatch[2];
-        
+
         if (pseudoClass) {
           // Store pseudo-class variant separately
           const pseudoKey = `${className}:${pseudoClass}`;
@@ -747,6 +746,6 @@ export function buildCssMap(cssText) {
       }
     });
   }
-  
+
   return map;
 }
