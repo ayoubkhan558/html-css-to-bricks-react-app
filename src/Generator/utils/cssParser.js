@@ -7,6 +7,7 @@ import { typographyMappers } from './propertyMappers/typography';
 import { backgroundMappers } from './propertyMappers/background';
 import { borderBoxShadowMappers } from './propertyMappers/boder-box-shadow';
 import { parseBoxShadow } from './propertyMappers/mapperUtils';
+import { filterMappers, effectsMappers } from './propertyMappers/filters';
 
 // Convert basic color names to hex; pass through hex values
 export function toHex(val) {
@@ -238,19 +239,16 @@ export const CSS_PROP_MAPPERS = {
   },
 
   // CSS Filters
-  'filter': (val, settings) => {
-    settings._cssFilters = settings._cssFilters || {};
-    const filters = val.split(') ');
-    filters.forEach(filter => {
-      const [name, value] = filter.split('(');
-      if (name && value) {
-        const numValue = parseFloat(value);
-        if (!isNaN(numValue)) {
-          settings._cssFilters[name] = numValue;
-        }
-      }
-    });
-  },
+  'filter': effectsMappers['filter'],
+  'backdrop-filter': effectsMappers['backdrop-filter'],
+  'blur': filterMappers['blur'],
+  'brightness': filterMappers['brightness'],
+  'contrast': filterMappers['contrast'],
+  'hue-rotate': filterMappers['hue-rotate'],
+  'invert': filterMappers['invert'],
+  'opacity': filterMappers['opacity'],
+  'saturate': filterMappers['saturate'],
+  'sepia': filterMappers['sepia'],
 
   // Special mapper for pseudo-classes
   '_pseudo': (value, settings, pseudoClass) => {
