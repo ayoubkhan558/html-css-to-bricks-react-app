@@ -69,19 +69,10 @@ domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], a
   } else if (tag === 'nav' || node.classList.contains('container')) {
     name = tag === 'nav' ? 'nav' : 'container';
     element.label = tag === 'nav' ? 'Navigation' : 'Container';
-  } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'address', 'a', 'button', 'strong', 'em', 'mark', 'time'].includes(tag)) {
-    const textElement = processTextElement(node, elementId, allElements);
-    textElement.parent = parentId;
-    
-    // Process attributes and CSS classes for text elements
-    const attributeSettings = processAttributes(node, tag);
-    const { elementSettings: classSettings } = processCssClasses(node, cssRulesMap, globalClasses);
-    Object.assign(textElement.settings, attributeSettings, classSettings);
-    
-    allElements.push(textElement);
-    element.name = textElement.name;
-    element.settings = textElement.settings;
-    element.label = textElement.label;
+  } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
+    // Let the text processor handle heading elements
+    const element = processTextElement(node, elementId, allElements);
+    return element;
   } else if (['time', 'mark'].includes(tag)) {
     name = 'text-basic';
     element.settings.tag = 'custom';
@@ -89,14 +80,11 @@ domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], a
     element.label = tag === 'time' ? 'Time' : 'Mark';
   } else if (tag === 'address') {
     // Let the text processor handle address elements
-    const addressElement = processTextElement(node, elementId, allElements);
-    
-    // Process attributes and CSS classes for address elements
-    const attributeSettings = processAttributes(node, tag);
-    const { elementSettings: classSettings } = processCssClasses(node, cssRulesMap, globalClasses);
-    Object.assign(addressElement.settings, attributeSettings, classSettings);
-    
-    return addressElement;
+    const element = processTextElement(node, elementId, allElements);
+    return element;
+  } else if (['p', 'span'].includes(tag)) {
+    name = 'text-basic';
+    element.label = tag === 'p' ? 'Paragraph' : tag === 'span' ? 'Inline Text' : 'Address';
   } else if (['blockquote'].includes(tag)) {
     name = 'text-basic';
     element.settings.tag = 'custom';
@@ -194,20 +182,10 @@ domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], a
   } else if (tag === 'video') {
     const videoElement = processVideoElement(node, elementId);
     videoElement.parent = parentId;
-    
-    // Process attributes and CSS classes for video elements
-    const attributeSettings = processAttributes(node, tag);
-    const { elementSettings: classSettings } = processCssClasses(node, cssRulesMap, globalClasses);
-    Object.assign(videoElement.settings, attributeSettings, classSettings);
-    
     return videoElement;
   }
 
   element.name = name;
-
-  // CRITICAL FIX: Always process attributes and CSS classes for ALL elements
-  const attributeSettings = processAttributes(node, tag);
-  const { elementSettings: classSettings } = processCssClasses(node, cssRulesMap, globalClasses);
 
   // Determine / create primary global class for this element
   const attrClassNames = node.classList ? Array.from(node.classList) : [];
@@ -225,18 +203,11 @@ domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], a
         settings: {}
       });
     }
-    // Re-process CSS classes after adding default class
-    const { elementSettings: updatedClassSettings } = processCssClasses(node, cssRulesMap, globalClasses);
-    Object.assign(classSettings, updatedClassSettings);
   }
 
   // Route list elements to the list processor
   if (['ul', 'ol'].includes(tag)) {
     const listElement = processList(node, elementId, cssRulesMap, globalClasses, allElements, parentId);
-    
-    // Apply attribute & class settings to list element
-    Object.assign(listElement.settings, attributeSettings, classSettings);
-    
     allElements.push(listElement);
     return listElement;
   }
@@ -256,34 +227,32 @@ domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], a
     }
   });
 
+  // Process attributes first
+  const attributeSettings = processAttributes(node, tag);
+  // Process CSS classes
+  const { elementSettings: classSettings } = processCssClasses(node, cssRulesMap, globalClasses);
+  
   // Route to appropriate processor based on element type
-  if (['p','span','a','button','h1','h2','h3','h4','h5','h6','address','mark','time','strong','em'].includes(tag)) {
+  if (['p', 'span', 'a', 'button', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'address'].includes(tag)) {
     const textElement = processTextElement(node, elementId, allElements);
     if (textElement) {
       // Merge previously extracted attribute & class settings so they aren't lost
       Object.assign(textElement.settings, attributeSettings, classSettings);
       textElement.parent = parentId;
-      allElements.push(textElement);
       return textElement;
     }
   }
 
-  // Handle image elements with proper CSS class processing
+  // Apply attribute & class settings to the generic element
+  Object.assign(element.settings, attributeSettings, classSettings);
+
   if (tag === 'img') {
     const imgElement = processImage(node, elementId);
     imgElement.parent = parentId;
-    
-    // Apply attribute & class settings to image element
-    Object.assign(imgElement.settings, attributeSettings, classSettings);
-    
     return imgElement;
   } else if (tag === 'svg') {
     const svgElement = processSvg(node, elementId);
     svgElement.parent = parentId;
-    
-    // Apply attribute & class settings to SVG element
-    Object.assign(svgElement.settings, attributeSettings, classSettings);
-    
     return svgElement;
   }
 
@@ -291,9 +260,6 @@ domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], a
   if (node.closest('form') && ['input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
     return null;
   }
-
-  // Apply attribute & class settings to the generic element BEFORE adding to allElements
-  Object.assign(element.settings, attributeSettings, classSettings);
 
   allElements.push(element);
   return element;

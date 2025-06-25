@@ -1,6 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { SiBricks } from "react-icons/si";
-
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
 import './GeneratorComponent.scss';
@@ -53,9 +51,9 @@ const GeneratorComponent = () => {
   return (
     <div className="generator">
       <div className="generator__header">
-        <h2 className="generator__title">Code2Bricks - HTML/CSS/JS to Bricks</h2>
+        <h2 className="generator__title">Code2Bricks - HTML CSS JS to Bricks</h2>
         <p className="generator__description">
-          Paste your raw HTML, CSS, and JS below. Click <strong>Generate</strong> to get a JSON structure that you can copy &amp; paste
+          Paste your raw HTML, CSS, and JavaScript below. Click <strong>Generate</strong> to get a JSON structure that you can copy &amp; paste
           directly into Bricks' structure panel.
         </p>
       </div>
@@ -245,7 +243,7 @@ const GeneratorComponent = () => {
             disabled={!output}
             onClick={handleCopyJson}
           >
-            {isCopied ? 'Copied!' : <>Copy <SiBricks /> JSON</>}
+            {isCopied ? 'Copied!' : 'Copy JSON'}
           </button>
         </div>
       </div>
