@@ -1,4 +1,4 @@
-import { toHex, parseValue } from '../cssParserUtils';
+import { toHex, parseValue } from '../cssParser';
 
 export const typographyMappers = {
   color: (val, settings) => {
@@ -66,3 +66,18 @@ export const typographyMappers = {
     }
   }
 };
+
+// Export individual mappers for direct import
+export const colorMapper = typographyMappers['color'];
+export const fontSizeMapper = typographyMappers['font-size'];
+export const fontWeightMapper = typographyMappers['font-weight'];
+export const fontStyleMapper = typographyMappers['font-style'];
+export const fontFamilyMapper = typographyMappers['font-family'];
+export const lineHeightMapper = typographyMappers['line-height'];
+export const letterSpacingMapper = typographyMappers['letter-spacing'];
+export const textAlignMapper = typographyMappers['text-align'];
+export const textTransformMapper = typographyMappers['text-transform'];
+export const textDecorationMapper = typographyMappers['text-decoration'];
+export const whiteSpaceMapper = typographyMappers['white-space'];
+export const textWrapMapper = typographyMappers['text-wrap'];
+export const textShadowMapper = typographyMappers['text-shadow'];

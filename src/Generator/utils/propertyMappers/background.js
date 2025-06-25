@@ -1,4 +1,4 @@
-import { toHex } from '../cssParserUtils';
+import { toHex } from '../cssParser';
 
 export const backgroundMappers = {
   'background-color': (val, settings) => {
@@ -37,3 +37,12 @@ export const backgroundMappers = {
     settings._background.blendMode = val;
   }
 };
+
+// Export individual mappers for direct import
+export const backgroundColorMapper = backgroundMappers['background-color'];
+export const backgroundImageMapper = backgroundMappers['background-image'];
+export const backgroundRepeatMapper = backgroundMappers['background-repeat'];
+export const backgroundSizeMapper = backgroundMappers['background-size'];
+export const backgroundPositionMapper = backgroundMappers['background-position'];
+export const backgroundAttachmentMapper = backgroundMappers['background-attachment'];
+export const backgroundBlendModeMapper = backgroundMappers['background-blend-mode'];

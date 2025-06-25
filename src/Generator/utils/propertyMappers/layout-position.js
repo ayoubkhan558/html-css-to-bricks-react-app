@@ -1,4 +1,4 @@
-import { parseValue } from '../cssParserUtils';
+import { parseValue } from '../cssParser';
 
 export const positionMappers = {
   'position': (val, settings) => {
@@ -26,3 +26,11 @@ export const positionMappers = {
     settings._position.zIndex = parseInt(val);
   }
 };
+
+// Export individual mappers for direct import
+export const positionTypeMapper = positionMappers['position'];
+export const topMapper = positionMappers['top'];
+export const rightMapper = positionMappers['right'];
+export const bottomMapper = positionMappers['bottom'];
+export const leftMapper = positionMappers['left'];
+export const zIndexMapper = positionMappers['z-index'];

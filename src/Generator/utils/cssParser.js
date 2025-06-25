@@ -1,6 +1,10 @@
 // CSS parsing utilities
 import { spacingMappers } from './propertyMappers/layout-spacing';
 import { sizingMappers } from './propertyMappers/layout-sizing';
+import { positionMappers } from './propertyMappers/layout-position';
+import { layoutMiscMappers } from './propertyMappers/layout-misc';
+import { typographyMappers } from './propertyMappers/typography';
+import { backgroundMappers } from './propertyMappers/background';
 import { parseBoxShadow } from './propertyMappers/mapperUtils';
 
 // Convert basic color names to hex; pass through hex values
@@ -65,7 +69,7 @@ export const parseValue = (value) => {
 
 // CSS properties Bricks has native controls for and how to map them
 export const CSS_PROP_MAPPERS = {
-  // Spacing - Margin - Padding
+  // Layout - Spacing - Margin - Padding
   'margin': spacingMappers['margin'],
   'margin-top': spacingMappers['margin-top'],
   'margin-right': spacingMappers['margin-right'],
@@ -86,7 +90,7 @@ export const CSS_PROP_MAPPERS = {
   'column-gap': (val, settings) => {
     settings._columnGap = parseValue(val);
   },
-  // Sizing
+  // Layout - Sizing
   'width': sizingMappers['width'],
   'height': sizingMappers['height'],
   'min-width': sizingMappers['min-width'],
@@ -95,25 +99,13 @@ export const CSS_PROP_MAPPERS = {
   'max-height': sizingMappers['max-height'],
   'aspect-ratio': sizingMappers['aspect-ratio'],
 
-  // Position
-  position: (val, settings) => {
-    settings._position = val;
-  },
-  top: (val, settings) => {
-    settings._top = parseValue(val);
-  },
-  right: (val, settings) => {
-    settings._right = parseValue(val);
-  },
-  bottom: (val, settings) => {
-    settings._bottom = parseValue(val);
-  },
-  left: (val, settings) => {
-    settings._left = parseValue(val);
-  },
-  'z-index': (val, settings) => {
-    settings._zIndex = parseValue(val);
-  },
+  // Layout - Position
+  'position': positionMappers['position'],
+  'top': positionMappers['top'],
+  'right': positionMappers['right'],
+  'bottom': positionMappers['bottom'],
+  'left': positionMappers['left'],
+  'z-index': positionMappers['z-index'],
 
   // Flexbox
   display: (val, settings) => {
@@ -146,142 +138,45 @@ export const CSS_PROP_MAPPERS = {
   'order': (val, settings) => {
     settings._order = parseValue(val);
   },
+  // Layout - Misc
+  'pointer-events': layoutMiscMappers['pointer-events'],
+  'mix-blend-mode': layoutMiscMappers['mix-blend-mode'],
+  'isolation': layoutMiscMappers['isolation'],
+  'cursor': layoutMiscMappers['cursor'],
+  'opacity': layoutMiscMappers['opacity'],
+  'overflow': layoutMiscMappers['overflow'],
+  'overflow-x': layoutMiscMappers['overflow-x'],
+  'overflow-y': layoutMiscMappers['overflow-y'],
+  'visibility': layoutMiscMappers['visibility'],
 
-  // Effects
-  'opacity': (val, settings) => {
-    settings._opacity = parseValue(val);
-  },
-  'visibility': (val, settings) => {
-    settings._visibility = val;
-  },
-  'overflow': (val, settings) => {
-    settings._overflow = val;
-  },
-  'cursor': (val, settings) => {
-    settings._cursor = val;
-  },
-  'pointer-events': (val, settings) => {
-    settings._pointerEvents = val;
-  },
-  'mix-blend-mode': (val, settings) => {
-    settings._mixBlendMode = val;
-  },
-  'isolation': (val, settings) => {
-    settings._isolation = val;
-  },
   // Typography
-  color: (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
-      settings._typography = settings._typography || {};
-      settings._typography.color = { hex };
-    }
-  },
-  'font-size': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['font-size'] = parseValue(val);
-  },
-  'font-weight': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['font-weight'] = val;
-  },
-  'font-style': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['font-style'] = val;
-  },
-  'font-family': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['font-family'] = val.replace(/['"]/g, '');
-  },
-  'line-height': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['line-height'] = parseValue(val);
-  },
-  'letter-spacing': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['letter-spacing'] = parseValue(val);
-  },
-  'text-align': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['text-align'] = val;
-  },
-  'text-transform': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['text-transform'] = val;
-  },
-  'text-decoration': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['text-decoration'] = val;
-  },
-  'white-space': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['white-space'] = val;
-  },
-  'text-wrap': (val, settings) => {
-    settings._typography = settings._typography || {};
-    settings._typography['text-wrap'] = val;
-  },
+  'color': typographyMappers['color'],
+  'font-size': typographyMappers['font-size'],
+  'font-weight': typographyMappers['font-weight'],
+  'font-style': typographyMappers['font-style'],
+  'font-family': typographyMappers['font-family'],
+  'line-height': typographyMappers['line-height'],
+  'letter-spacing': typographyMappers['letter-spacing'],
+  'text-align': typographyMappers['text-align'],
+  'text-transform': typographyMappers['text-transform'],
+  'text-decoration': typographyMappers['text-decoration'],
+  'white-space': typographyMappers['white-space'],
+  'text-wrap': typographyMappers['text-wrap'],
+  'text-shadow': typographyMappers['text-shadow'],
 
   // Background
-  'background-color': (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
-      settings._background = settings._background || {};
-      settings._background.color = { hex };
-    }
-  },
-  'background-image': (val, settings) => {
-    if (val.includes('url')) {
-      settings._background = settings._background || {};
-      settings._background.image = {
-        url: val.match(/url\(['"]?(.*?)['"]?\)/)[1]
-      };
-    }
-  },
-  'background-repeat': (val, settings) => {
-    settings._background = settings._background || {};
-    settings._background.repeat = val;
-  },
-  'background-size': (val, settings) => {
-    settings._background = settings._background || {};
-    settings._background.size = val;
-  },
-  'background-position': (val, settings) => {
-    settings._background = settings._background || {};
-    settings._background.position = val;
-  },
-  'background-attachment': (val, settings) => {
-    settings._background = settings._background || {};
-    settings._background.attachment = val;
-  },
-  'background-blend-mode': (val, settings) => {
-    settings._background = settings._background || {};
-    settings._background.blendMode = val;
-  },
+  'background-color': backgroundMappers['background-color'],
+  'background-image': backgroundMappers['background-image'],
+  'background-repeat': backgroundMappers['background-repeat'],
+  'background-size': backgroundMappers['background-size'],
+  'background-position': backgroundMappers['background-position'],
+  'background-attachment': backgroundMappers['background-attachment'],
+  'background-blend-mode': backgroundMappers['background-blend-mode'],
 
   // Border
-  border: (val, settings) => {
-    const [width, style, color] = val.split(' ').filter(Boolean);
-    if (width) {
-      settings._border = settings._border || {};
-      settings._border.width = {
-        top: parseValue(width),
-        right: parseValue(width),
-        bottom: parseValue(width),
-        left: parseValue(width)
-      };
-    }
-    if (style) {
-      settings._border = settings._border || {};
-      settings._border.style = style;
-    }
-    if (color) {
-      const hex = toHex(color);
-      if (hex) {
-        settings._border = settings._border || {};
-        settings._border.color = { hex };
-      }
-    }
+  'border': (val, settings) => {
+    settings._border = settings._border || {};
+    settings._border.style = val;
   },
   'border-radius': (val, settings) => {
     const values = val.split(' ').map(v => parseValue(v));
