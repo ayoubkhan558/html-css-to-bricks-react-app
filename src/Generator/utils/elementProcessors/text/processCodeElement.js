@@ -5,33 +5,17 @@
  * @returns {Object} The processed code element
  */
 const processCodeElement = (node, elementId) => {
-  const tag = node.tagName.toLowerCase();
-  const isPre = tag === 'pre';
-  const isInlineCode = tag === 'code' && !isPre && !(node.parentElement?.tagName.toLowerCase() === 'pre');
-  
-  // For pre elements, we want to preserve whitespace and line breaks
-  const content = isPre ? node.innerHTML.trim() : node.textContent.trim();
-  
+  const isBlock = node.tagName.toLowerCase() === 'pre' || node.parentElement?.tagName.toLowerCase() === 'pre';
   return {
     id: elementId,
-    name: isPre ? 'pre' : 'code',
+    name: 'code',
     parent: '0',
     children: [],
     settings: {
-      content: content,
-      tag: isPre ? 'pre' : 'code',
-      ...(isPre ? {
-        whiteSpace: 'pre',
-        overflow: 'auto'
-      } : {
-        display: isInlineCode ? 'inline' : 'block',
-        fontFamily: 'monospace',
-        backgroundColor: '#f5f5f5',
-        padding: isInlineCode ? '0.2em 0.4em' : '1em',
-        borderRadius: '3px'
-      })
-    },
-    label: isPre ? 'Preformatted Text' : 'Code Snippet'
+      code: node.textContent,
+      inline: !isBlock,
+      language: 'html' // Default language, could be made configurable
+    }
   };
 };
 

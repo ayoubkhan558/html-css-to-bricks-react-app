@@ -7,6 +7,7 @@ import processCodeElement from './processCodeElement';
 import processBlockElement from './processBlockElement';
 import { processButton } from '../buttonProcessor';
 import processParagraph from './processParagraph';
+import processAnchor from './processAnchor';
 
 export {
   processTextNode,
@@ -17,7 +18,8 @@ export {
   processCodeElement,
   processBlockElement,
   processButton,
-  processParagraph
+  processParagraph,
+  processAnchor
 };
 
 export default {
@@ -29,5 +31,6 @@ export default {
   processCodeElement,
   processBlockElement,
   processButton,
-  processParagraph
+  processParagraph,
+  processAnchor
 };

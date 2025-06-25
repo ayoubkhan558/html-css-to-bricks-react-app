@@ -5,4 +5,4 @@ export * from './containerProcessor';
 export * from './listProcessor';
 export * from './tableProcessor';
 export * from './buttonProcessor';
-export * from './links';
+export * from './linkProcessor';

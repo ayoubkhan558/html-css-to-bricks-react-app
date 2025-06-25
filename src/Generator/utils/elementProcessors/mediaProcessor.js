@@ -1,4 +1,5 @@
 import { getUniqueId } from '../utils';
+import { processVideoElement } from './videoProcessor';
 
 const processImage = (node, elementId) => {
   return {
@@ -72,4 +73,17 @@ const processAudio = (node, elementId) => {
   };
 };
 
-export { processImage, processVideo, processAudio };
+const processSvg = (node, elementId) => {
+  return {
+    id: elementId,
+    name: 'code',
+    parent: '0',
+    children: [],
+    settings: {
+      source: 'code',
+      code: node.outerHTML
+    }
+  };
+};
+
+export { processImage, processVideo, processAudio, processSvg, processVideoElement };
