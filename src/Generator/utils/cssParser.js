@@ -9,21 +9,31 @@ import { borderBoxShadowMappers } from './propertyMappers/boder-box-shadow';
 import { parseBoxShadow } from './propertyMappers/mapperUtils';
 
 // Convert basic color names to hex; pass through hex values
-export function toHex(raw) {
-  if (!raw) return null;
-  const basic = {
-    red: '#ff0000',
-    green: '#008000',
-    blue: '#0000ff',
-    black: '#000000',
-    white: '#ffffff',
-    gray: '#808080',
-    grey: '#808080'
+export function toHex(val) {
+  if (!val) return null;
+  
+  // Preserve rgb/rgba colors as-is
+  if (val.startsWith('rgb')) {
+    return val;
+  }
+  
+  // Handle hex colors
+  if (val.startsWith('#')) {
+    return val.length === 4 || val.length === 7 ? val : null;
+  }
+  
+  // Handle named colors
+  const namedColors = {
+    'red': '#ff0000',
+    'green': '#008000',
+    'blue': '#0000ff',
+    'black': '#000000',
+    'white': '#ffffff',
+    'gray': '#808080',
+    'grey': '#808080'
   };
-  const trimmed = raw.trim().toLowerCase();
-  if (trimmed.startsWith('#')) return trimmed;
-  if (basic[trimmed]) return basic[trimmed];
-  return rgbToHex(trimmed);
+  
+  return namedColors[val.toLowerCase()] || null;
 }
 
 // Helper to convert rgb/rgba to hex
@@ -405,6 +415,17 @@ export function parseCssDeclarations(cssText, className = '') {
       }
       if (!customRules[prop]) customRules[prop] = {};
       customRules[prop][value] = true;
+    }
+  });
+
+  const nativeProperties = [
+    'padding', 'margin', 'background', 'color', 'font-size', 'border',
+    'width', 'height', 'display', 'position', 'top', 'right', 'bottom', 'left', 'box-shadow'
+  ];
+
+  Object.keys(customRules).forEach(property => {
+    if (nativeProperties.includes(property)) {
+      delete customRules[property];
     }
   });
 

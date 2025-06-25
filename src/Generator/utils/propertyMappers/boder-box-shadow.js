@@ -3,8 +3,26 @@ import { parseBoxShadow } from './mapperUtils';
 
 export const borderBoxShadowMappers = {
   'box-shadow': (val, settings) => {
-    settings._effects = settings._effects || {};
-    settings._effects.boxShadow = parseBoxShadow(val);
+    if (!val || val === 'none') return;
+    
+    const boxShadow = parseBoxShadow(val);
+    if (!boxShadow) return;
+    
+    // Determine color format (hex, rgb, rgba)
+    const colorKey = boxShadow.color.startsWith('#') ? 'hex' : 
+                    boxShadow.color.startsWith('rgb') ? 'rgb' : 'hex';
+    
+    settings._boxShadow = {
+      values: {
+        offsetX: boxShadow.offsetX,
+        offsetY: boxShadow.offsetY,
+        blur: boxShadow.blur,
+        spread: boxShadow.spread
+      },
+      color: {
+        [colorKey]: boxShadow.color
+      }
+    };
   },
   'border': (val, settings) => {
     const parts = val.split(' ');
