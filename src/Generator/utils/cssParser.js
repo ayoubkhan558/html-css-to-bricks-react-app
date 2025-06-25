@@ -7,7 +7,7 @@ import { typographyMappers } from './propertyMappers/typography';
 import { backgroundMappers } from './propertyMappers/background';
 import { borderBoxShadowMappers } from './propertyMappers/boder-box-shadow';
 import { parseBoxShadow } from './propertyMappers/mapperUtils';
-import { filterMappers, effectsMappers } from './propertyMappers/filters';
+import { filterMappers, effectsMappers, transitionsMappers } from './propertyMappers/filters';
 
 // Convert basic color names to hex; pass through hex values
 export function toHex(val) {
@@ -217,11 +217,6 @@ export const CSS_PROP_MAPPERS = {
     }
   },
 
-  // Transition
-  'transition': (val, settings) => {
-    settings._cssTransition = val;
-  },
-
   // Scroll
   'scroll-snap-type': (val, settings) => {
     settings._scrollSnapType = val;
@@ -238,7 +233,7 @@ export const CSS_PROP_MAPPERS = {
     settings._cssClasses = val;
   },
 
-  // CSS Filters
+  // CSS Filters - Transition
   'filter': effectsMappers['filter'],
   'backdrop-filter': effectsMappers['backdrop-filter'],
   'blur': filterMappers['blur'],
@@ -249,6 +244,12 @@ export const CSS_PROP_MAPPERS = {
   'opacity': filterMappers['opacity'],
   'saturate': filterMappers['saturate'],
   'sepia': filterMappers['sepia'],
+  // Transition
+  'transition': transitionsMappers['transition'],
+  'transition-property': transitionsMappers['transition-property'],
+  'transition-duration': transitionsMappers['transition-duration'],
+  'transition-timing-function': transitionsMappers['transition-timing-function'],
+  'transition-delay': transitionsMappers['transition-delay'],
 
   // Special mapper for pseudo-classes
   '_pseudo': (value, settings, pseudoClass) => {
@@ -433,8 +434,12 @@ export function parseCssDeclarations(cssText, className = '') {
       const values = Object.keys(customRules[prop]).join(', ');
       return `${prop}: ${values}`;
     }).join('; ');
-    settings._cssCustom = `${fallbackClassName} {\n  ${cssRules};\n}`;
+    if (!settings._skipTransitionCustom) {
+      settings._cssCustom = `${fallbackClassName} {\n  ${cssRules};\n}`;
+    }
   }
+
+  settings._skipTransitionCustom = false;
 
   return settings;
 }

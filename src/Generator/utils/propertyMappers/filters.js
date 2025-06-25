@@ -62,3 +62,46 @@ export const effectsMappers = {
     });
   }
 };
+
+// Transition property mapper
+export const transitionsMappers = {
+  'transition': (val, settings) => {
+    // Store the original transition string as-is
+    settings._cssTransition = val;
+    
+    // Prevent these from being added to _cssCustom
+    settings._skipTransitionCustom = true;
+  },
+  'transition-property': (val, settings) => {
+    settings._cssTransition = settings._cssTransition || '';
+    const parts = settings._cssTransition.split(' ');
+    settings._cssTransition = `${val} ${parts[1] || '0s'} ${parts[2] || 'ease'} ${parts[3] || '0s'}`;
+    
+    // Prevent these from being added to _cssCustom
+    settings._skipTransitionCustom = true;
+  },
+  'transition-duration': (val, settings) => {
+    settings._cssTransition = settings._cssTransition || '';
+    const parts = settings._cssTransition.split(' ');
+    settings._cssTransition = `${parts[0] || 'all'} ${val} ${parts[2] || 'ease'} ${parts[3] || '0s'}`;
+    
+    // Prevent these from being added to _cssCustom
+    settings._skipTransitionCustom = true;
+  },
+  'transition-timing-function': (val, settings) => {
+    settings._cssTransition = settings._cssTransition || '';
+    const parts = settings._cssTransition.split(' ');
+    settings._cssTransition = `${parts[0] || 'all'} ${parts[1] || '0s'} ${val} ${parts[3] || '0s'}`;
+    
+    // Prevent these from being added to _cssCustom
+    settings._skipTransitionCustom = true;
+  },
+  'transition-delay': (val, settings) => {
+    settings._cssTransition = settings._cssTransition || '';
+    const parts = settings._cssTransition.split(' ');
+    settings._cssTransition = `${parts[0] || 'all'} ${parts[1] || '0s'} ${parts[2] || 'ease'} ${val}`;
+    
+    // Prevent these from being added to _cssCustom
+    settings._skipTransitionCustom = true;
+  }
+};

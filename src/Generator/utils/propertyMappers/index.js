@@ -8,7 +8,6 @@ import { backgroundMappers } from './background';
 import { borderBoxShadowMappers } from './boder-box-shadow';
 import { flexboxMappers } from './flexbox';
 import { transformsMappers } from './transforms';
-import { transitionsMappers } from './transitions';
 import { scrollMappers } from './scroll';
 
 export const CSS_PROP_MAPPERS = {
@@ -21,6 +20,5 @@ export const CSS_PROP_MAPPERS = {
   ...borderBoxShadowMappers,
   ...flexboxMappers,
   ...transformsMappers,
-  ...transitionsMappers,
   ...scrollMappers
 };
