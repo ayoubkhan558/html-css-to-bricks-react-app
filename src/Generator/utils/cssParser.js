@@ -363,7 +363,7 @@ export function parseCssDeclarations(cssText, className = '') {
       return `${prop}: ${values}`;
     }).join('; ');
     if (!settings._skipTransitionCustom) {
-      settings._cssCustom = `${fallbackClassName} {\n  ${cssRules};\n}`;
+      settings._cssCustom = `.${fallbackClassName} {\n  ${cssRules};\n}`;
     }
     if (!settings._skipGapCustom) {
       // Existing custom CSS generation for gaps
