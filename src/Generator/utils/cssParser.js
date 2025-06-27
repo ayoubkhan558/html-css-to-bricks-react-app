@@ -445,9 +445,6 @@ export function convertToBricks(html, css) {
         _cssGlobalClasses: [classId]
       }
     }],
-    source: 'bricksCopiedElements',
-    sourceUrl: 'http://localhost/bricks',
-    version: '2.0-beta',
     globalClasses: [{
       id: classId,
       name: className,
@@ -457,7 +454,10 @@ export function convertToBricks(html, css) {
         _isGlobalClass: true
       }
     }],
-    globalElements: []
+    globalElements: [],
+    source: 'bricksCopiedElements',
+    sourceUrl: 'http://localhost/bricks',
+    version: '2.0-beta'
   };
 }
 
