@@ -1,6 +1,33 @@
 import { getUniqueId } from './utils';
-import { getBricksFieldType, processFormField, processFormElement } from "./elementProcessors/formProcessor"
 import { buildCssMap, parseCssDeclarations } from './cssParser';
+import {
+  processTextNode,
+  processTextElement,
+  processHeading,
+  processAddress,
+  processInlineElement,
+  processCodeElement,
+  processBlockElement,
+  processButton,
+  processParagraph
+} from './elementProcessors/text';
+import { processFormElement } from './elementProcessors/formProcessor';
+import { processMediaElement } from './elementProcessors/mediaProcessor';
+import { processContainer } from './elementProcessors/containerProcessor';
+import { processList } from './elementProcessors/listProcessor';
+import { processTable } from './elementProcessors/tableProcessor';
+
+// Debug configuration
+const DEBUG = true;
+const log = (message, data = null, level = 'log') => {
+  if (!DEBUG) return;
+  const prefix = '[Bricks]';
+  if (data !== null) {
+    console[level](`${prefix} ${message}`, data);
+  } else {
+    console[level](`${prefix} ${message}`);
+  }
+};
 
 /**
  * Processes a DOM node and converts it to a Bricks element
@@ -12,7 +39,9 @@ import { buildCssMap, parseCssDeclarations } from './cssParser';
  * @returns {Object|null} Bricks element object or null if node should be skipped
  */
 const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], allElements = []) => {
+  log(`Processing node: ${node.nodeName} (type: ${node.nodeType})`, { parentId, hasParent: parentId !== '0' });
   // Handle text nodes
+  log(`Node ${node.nodeName} is not an ELEMENT_NODE, type: ${node.nodeType}`);
   if (node.nodeType !== Node.ELEMENT_NODE) {
     if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
       // Skip text nodes inside forms or buttons
@@ -37,10 +66,12 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   }
 
   const tag = node.tagName.toLowerCase();
+  log(`Processing element: <${tag}> with ${node.classList?.length || 0} classes`);
 
   // Initialize element
   let name = 'div';
   const elementId = getUniqueId();
+  log(`Creating new element with ID: ${elementId}`, { tag, parentId });
   const element = {
     id: elementId,
     name,
@@ -49,157 +80,143 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     settings: {}
   };
 
-  // Determine element type
-  if (tag === 'section' || tag === 'footer' || tag === 'header' || node.classList.contains('section')) {
-    name = 'section';
-    element.label = 'Section';
-  } else if (tag === 'nav' || node.classList.contains('container')) {
-    name = tag === 'nav' ? 'nav' : 'container';
-    element.label = tag === 'nav' ? 'Navigation' : 'Container';
-  } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
-    name = 'heading';
-    element.label = `Heading ${tag.replace('h', '')}`;
-  } else if (['time', 'mark'].includes(tag)) {
-    name = 'text-basic';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
-    element.label = tag === 'time' ? 'Time' : 'Mark';
-  } else if (['p', 'span', 'address'].includes(tag)) {
-    name = 'text-basic';
-    element.label = tag === 'p' ? 'Paragraph' : tag === 'span' ? 'Inline Text' : 'Address';
-  } else if (['blockquote'].includes(tag)) {
-    name = 'text-basic';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
-    element.label = 'Blockquote';
+  log(`Determining element type for tag: ${tag}`);
+  // Determine element type and process accordingly
+  const processorContext = {
+    node,
+    element,
+    elementId,
+    parentId,
+    allElements,
+    globalClasses,
+    cssRulesMap,
+    getUniqueId
+  };
 
-    // Create child element for the actual text content
-    const textElement = {
-      id: getUniqueId(),
-      name: 'text-basic',
-      parent: elementId,
-      children: [],
-      settings: {
-        text: node.textContent.trim(),
-        tag: 'p'
-      }
-    };
-    element.children.push(textElement.id);
-    allElements.push(textElement);
-    return [element, textElement];
-  } else if (tag === 'img') {
-    name = 'image';
-    element.label = 'Image';
-  } else if (tag === 'a') {
-    name = 'text-link';
-    element.label = 'Link';
-  } else if (tag === 'button') {
-    name = 'button';
-    element.label = 'Button';
-    element.settings.style = "primary";
-    element.settings.tag = "button";
-    element.settings.size = "md";
-  } else if (tag === 'svg') {
-    name = 'svg';
-    element.label = 'SVG';
-  } else if (tag === 'form') {
-    name = 'form';
-    element.label = 'Form';
+  // Try to find a specific processor for the tag
+  let processed = false;
+  
+  // Process form elements
+  if (tag === 'form') {
     const formElement = processFormElement(node);
-    formElement.id = elementId;
-    formElement.parent = parentId;
-    Object.assign(element, formElement);
-  } else if (['ul', 'ol'].includes(tag)) {
-    name = 'list';
-    element.label = tag === 'ul' ? 'Unordered List' : 'Ordered List';
-  } else if (tag === 'li') {
-    name = 'list-item';
-    element.label = 'List Item';
-  } else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
-    name = 'div';
-    element.label = 'Table';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
-    if (tag === 'tr') {
-      element.label = 'Table Row';
-      element.settings.style = 'display: flex; width: 100%;';
-    } else if (['tbody'].includes(tag)) {
-      element.label = 'Table Body';
-      element.settings.style = 'flex: 1; padding: 8px;';
-    } else if (['thead'].includes(tag)) {
-      element.label = 'Table Header';
-      element.settings.style = 'flex: 1; padding: 8px;';
-    } else if (['tfoot'].includes(tag)) {
-      element.label = 'Table Footer';
-      element.settings.style = 'flex: 1; padding: 8px;';
-    } else if (['th'].includes(tag)) {
-      element.label = 'Table Head';
-      element.settings.style = 'flex: 1; padding: 8px;';
-    } else if (['td'].includes(tag)) {
-      element.label = 'Cell';
-      element.settings.style = 'flex: 1; padding: 8px;';
+    if (formElement) {
+      Object.assign(element, formElement);
+      processed = true;
     }
-  } else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
-    name = 'div';
-    element.label = 'Canvas';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
-  } else if (['figure', 'figcaption'].includes(tag)) {
-    name = 'section';
-    element.label = 'Figure';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
-  } else if (['pre', 'code'].includes(tag)) {
-    name = 'text-basic';
-    element.label = 'Pre';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
-  } else if (tag === 'audio') {
-    name = 'audio';
-    element.label = 'Audio';
-    element.settings.source = 'external';
-    element.settings.external = node.querySelector('source')?.getAttribute('src') || node.getAttribute('src') || '';
-    element.settings.loop = node.hasAttribute('loop');
-    element.settings.autoplay = node.hasAttribute('autoplay');
-  } else if (tag === 'video') {
-    name = 'video';
-    element.label = 'Video';
-    const videoSrc = node.querySelector('source')?.getAttribute('src') || node.getAttribute('src') || '';
-    const posterSrc = node.getAttribute('poster') || '';
+  }
+  // Process text elements
+  else if (['p', 'span', 'div', 'article', 'aside', 'section', 'header', 'footer', 'main', 'nav', 'blockquote'].includes(tag)) {
+    const result = processBlockElement(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process headings
+  else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
+    const result = processHeading(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process media elements
+  else if (['img', 'video', 'audio', 'svg', 'picture', 'source'].includes(tag)) {
+    const result = processMediaElement(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process lists
+  else if (['ul', 'ol', 'li'].includes(tag)) {
+    const result = processList(processorContext);
+    if (result) {
+      if (Array.isArray(result)) {
+        // Handle case where list processor returns multiple elements
+        return result;
+      }
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process tables
+  else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
+    const result = processTable(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process buttons
+  else if (tag === 'button' || node.getAttribute('role') === 'button') {
+    const result = processButton(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process links
+  else if (tag === 'a') {
+    const result = processInlineElement(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process code elements
+  else if (['pre', 'code', 'kbd', 'samp', 'var'].includes(tag)) {
+    const result = processCodeElement(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process address elements
+  else if (tag === 'address') {
+    const result = processAddress(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process inline elements
+  else if (['span', 'strong', 'em', 'i', 'b', 'u', 's', 'mark', 'small', 'sub', 'sup', 'time', 'data'].includes(tag)) {
+    const result = processInlineElement(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process paragraphs
+  else if (tag === 'p') {
+    const result = processParagraph(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
+  // Process Semantic Tags
+  else if (['div', 'section', 'article', 'aside', 'header', 'footer', 'main', 'nav', 'figure', 'figcaption', 'details', 'summary', 'dialog'].includes(tag)) {
+    const result = processContainer(processorContext);
+    if (result) {
+      Object.assign(element, result);
+      processed = true;
+    }
+  }
 
-    element.settings = {
-      videoType: 'file',
-      youTubeId: '',
-      youtubeControls: true,
-      vimeoByline: true,
-      vimeoTitle: true,
-      vimeoPortrait: true,
-      fileControls: node.hasAttribute('controls'),
-      fileUrl: videoSrc,
-      fileAutoplay: node.hasAttribute('autoplay'),
-      fileLoop: node.hasAttribute('loop'),
-      fileMute: node.hasAttribute('muted'),
-      fileInline: node.hasAttribute('playsinline'),
-      filePreload: node.getAttribute('preload') || 'auto',
-      ...(posterSrc && {
-        videoPoster: {
-          url: posterSrc,
-          external: true,
-          filename: posterSrc.split('/').pop() || 'poster.jpg'
-        }
-      })
-    };
-
-    // Handle width/height as inline styles
-    if (node.hasAttribute('width') || node.hasAttribute('height')) {
-      element.settings.style = [
-        node.getAttribute('width') ? `width: ${node.getAttribute('width')}px` : '',
-        node.getAttribute('height') ? `height: ${node.getAttribute('height')}px` : ''
-      ].filter(Boolean).join('; ');
+  // If no specific processor handled this element, use a default processor
+  if (!processed) {
+    log(`No specific processor found for tag: ${tag}, using default processor`);
+    // Default to text element processor for unknown elements
+    const result = processTextElement(processorContext);
+    if (result) {
+      Object.assign(element, result);
     }
   }
 
   element.name = name;
+  log(`Element type determined: ${name} for tag ${tag}`, { elementId });
 
   // Determine / create primary global class for this element
   const attrClassNames = node.classList ? Array.from(node.classList) : [];
@@ -280,6 +297,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   }
 
   // Process children for non-list elements
+  log(`Processing children for ${tag} (${elementId})`, { childCount: node.children.length });
   if (!['ul', 'ol'].includes(tag)) {
     Array.from(node.childNodes).forEach(childNode => {
       if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
@@ -296,6 +314,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     });
   }
 
+  log(`Processing attributes for ${tag} (${elementId})`);
   // Handle attributes
   const handleAttributes = (node, element) => {
     const elementSpecificAttrs = ['id', 'class', 'style', 'href', 'src', 'alt', 'title', 'type', 'name', 'value', 'placeholder', 'required', 'disabled', 'checked', 'selected', 'multiple', 'rows', 'cols', 'controls', 'autoplay', 'loop', 'muted', 'playsinline', 'preload', 'poster'];
@@ -355,6 +374,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   handleAttributes(node, element);
 
+  log(`Processing CSS classes for ${tag} (${elementId})`);
   // Handle CSS classes
   if (node.classList && node.classList.length > 0) {
     const classNames = Array.from(node.classList);
@@ -434,11 +454,18 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   }
 
   // Skip form fields handled by processFormElement
+  log(`Checking if ${tag} is a form field`);
   if (node.closest('form') && ['input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
+    log(`Skipping form field: ${tag} as it will be handled by processFormElement`);
     return null;
   }
 
   allElements.push(element);
+  log(`Successfully processed ${tag} (${elementId})`, { 
+    childrenCount: element.children.length,
+    hasSettings: Object.keys(element.settings).length > 0,
+    hasClasses: element.settings._cssGlobalClasses?.length > 0
+  });
   return element;
 };
 
@@ -449,6 +476,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
  * @returns {Object} Bricks structure object
  */
 const convertHtmlToBricks = (html, css) => {
+  log('Starting HTML to Bricks conversion');
+  log('HTML length:', html.length);
+  log('CSS length:', css?.length || 0);
   try {
     let doc;
     if (typeof window !== 'undefined' && typeof window.DOMParser !== 'undefined') {
@@ -463,17 +493,20 @@ const convertHtmlToBricks = (html, css) => {
     }
 
     // Build CSS map with normalized class names (without the leading dot)
-    const cssMap = {};
-    const rawCssMap = buildCssMap(css);
+  log('Building CSS map');
+  const cssMap = {};
+  const rawCssMap = buildCssMap(css);
+  log(`Found ${Object.keys(rawCssMap).length} CSS rules`);
     Object.entries(rawCssMap).forEach(([key, value]) => {
       const cleanKey = key.replace(/^[.\s]+/, ''); // Remove leading dots and spaces
       cssMap[cleanKey] = value;
     });
 
     // Process the document
-    const content = [];
-    const globalClasses = [];
-    const allElements = [];
+  log('Starting document processing', { childNodes: doc.body.childNodes.length });
+  const content = [];
+  const globalClasses = [];
+  const allElements = [];
 
     // Process each root node and collect the root elements
     Array.from(doc.body.childNodes).forEach(node => {
@@ -485,6 +518,14 @@ const convertHtmlToBricks = (html, css) => {
           content.push(element);
         }
       }
+    });
+
+    log(`Processing complete. Found ${allElements.length} total elements.`);
+    log(`Found ${globalClasses.length} global classes`);
+    log('Final content structure:', { 
+      rootElements: content.length,
+      allElements: allElements.length,
+      globalClasses: globalClasses.length 
     });
 
     // Add all elements to the content array to ensure flat structure with all nested elements
@@ -504,6 +545,10 @@ const convertHtmlToBricks = (html, css) => {
     };
   } catch (error) {
     console.error('Error converting HTML to Bricks:', error);
+    log('Error details:', { 
+      message: error.message, 
+      stack: error.stack 
+    }, 'error');
     throw error;
   }
 };
