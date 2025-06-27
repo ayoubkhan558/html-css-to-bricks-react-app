@@ -1,7 +1,8 @@
 import { getUniqueId } from '../utils';
 
-const getBricksFieldType = (node) => {
+export const getBricksFieldType = (node) => {
   const type = (node.getAttribute('type') || 'text').toLowerCase();
+  console.log("getBricksFieldType: Form input type ", type);
   const tagName = node.tagName.toLowerCase();
 
   if (tagName === 'textarea') return 'textarea';
@@ -13,11 +14,20 @@ const getBricksFieldType = (node) => {
     case 'file': return 'file';
     case 'checkbox': return 'checkbox';
     case 'submit': return 'submit';
+    case 'tel': return 'tel';
+    case 'number': return 'number';
+    case 'url': return 'url';
+    case 'date':
+    case 'datetime-local':
+    case 'time':
+    case 'month':
+    case 'week': return 'date';
     default: return 'text';
   }
 };
 
-const processFormField = (form, node) => {
+export const processFormField = (form, node) => {
+  console.log("processFormField form, node", form, node);
   const tagName = node.tagName.toLowerCase();
   if (!['input', 'select', 'textarea', 'button'].includes(tagName)) return null;
 
@@ -37,6 +47,7 @@ const processFormField = (form, node) => {
     required: node.hasAttribute('required'),
     value: node.getAttribute('value') || ''
   };
+  console.log("processFormField: Form input type ", type);
 
   // Handle labels
   if (node.id) {
@@ -53,6 +64,24 @@ const processFormField = (form, node) => {
     case 'password':
       if (node.hasAttribute('minlength')) field.minLength = node.getAttribute('minlength');
       if (node.hasAttribute('maxlength')) field.maxLength = node.getAttribute('maxlength');
+      break;
+    case 'tel':
+    case 'url':
+      if (node.hasAttribute('minlength')) field.minLength = node.getAttribute('minlength');
+      if (node.hasAttribute('maxlength')) field.maxLength = node.getAttribute('maxlength');
+      break;
+
+    case 'number':
+      if (node.hasAttribute('min')) field.min = node.getAttribute('min');
+      if (node.hasAttribute('max')) field.max = node.getAttribute('max');
+      if (node.hasAttribute('step')) field.step = node.getAttribute('step');
+      break;
+
+    case 'date':
+      field.dateFormat = type === 'datetime-local' ? 'Y-m-d\TH:i' :
+        type === 'time' ? 'H:i' :
+          type === 'month' ? 'Y-m' :
+            type === 'week' ? 'Y-\WW' : 'Y-m-d';
       break;
 
     case 'file':
@@ -73,6 +102,7 @@ const processFormField = (form, node) => {
       break;
 
     case 'select':
+    case 'textarea':
       field.options = Array.from(node.querySelectorAll('option'))
         .map(opt => opt.textContent.trim())
         .join('\n');
@@ -84,6 +114,7 @@ const processFormField = (form, node) => {
 };
 
 export const processFormElement = (formNode) => {
+  console.log("processFormElement formNode", formNode);
   const formElement = {
     id: getUniqueId().substring(0, 6),
     name: 'form',

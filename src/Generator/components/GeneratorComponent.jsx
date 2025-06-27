@@ -253,7 +253,7 @@ const GeneratorComponent = () => {
                 className="generator__output"
                 readOnly
                 value={output}
-                rows={16}
+                rows={8}
               />
             </>
           ) : (

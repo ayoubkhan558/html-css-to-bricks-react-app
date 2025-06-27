@@ -5,6 +5,7 @@
   font-family: 'Inter', sans-serif;
   overflow: hidden;
   position: relative;
+  min-height: 100vh;
 
   &__header {
     padding: 20px;
@@ -135,7 +136,7 @@
 
 
   &__output {
-    height: calc(100% - 315px);
+    height: calc(100% - 215px);
     background: #1a1b1e;
     color: #e0e0e0;
     border: 1px solid #35373b;
