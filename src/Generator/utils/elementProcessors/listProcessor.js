@@ -33,6 +33,7 @@ export const processListElement = (node, element, tag) => {
     } else {
       // Complex lists - use div structure
       element.name = 'div';
+      element.settings.tag = tag;
       element.settings.style = 'list-style-position: inside;';
     }
     element.label = tag === 'ul' ? 'Unordered List' : 'Ordered List';
