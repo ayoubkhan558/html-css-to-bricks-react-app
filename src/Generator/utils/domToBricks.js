@@ -21,10 +21,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Handle text nodes
   if (node.nodeType !== Node.ELEMENT_NODE) {
     if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-      const parentEl = node.parentElement;
-      if (parentEl) {
-        return null;
-      }
 
       const textElement = {
         id: getUniqueId(),
@@ -82,8 +78,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     // Generic div handling
     element.name = 'div';
     element.label = 'Div';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
+    element.settings.tag = 'div';
   } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
     processHeadingElement(node, element, tag);
   } else if (['time', 'mark', 'span', 'address', 'p', 'blockquote'].includes(tag)) {
