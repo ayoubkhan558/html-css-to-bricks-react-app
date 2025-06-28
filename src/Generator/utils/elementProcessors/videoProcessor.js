@@ -1,35 +1,34 @@
-export const processVideoElement = (node, elementId) => {
+/**
+ * Processes video elements for Bricks conversion
+ */
+export const processVideoElement = (node, element) => {
   const videoSrc = node.querySelector('source')?.getAttribute('src') || node.getAttribute('src') || '';
   const posterSrc = node.getAttribute('poster') || '';
 
-  const element = {
-    id: elementId,
-    name: 'video',
-    parent: '0',
-    children: [],
-    settings: {
-      videoType: 'file',
-      youTubeId: '',
-      youtubeControls: true,
-      vimeoByline: true,
-      vimeoTitle: true,
-      vimeoPortrait: true,
-      fileControls: node.hasAttribute('controls'),
-      fileUrl: videoSrc,
-      fileAutoplay: node.hasAttribute('autoplay'),
-      fileLoop: node.hasAttribute('loop'),
-      fileMute: node.hasAttribute('muted'),
-      fileInline: node.hasAttribute('playsinline'),
-      filePreload: node.getAttribute('preload') || 'auto',
-      ...(posterSrc && {
-        videoPoster: {
-          url: posterSrc,
-          external: true,
-          filename: posterSrc.split('/').pop() || 'poster.jpg'
-        }
-      })
-    },
-    label: 'Video'
+  element.name = 'video';
+  element.label = 'Video';
+  
+  element.settings = {
+    videoType: 'file',
+    youTubeId: '',
+    youtubeControls: true,
+    vimeoByline: true,
+    vimeoTitle: true,
+    vimeoPortrait: true,
+    fileControls: node.hasAttribute('controls'),
+    fileUrl: videoSrc,
+    fileAutoplay: node.hasAttribute('autoplay'),
+    fileLoop: node.hasAttribute('loop'),
+    fileMute: node.hasAttribute('muted'),
+    fileInline: node.hasAttribute('playsinline'),
+    filePreload: node.getAttribute('preload') || 'auto',
+    ...(posterSrc && {
+      videoPoster: {
+        url: posterSrc,
+        external: true,
+        filename: posterSrc.split('/').pop() || 'poster.jpg'
+      }
+    })
   };
 
   // Handle width/height as inline styles
@@ -42,5 +41,3 @@ export const processVideoElement = (node, elementId) => {
 
   return element;
 };
-
-export default processVideoElement;

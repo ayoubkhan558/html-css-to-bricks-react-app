@@ -1,6 +1,17 @@
 import { getUniqueId } from './utils';
 import { getBricksFieldType, processFormField, processFormElement } from "./elementProcessors/formProcessor"
 import { buildCssMap, parseCssDeclarations } from './cssParser';
+import { processAudioElement } from './elementProcessors/audioProcessor';
+import { processVideoElement } from './elementProcessors/videoProcessor';
+import { processTableElement } from './elementProcessors/tableProcessor';
+import { processImageElement } from './elementProcessors/imageProcessor';
+import { processSvgElement } from './elementProcessors/svgProcessor';
+import { processHeadingElement } from './elementProcessors/headingProcessor';
+import { processListElement } from './elementProcessors/listProcessor';
+import { processLinkElement } from './elementProcessors/linkProcessor';
+import { processButtonElement } from './elementProcessors/buttonProcessor';
+import { processMiscElement } from './elementProcessors/miscProcessor';
+import { processBlockquoteElement } from './elementProcessors/blockquoteProcessor';
 
 /**
  * Processes a DOM node and converts it to a Bricks element
@@ -58,118 +69,106 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     element.label = 'Section';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
-  } else if (tag === 'nav' || node.classList.contains('container')) {
-    name = tag === 'nav' ? 'nav' : 'container';
-    element.label = tag === 'nav' ? 'Navigation' : 'Container';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
-  } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
-    name = 'heading';
-    element.label = `Heading ${tag.replace('h', '')}`;
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
-  } else if (['p', 'span', 'address', 'blockquote'].includes(tag)) {
-    name = 'text-basic';
-    element.label = tag === 'p' ? 'Paragraph' : tag === 'span' ? 'Inline Text' : tag === 'address' ? 'P Class' : 'Rich Text';
-  } else if (tag === 'img') {
-    name = 'image';
-    element.label = 'Image';
-  } else if (tag === 'a') {
-    name = 'text-link';
-    element.label = 'Link';
-  } else if (tag === 'button') {
-    name = 'button';
-    element.label = 'Button';
-    element.settings.style = "primary";
-    element.settings.tag = "button";
-    element.settings.size = "md";
-  } else if (tag === 'svg') {
-    name = 'svg';
-    element.label = 'SVG';
   }
 
-  element.name = name;
-
-  // Handle CSS classes and generate primary class name
-  const attrClassNames = node.classList ? Array.from(node.classList) : [];
-  // Generate class name in format [tag][randomID][classAppend]
-  const randomId = Math.random().toString(36).substring(2, 6); // 4-char random ID
-  const primaryClassName = attrClassNames.length > 0 ? attrClassNames[0] : `${tag}-tag-${randomId}-class`;
-
-  // Generate default class if element has no classes
-  if (!node.className && !['form', 'input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
-    const defaultClass = primaryClassName;
-    node.classList.add(defaultClass);
-    if (!globalClasses.some(c => c.name === defaultClass)) {
-      globalClasses.push({
-        id: getUniqueId(),
-        name: defaultClass,
-        settings: {}
-      });
-    }
+  // Semantic containers
+  if (['article', 'aside', 'main'].includes(tag)) {
+    name = 'div';
+    element.label = tag === 'article' ? 'Article' : 
+                   tag === 'aside' ? 'Aside' : 'Main';
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
   }
 
-  // **KEY FIX**: Handle nested text elements properly
-  if (['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
-    // Check if this element contains formatting tags
-    const formattingTags = ['strong', 'b', 'em', 'i', 'code', 'mark', 'cite', 'u', 's', 'del', 'ins', 'sup', 'sub', 'small', 'abbr', 'q'];
-    const hasFormatting = Array.from(node.querySelectorAll('*')).some(child =>
-      formattingTags.includes(child.tagName.toLowerCase())
-    );
+  // Generic div handling
+  if (tag === 'div') {
+    name = 'div';
+    element.label = 'Div';
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
+  }
 
-    if (hasFormatting) {
-      // Use rich text element for formatted content
-      name = 'text';
-      element.name = 'text';
-      element.label = 'Rich Text';
-      element.settings.text = node.innerHTML; // Use innerHTML to preserve formatting
-      element.settings.tag = tag;
-      // Don't process children since we're using innerHTML
-      allElements.push(element);
-      return element;
+  if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
+    processHeadingElement(node, element, tag);
+  } else if (['time', 'mark', 'span', 'address', 'p'].includes(tag)) {
+    // Unified text element handler
+    const textContent = node.textContent.trim();
+    
+    // Handle formatted paragraphs
+    if (tag === 'p') {
+      const formattingTags = ['strong', 'b', 'em', 'i', 'code', 'mark', 'cite', 'u', 's', 'del', 'ins', 'sup', 'sub', 'small', 'abbr', 'q'];
+      const hasFormatting = Array.from(node.querySelectorAll('*')).some(child =>
+        formattingTags.includes(child.tagName.toLowerCase())
+      );
+
+      if (hasFormatting) {
+        element.name = 'text';
+        element.label = 'Rich Text';
+        element.settings.text = node.innerHTML;
+        element.settings.tag = tag;
+        allElements.push(element);
+        return element;
+      }
+
+      // Handle single child merging
+      const childElements = Array.from(node.children);
+      if (childElements.length === 1 && ['address', 'span', 'em', 'strong', 'code'].includes(childElements[0].tagName.toLowerCase())) {
+        const childTag = childElements[0].tagName.toLowerCase();
+        element.settings.text = childElements[0].textContent.trim();
+        element.settings.tag = childTag;
+        element.name = 'text-basic';
+        element.label = 'Paragraph';
+        return element;
+      }
     }
 
-    // Check if this element has a single child element that should be merged
-    const childElements = Array.from(node.children);
-    if (childElements.length === 1 && ['address', 'span', 'em', 'strong', 'code'].includes(childElements[0].tagName.toLowerCase())) {
-      // Merge the child's content into this element with the child's tag
-      const childTag = childElements[0].tagName.toLowerCase();
-      element.settings.text = childElements[0].textContent.trim();
-      element.settings.tag = childTag;
-      element.label = "P Class";
-      return element;
-    } else {
-      // Normal text processing for plain text
-      const textContent = node.textContent.trim();
-      if (textContent) {
-        element.settings.text = textContent;
+    // Set common text properties
+    if (textContent) {
+      element.settings.text = textContent;
+      element.name = tag === 'p' ? 'text-basic' : 'text-basic';
+      element.label = tag === 'p' ? 'Paragraph' :
+                     tag === 'span' ? 'Inline Text' :
+                     tag === 'address' ? 'P Class' :
+                     tag === 'time' ? 'Time' : 'Mark';
+
+      // Handle special cases
+      if (['time', 'mark'].includes(tag)) {
+        element.settings.tag = 'custom';
+        element.settings.customTag = tag;
+      } else if (tag === 'span' || tag === 'address') {
+        element.settings.tag = tag;
+      } else if (tag === 'p') {
         element.settings.tag = tag;
       }
     }
-  } else if (tag === 'blockquote') {
-    const textContent = node.textContent.trim();
-    if (textContent) {
-      element.settings.text = textContent;
-      element.settings.tag = 'custom';
-      element.settings.customTag = 'blockquote';
-    }
-  } else if (['button', 'address', 'span', 'a'].includes(tag)) {
-    const textContent = node.textContent.trim();
-    if (textContent) {
-      element.settings.text = textContent;
-      element.settings.tag = tag;
-    }
   } else if (tag === 'img') {
-    element.settings.src = node.getAttribute('src') || '';
-    element.settings.alt = node.getAttribute('alt') || '';
-    element.settings.image = {
-      url: node.getAttribute('src') || '',
-      external: true,
-      filename: (node.getAttribute('src') || 'image.jpg').split('/').pop()
-    };
+    processImageElement(node, element);
+  } else if (tag === 'a') {
+    processLinkElement(node, element);
+  } else if (tag === 'button') {
+    processButtonElement(node, element);
   } else if (tag === 'svg') {
-    element.settings.source = 'code';
-    element.settings.code = node.outerHTML;
+    processSvgElement(node, element);
+  } else if (tag === 'form') {
+    name = 'form';
+    element.label = 'Form';
+    const formElement = processFormElement(node);
+    formElement.id = elementId;
+    formElement.parent = parentId;
+    Object.assign(element, formElement);
+  } else if (['ul', 'ol', 'li'].includes(tag)) {
+    processListElement(node, element, tag);
+  } else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
+    processTableElement(node, element, tag);
+  } else if (tag === 'audio') {
+    processAudioElement(node, element);
+  } else if (tag === 'video') {
+    processVideoElement(node, element);
+  } else if (tag === 'blockquote') {
+    processBlockquoteElement(node, element);
+
+  } else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
+    processMiscElement(node, element, tag);
   } else {
     // Process children for container elements
     Array.from(node.childNodes).forEach(childNode => {
@@ -190,6 +189,26 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   if (node.closest('form') && ['input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
     return null;
   }
+
+  // Handle CSS classes and generate primary class name
+  const attrClassNames = node.classList ? Array.from(node.classList) : [];
+  // Generate class name in format [tag][randomID][classAppend]
+  const randomId = Math.random().toString(36).substring(2, 6); // 4-char random ID
+  const primaryClassName = attrClassNames.length > 0 ? attrClassNames[0] : `${tag}-tag-${randomId}-class`;
+
+  // Generate default class if element has no classes
+  if (!node.className && !['form', 'input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
+    const defaultClass = primaryClassName;
+    node.classList.add(defaultClass);
+    if (!globalClasses.some(c => c.name === defaultClass)) {
+      globalClasses.push({
+        id: getUniqueId(),
+        name: defaultClass,
+        settings: {}
+      });
+    }
+  }
+
 
   // Handle CSS classes
   if (node.classList && node.classList.length > 0) {
