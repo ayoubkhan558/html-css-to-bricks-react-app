@@ -187,10 +187,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
             const pseudoKey = `${cls}:${pseudo}`;
             if (cssRulesMap[pseudoKey]) {
               const pseudoStyles = parseCssDeclarations(cssRulesMap[pseudoKey], cls);
-              if (!targetClass.settings[pseudo]) targetClass.settings[pseudo] = {};
+              // Only store flat variant expected by Bricks like _background:hover
               Object.entries(pseudoStyles).forEach(([prop, value]) => {
-                targetClass.settings[pseudo][prop] = value;
-                // Also store flat variant expected by Bricks like _background:hover
                 targetClass.settings[`${prop}:${pseudo}`] = value;
               });
             }
