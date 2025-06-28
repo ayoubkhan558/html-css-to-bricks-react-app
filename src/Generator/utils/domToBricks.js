@@ -62,9 +62,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
     name = 'heading';
     element.label = `Heading ${tag.replace('h', '')}`;
-  } else if (['p', 'span', 'address'].includes(tag)) {
+  } else if (['p', 'span', 'address', 'blockquote'].includes(tag)) {
     name = 'text-basic';
-    element.label = tag === 'p' ? 'Paragraph' : tag === 'span' ? 'Inline Text' : 'P Class';
+    element.label = tag === 'p' ? 'Paragraph' : tag === 'span' ? 'Inline Text' : tag === 'address' ? 'P Class' : 'Rich Text';
   } else if (tag === 'img') {
     name = 'image';
     element.label = 'Image';
@@ -212,6 +212,13 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         element.settings.text = textContent;
         element.settings.tag = tag;
       }
+    }
+  } else if (tag === 'blockquote') {
+    const textContent = node.textContent.trim();
+    if (textContent) {
+      element.settings.text = textContent;
+      element.settings.tag = 'custom';
+      element.settings.customTag = 'blockquote';
     }
   } else if (['button', 'address', 'span', 'a'].includes(tag)) {
     const textContent = node.textContent.trim();
