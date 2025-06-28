@@ -265,7 +265,7 @@ const GeneratorComponent = () => {
             disabled={!output}
             onClick={handleCopyJson}
           >
-            {isCopied ? 'Copied!' : 'Copy JSON'}
+            {isCopied ? 'Copied!' : 'Copy Bricks Elements'}
           </button>
         </div>
       </div>
