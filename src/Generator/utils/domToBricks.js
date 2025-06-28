@@ -51,7 +51,15 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // <address>). These empty nodes generate redundant Bricks elements and
   // should be ignored completely.
   // -------------------------------------------------------------------
-  if (['p', 'span', 'div'].includes(tag) && node.textContent.trim() === '' && node.children.length === 0) {
+  // Skip empty placeholder elements automatically injected by the HTML
+  // parser when the source markup is invalid, but preserve divs with classes
+  if (['p', 'span'].includes(tag) && node.textContent.trim() === '' && node.children.length === 0) {
+    return null;
+  }
+
+  // Only skip empty divs if they have no classes and no attributes
+  if (tag === 'div' && node.textContent.trim() === '' && node.children.length === 0 &&
+    !node.className && node.attributes.length <= 1) { // length <= 1 to account for just the tag name
     return null;
   }
   let name = 'div';
@@ -66,9 +74,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
 
   // Structure/layout elements
-  if (['article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'].includes(tag) || 
-      node.classList.contains('section') || 
-      (tag === 'div' && (node.classList.contains('container') || node.classList.contains('boxed')))) {
+  if (['div', 'article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'].includes(tag) ||
+    node.classList.contains('section') ||
+    (tag === 'div' && (node.classList.contains('container') || node.classList.contains('boxed')))) {
     processStructureLayoutElement(node, element, tag);
   } else if (tag === 'div') {
     // Generic div handling

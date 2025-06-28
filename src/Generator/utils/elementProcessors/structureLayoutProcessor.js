@@ -2,12 +2,20 @@ export function processStructureLayoutElement(node, element, tag) {
   // Default tags in Div, Block, Section, Container element of Bricks
   const defaultTags = ['div', 'section', 'article', 'nav', 'aside'];
   // Tags that represent major layout/section wrappers
-  const layoutTags = ['div', 'article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'];
+  const layoutTags = ['article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'];
 
   // Handle container elements (only on div tags)
   if (tag === 'div' && (node.classList?.contains('container') || node.classList?.contains('boxed'))) {
     element.name = 'container';
     element.label = 'Container';
+    element.settings.tag = 'div';
+    return true;
+  }
+
+  // Handle regular div elements
+  if (tag === 'div') {
+    element.name = 'div';
+    element.label = 'Div';
     element.settings.tag = 'div';
     return true;
   }
