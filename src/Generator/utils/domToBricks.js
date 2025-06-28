@@ -56,12 +56,18 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   if (tag === 'section' || tag === 'footer' || tag === 'header' || node.classList.contains('section')) {
     name = 'section';
     element.label = 'Section';
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
   } else if (tag === 'nav' || node.classList.contains('container')) {
     name = tag === 'nav' ? 'nav' : 'container';
     element.label = tag === 'nav' ? 'Navigation' : 'Container';
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
   } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
     name = 'heading';
     element.label = `Heading ${tag.replace('h', '')}`;
+    element.settings.tag = 'custom';
+    element.settings.customTag = tag;
   } else if (['p', 'span', 'address', 'blockquote'].includes(tag)) {
     name = 'text-basic';
     element.label = tag === 'p' ? 'Paragraph' : tag === 'span' ? 'Inline Text' : tag === 'address' ? 'P Class' : 'Rich Text';
@@ -103,78 +109,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     }
   }
 
-  // Handle CSS classes
-  if (node.classList && node.classList.length > 0) {
-    const classNames = Array.from(node.classList);
-    const cssGlobalClasses = [];
-
-    classNames.forEach(cls => {
-      let existingClass = globalClasses.find(c => c.name === cls);
-      if (!existingClass) {
-        const classId = getUniqueId();
-        let targetClass = {
-          id: classId,
-          name: cls,
-          settings: {}
-        };
-
-        if (cssRulesMap[cls]) {
-          const baseStyles = parseCssDeclarations(cssRulesMap[cls], cls);
-          Object.assign(targetClass.settings, baseStyles);
-        }
-
-        globalClasses.push(targetClass);
-        cssGlobalClasses.push(classId);
-      } else {
-        cssGlobalClasses.push(existingClass.id);
-      }
-    });
-
-    if (cssGlobalClasses.length > 0) {
-      element.settings._cssGlobalClasses = cssGlobalClasses;
-    }
-  }
-
-  // Handle attributes
-  const handleAttributes = (node, element) => {
-    const elementSpecificAttrs = ['id', 'class', 'style', 'href', 'src', 'alt', 'title', 'type', 'name', 'value', 'placeholder', 'required', 'disabled', 'checked', 'selected', 'multiple', 'rows', 'cols'];
-    const customAttributes = [];
-
-    if (tag === 'a' && node.hasAttribute('href')) {
-      element.settings.link = {
-        type: 'external',
-        url: node.getAttribute('href') || '',
-        noFollow: node.getAttribute('rel')?.includes('nofollow') || false,
-        openInNewWindow: node.getAttribute('target') === '_blank',
-        noReferrer: node.getAttribute('rel')?.includes('noreferrer') || false
-      };
-    }
-
-    if (node.hasAttribute('id')) {
-      element.settings._cssId = node.getAttribute('id');
-    }
-
-    Array.from(node.attributes).forEach(attr => {
-      if (!elementSpecificAttrs.includes(attr.name) &&
-        !attr.name.startsWith('data-bricks-') &&
-        attr.name !== 'href' &&
-        !(tag === 'a' && ['target', 'rel'].includes(attr.name))) {
-        customAttributes.push({
-          id: getUniqueId(),
-          name: attr.name,
-          value: attr.value
-        });
-      }
-    });
-
-    if (customAttributes.length > 0) {
-      element.settings._attributes = customAttributes;
-    }
-  };
-
-  handleAttributes(node, element);
-
-  // **KEY FIX**: Handle nested text elements properly
   // **KEY FIX**: Handle nested text elements properly
   if (['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
     // Check if this element contains formatting tags
@@ -256,6 +190,77 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   if (node.closest('form') && ['input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
     return null;
   }
+
+  // Handle CSS classes
+  if (node.classList && node.classList.length > 0) {
+    const classNames = Array.from(node.classList);
+    const cssGlobalClasses = [];
+
+    classNames.forEach(cls => {
+      let existingClass = globalClasses.find(c => c.name === cls);
+      if (!existingClass) {
+        const classId = getUniqueId();
+        let targetClass = {
+          id: classId,
+          name: cls,
+          settings: {}
+        };
+
+        if (cssRulesMap[cls]) {
+          const baseStyles = parseCssDeclarations(cssRulesMap[cls], cls);
+          Object.assign(targetClass.settings, baseStyles);
+        }
+
+        globalClasses.push(targetClass);
+        cssGlobalClasses.push(classId);
+      } else {
+        cssGlobalClasses.push(existingClass.id);
+      }
+    });
+
+    if (cssGlobalClasses.length > 0) {
+      element.settings._cssGlobalClasses = cssGlobalClasses;
+    }
+  }
+
+  // Handle attributes
+  const handleAttributes = (node, element) => {
+    const elementSpecificAttrs = ['id', 'class', 'style', 'href', 'src', 'alt', 'title', 'type', 'name', 'value', 'placeholder', 'required', 'disabled', 'checked', 'selected', 'multiple', 'rows', 'cols'];
+    const customAttributes = [];
+
+    if (tag === 'a' && node.hasAttribute('href')) {
+      element.settings.link = {
+        type: 'external',
+        url: node.getAttribute('href') || '',
+        noFollow: node.getAttribute('rel')?.includes('nofollow') || false,
+        openInNewWindow: node.getAttribute('target') === '_blank',
+        noReferrer: node.getAttribute('rel')?.includes('noreferrer') || false
+      };
+    }
+
+    if (node.hasAttribute('id')) {
+      element.settings._cssId = node.getAttribute('id');
+    }
+
+    Array.from(node.attributes).forEach(attr => {
+      if (!elementSpecificAttrs.includes(attr.name) &&
+        !attr.name.startsWith('data-bricks-') &&
+        attr.name !== 'href' &&
+        !(tag === 'a' && ['target', 'rel'].includes(attr.name))) {
+        customAttributes.push({
+          id: getUniqueId(),
+          name: attr.name,
+          value: attr.value
+        });
+      }
+    });
+
+    if (customAttributes.length > 0) {
+      element.settings._attributes = customAttributes;
+    }
+  };
+
+  handleAttributes(node, element);
 
   allElements.push(element);
   return element;
