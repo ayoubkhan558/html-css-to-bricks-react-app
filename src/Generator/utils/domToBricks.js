@@ -12,6 +12,7 @@ import { processLinkElement } from './elementProcessors/linkProcessor';
 import { processButtonElement } from './elementProcessors/buttonProcessor';
 import { processMiscElement } from './elementProcessors/miscProcessor';
 import { processBlockquoteElement } from './elementProcessors/blockquoteProcessor';
+import { processStructureLayoutElement } from './elementProcessors/structureLayoutProcessor';
 
 /**
  * Processes a DOM node and converts it to a Bricks element
@@ -64,20 +65,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   };
 
   // Determine element type
-  if (tag === 'section' || tag === 'footer' || tag === 'header' || node.classList.contains('section')) {
-    name = 'section';
-    element.label = 'Section';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
-  }
-
-  // Semantic containers
-  if (['article', 'aside', 'main'].includes(tag)) {
-    name = 'div';
-    element.label = tag === 'article' ? 'Article' : 
-                   tag === 'aside' ? 'Aside' : 'Main';
-    element.settings.tag = 'custom';
-    element.settings.customTag = tag;
+  if (processStructureLayoutElement(node, element, tag)) {
+    return element;
   }
 
   // Generic div handling
@@ -160,6 +149,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     processListElement(node, element, tag);
   } else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
     processTableElement(node, element, tag);
+    allElements.push(element);
   } else if (tag === 'audio') {
     processAudioElement(node, element);
   } else if (tag === 'video') {
@@ -169,8 +159,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   } else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
     processMiscElement(node, element, tag);
-  } else {
-    // Process children for container elements
+  }
+  // Process children for non-list elements
+  if (!['ul', 'ol'].includes(tag)) {
     Array.from(node.childNodes).forEach(childNode => {
       if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
         return;
