@@ -20,6 +20,10 @@ import { processTextElement } from './elementProcessors/textElementProcessor';
 const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], allElements = []) => {
   // Handle text nodes
   if (node.nodeType !== Node.ELEMENT_NODE) {
+    // Skip text nodes that are inside a form element (labels, button text, etc.)
+    if (node.parentElement && node.parentElement.closest && node.parentElement.closest('form')) {
+      return null;
+    }
     if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
 
       const textElement = {
@@ -123,7 +127,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   }
 
   // Process children (only skip td/th to avoid duplication, allow other table elements to process children)
-  if (!['td', 'th'].includes(tag)) {
+  // Skip traversing children for table cells and for <form> – form fields are already extracted by processFormElement
+  if (!['td', 'th', 'form'].includes(tag)) {
     Array.from(node.childNodes).forEach(childNode => {
       if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
         return;
