@@ -13,6 +13,7 @@ import { processButtonElement } from './elementProcessors/buttonProcessor';
 import { processMiscElement } from './elementProcessors/miscProcessor';
 import { processStructureLayoutElement } from './elementProcessors/structureLayoutProcessor';
 import { processTextElement } from './elementProcessors/textElementProcessor';
+import { processAttributes } from './processors/attributeProcessor';
 
 /**
  * Processes a DOM node and converts it to a Bricks element
@@ -212,46 +213,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     }
   }
 
-  // Handle attributes
-  const handleAttributes = (node, element) => {
-    const elementSpecificAttrs = ['id', 'class', 'style', 'href', 'src', 'alt', 'title', 'type', 'name', 'value', 'placeholder', 'required', 'disabled', 'checked', 'selected', 'multiple', 'rows', 'cols'];
-    const customAttributes = [];
-
-    if (tag === 'a' && node.hasAttribute('href')) {
-      element.settings.link = {
-        type: 'external',
-        url: node.getAttribute('href') || '',
-        noFollow: node.getAttribute('rel')?.includes('nofollow') || false,
-        openInNewWindow: node.getAttribute('target') === '_blank',
-        noReferrer: node.getAttribute('rel')?.includes('noreferrer') || false
-      };
-    }
-
-    if (node.hasAttribute('id')) {
-      element.settings._cssId = node.getAttribute('id');
-    }
-
-    Array.from(node.attributes).forEach(attr => {
-      if (!elementSpecificAttrs.includes(attr.name) &&
-        !attr.name.startsWith('data-bricks-') &&
-        attr.name !== 'href' &&
-        !(tag === 'a' && ['target', 'rel'].includes(attr.name))) {
-        customAttributes.push({
-          id: getUniqueId(),
-          name: attr.name,
-          value: attr.value
-        });
-      }
-    });
-
-    if (customAttributes.length > 0) {
-      element.settings._attributes = customAttributes;
-    }
-  };
-
-  handleAttributes(node, element);
-
-
+  // Process attributes
+  processAttributes(node, element, tag);
 
   allElements.push(element);
   return element;
