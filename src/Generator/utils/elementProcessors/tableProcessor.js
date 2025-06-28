@@ -7,7 +7,16 @@ export const processTableElement = (node, element, tag) => {
     element.name = 'text-basic';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
-    element.settings.text = node.textContent.trim();
+    
+    // Check for rich text content (contains HTML formatting tags)
+    const hasRichText = node.innerHTML !== node.textContent.trim();
+    
+    if (hasRichText) {
+      element.settings.text = node.innerHTML;
+      element.settings.isRichText = true;
+    } else {
+      element.settings.text = node.textContent.trim();
+    }
     
     // Apply table cell styling
     element.settings.style = tag === 'th' 
