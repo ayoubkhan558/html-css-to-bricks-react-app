@@ -86,10 +86,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   // Handle CSS classes and generate primary class name
   const attrClassNames = node.classList ? Array.from(node.classList) : [];
-  // Use a deterministic default class name instead of a random one to keep
-  // class names consistent across multiple render passes. This makes it
-  // possible to predict the output (e.g. `p-class`, `address-class`).
-  const primaryClassName = attrClassNames.length > 0 ? attrClassNames[0] : `${tag}-class`;
+  // Generate class name in format [tag][randomID][classAppend]
+  const randomId = Math.random().toString(36).substring(2, 6); // 4-char random ID
+  const primaryClassName = attrClassNames.length > 0 ? attrClassNames[0] : `${tag}-tag-${randomId}-class`;
 
   // Generate default class if element has no classes
   if (!node.className && !['form', 'input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
