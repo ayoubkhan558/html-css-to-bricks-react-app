@@ -66,7 +66,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
 
   // Structure/layout elements
-  if (['article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'].includes(tag) || node.classList.contains('section')) {
+  if (['article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'].includes(tag) || 
+      node.classList.contains('section') || 
+      (tag === 'div' && (node.classList.contains('container') || node.classList.contains('boxed')))) {
     processStructureLayoutElement(node, element, tag);
   } else if (tag === 'div') {
     // Generic div handling
