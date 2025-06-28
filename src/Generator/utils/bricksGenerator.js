@@ -31,7 +31,7 @@ const createBricksStructure = (html, css = '', js = '') => {
 
     // Ensure version is correct
     result.version = '2.0-beta';
-    
+
     return result;
   } catch (error) {
     console.error('Error creating Bricks structure:', error);

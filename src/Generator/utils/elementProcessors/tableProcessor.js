@@ -2,28 +2,23 @@
  * Processes table elements for Bricks conversion
  */
 export const processTableElement = (node, element, tag) => {
-  // For table cells (td/th), use text-basic directly
+  // For table cells (td, th)
   if (['td', 'th'].includes(tag)) {
     element.name = 'text-basic';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
     
-    // Check for rich text content (contains HTML formatting tags)
+    // Handle cell content
     const hasRichText = node.innerHTML !== node.textContent.trim();
+    element.settings.text = hasRichText ? node.innerHTML : node.textContent.trim();
+    if (hasRichText) element.settings.isRichText = true;
     
-    if (hasRichText) {
-      element.settings.text = node.innerHTML;
-      element.settings.isRichText = true;
-    } else {
-      element.settings.text = node.textContent.trim();
-    }
-    
-    // Apply table cell styling
+    // Apply basic cell styling
     element.settings.style = tag === 'th' 
       ? 'display: table-cell; padding: 8px; border: 1px solid #ddd; font-weight: bold;' 
       : 'display: table-cell; padding: 8px; border: 1px solid #ddd;';
     
-    // Preserve alignment and scope
+    // Handle cell attributes
     if (node.hasAttribute('align')) {
       element.settings.style += `; text-align: ${node.getAttribute('align')}`;
     }
@@ -33,27 +28,30 @@ export const processTableElement = (node, element, tag) => {
     if (tag === 'th' && node.hasAttribute('scope')) {
       element.settings.scope = node.getAttribute('scope');
     }
+    if (node.hasAttribute('rowspan')) {
+      element.settings.rowspan = node.getAttribute('rowspan');
+    }
+    if (node.hasAttribute('colspan')) {
+      element.settings.colspan = node.getAttribute('colspan');
+    }
     
     return element;
   }
   
   // For other table elements (table, thead, tbody, etc)
-  element.name = 'div';
-  element.settings.tag = 'custom';
-  element.settings.customTag = tag;
-
-  // Base styles for each table component
   const baseStyles = {
-    table: 'display: table; width: 100%; border-collapse: collapse;',
-    thead: 'display: table-header-group; background-color: #f8f9fa;',
+    table: 'display: table; border-collapse: collapse; width: 100%;',
+    thead: 'display: table-header-group;',
     tbody: 'display: table-row-group;',
-    tfoot: 'display: table-footer-group; background-color: #f8f9fa;',
+    tfoot: 'display: table-footer-group;',
     tr: 'display: table-row;',
-    th: 'display: table-cell; padding: 8px; border: 1px solid #ddd; font-weight: bold; text-align: left;',
+    th: 'display: table-cell; padding: 8px; border: 1px solid #ddd; font-weight: bold;',
     td: 'display: table-cell; padding: 8px; border: 1px solid #ddd;'
   };
 
-  // Set labels and base styles
+  element.name = 'div';
+  element.settings.tag = 'custom';
+  element.settings.customTag = tag;
   element.label = 
     tag === 'table' ? 'Table' :
     tag === 'thead' ? 'Table Header' :
@@ -62,24 +60,15 @@ export const processTableElement = (node, element, tag) => {
     tag === 'tr' ? 'Table Row' :
     tag === 'th' ? 'Table Header Cell' : 'Table Cell';
     
-  element.settings.style = baseStyles[tag];
+  element.settings.style = baseStyles[tag] || '';
 
-  // Preserve important table attributes
+  // Preserve table attributes
   if (tag === 'table') {
-    const attrs = ['border', 'cellpadding', 'cellspacing'];
-    attrs.forEach(attr => {
+    ['border', 'cellpadding', 'cellspacing', 'width'].forEach(attr => {
       if (node.hasAttribute(attr)) {
         element.settings[attr] = node.getAttribute(attr);
       }
     });
-  }
-
-  // Preserve rowspan/colspan
-  if (node.hasAttribute('rowspan')) {
-    element.settings.rowspan = node.getAttribute('rowspan');
-  }
-  if (node.hasAttribute('colspan')) {
-    element.settings.colspan = node.getAttribute('colspan');
   }
 
   return element;

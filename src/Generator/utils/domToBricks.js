@@ -98,14 +98,14 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     formElement.id = elementId;
     formElement.parent = parentId;
     Object.assign(element, formElement);
-  } else if (['ul', 'ol', 'li'].includes(tag)) {
-    processListElement(node, element, tag);
-  } else if (tag === 'audio') {
-    processAudioElement(node, element);
-  } else if (tag === 'video') {
-    processVideoElement(node, element);
-  } else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
-    processMiscElement(node, element, tag);
+  } else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
+    const processedElement = processTableElement(node, element, tag);
+    if (['td', 'th'].includes(tag)) {
+      // For cells, return early to avoid duplicate processing
+      allElements.push(processedElement);
+      return processedElement;
+    }
+    // For other table elements, continue with normal processing
   } else if (['ul', 'ol', 'li'].includes(tag)) {
     const processedElement = processListElement(node, element, tag);
     if (processedElement && processedElement.name === 'text') {
@@ -114,8 +114,30 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       return processedElement;
     }
     // For complex lists, continue with normal processing (just like tables)
+  } else if (tag === 'audio') {
+    processAudioElement(node, element);
+  } else if (tag === 'video') {
+    processVideoElement(node, element);
+  } else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
+    processMiscElement(node, element, tag);
   }
 
+  // Process children (only skip td/th to avoid duplication, allow other table elements to process children)
+  if (!['td', 'th'].includes(tag)) {
+    Array.from(node.childNodes).forEach(childNode => {
+      if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
+        return;
+      }
+      const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements);
+      if (childElement) {
+        if (Array.isArray(childElement)) {
+          childElement.forEach(c => element.children.push(c.id));
+        } else {
+          element.children.push(childElement.id);
+        }
+      }
+    });
+  }
 
   if (node.closest('form') && ['input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
     return null;
@@ -212,27 +234,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   handleAttributes(node, element);
 
-  // --------------------------------------------------------------
-  // Recursively process child nodes so that structural elements
-  // (e.g. <section>, <header>, <footer>) correctly include their
-  // inner content in the Bricks output.
-  // --------------------------------------------------------------
-  // Recursively process child nodes (skip table-related tags to avoid duplication)
-  if (!['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
-    Array.from(node.childNodes).forEach(childNode => {
-      if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
-        return;
-      }
-      const childEl = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements);
-      if (childEl) {
-        if (Array.isArray(childEl)) {
-          element.children.push(...childEl.map(c => c.id));
-        } else {
-          element.children.push(childEl.id);
-        }
-      }
-    });
-  }
 
 
   allElements.push(element);
