@@ -51,7 +51,7 @@ const GeneratorComponent = () => {
   return (
     <div className="generator">
       <div className="generator__header">
-        <h2 className="generator__title">Bricks Structure Generator</h2>
+        <h2 className="generator__title">Code2Bricks - Bricks Structure Generator</h2>
         <p className="generator__description">
           Paste your raw HTML, CSS, and JavaScript below. Click <strong>Generate</strong> to get a JSON structure that you can copy &amp; paste
           directly into Bricks' structure panel.
