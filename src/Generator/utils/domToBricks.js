@@ -176,7 +176,26 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   handleAttributes(node, element);
 
   // **KEY FIX**: Handle nested text elements properly
+  // **KEY FIX**: Handle nested text elements properly
   if (['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
+    // Check if this element contains formatting tags
+    const formattingTags = ['strong', 'b', 'em', 'i', 'code', 'mark', 'cite', 'u', 's', 'del', 'ins', 'sup', 'sub', 'small', 'abbr', 'q'];
+    const hasFormatting = Array.from(node.querySelectorAll('*')).some(child =>
+      formattingTags.includes(child.tagName.toLowerCase())
+    );
+
+    if (hasFormatting) {
+      // Use rich text element for formatted content
+      name = 'text';
+      element.name = 'text';
+      element.label = 'Rich Text';
+      element.settings.text = node.innerHTML; // Use innerHTML to preserve formatting
+      element.settings.tag = tag;
+      // Don't process children since we're using innerHTML
+      allElements.push(element);
+      return element;
+    }
+
     // Check if this element has a single child element that should be merged
     const childElements = Array.from(node.children);
     if (childElements.length === 1 && ['address', 'span', 'em', 'strong', 'code'].includes(childElements[0].tagName.toLowerCase())) {
@@ -184,11 +203,10 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       const childTag = childElements[0].tagName.toLowerCase();
       element.settings.text = childElements[0].textContent.trim();
       element.settings.tag = childTag;
-      element.label = "P Class"; // Set label as expected
-      // Don't process children since we merged them
+      element.label = "P Class";
       return element;
     } else {
-      // Normal text processing
+      // Normal text processing for plain text
       const textContent = node.textContent.trim();
       if (textContent) {
         element.settings.text = textContent;
