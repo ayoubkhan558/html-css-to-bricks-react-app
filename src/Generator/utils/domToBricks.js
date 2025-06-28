@@ -82,7 +82,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   } else if (['time', 'mark', 'span', 'address', 'p'].includes(tag)) {
     // Unified text element handler
     const textContent = node.textContent.trim();
-    
+
     // Handle formatted paragraphs
     if (tag === 'p') {
       const formattingTags = ['strong', 'b', 'em', 'i', 'code', 'mark', 'cite', 'u', 's', 'del', 'ins', 'sup', 'sub', 'small', 'abbr', 'q'];
@@ -116,9 +116,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       element.settings.text = textContent;
       element.name = tag === 'p' ? 'text-basic' : 'text-basic';
       element.label = tag === 'p' ? 'Paragraph' :
-                     tag === 'span' ? 'Inline Text' :
-                     tag === 'address' ? 'P Class' :
-                     tag === 'time' ? 'Time' : 'Mark';
+        tag === 'span' ? 'Inline Text' :
+          tag === 'address' ? 'P Class' :
+            tag === 'time' ? 'Time' : 'Mark';
 
       // Handle special cases
       if (['time', 'mark'].includes(tag)) {
@@ -147,21 +147,25 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     Object.assign(element, formElement);
   } else if (['ul', 'ol', 'li'].includes(tag)) {
     processListElement(node, element, tag);
-  } else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
-    processTableElement(node, element, tag);
-    allElements.push(element);
   } else if (tag === 'audio') {
     processAudioElement(node, element);
   } else if (tag === 'video') {
     processVideoElement(node, element);
   } else if (tag === 'blockquote') {
     processBlockquoteElement(node, element);
-
   } else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
     processMiscElement(node, element, tag);
+  } else if (['ul', 'ol', 'li'].includes(tag)) {
+    const processedElement = processListElement(node, element, tag);
+    if (processedElement && processedElement.name === 'text') {
+      // For simple lists, return early (like tables do)
+      allElements.push(processedElement);
+      return processedElement;
+    }
+    // For complex lists, continue with normal processing (just like tables)
   }
-  // Process children for non-list elements
-  if (!['ul', 'ol'].includes(tag)) {
+  // Process children (remove ul, ol from exclusion list)
+  if (!['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
     Array.from(node.childNodes).forEach(childNode => {
       if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
         return;
@@ -175,6 +179,10 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         }
       }
     });
+  }
+  // Process children for non-list elements
+  if (!['ul', 'ol'].includes(tag)) {
+
   }
 
   if (node.closest('form') && ['input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
