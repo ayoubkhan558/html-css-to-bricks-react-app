@@ -278,28 +278,39 @@ export function parseCssDeclarations(cssText, className = '') {
     if (!prop || !value) return;
 
     // Check for pseudo-class in property name (shouldn't happen in raw CSS, but just in case)
-    const pseudoMatch = prop.match(/(.*):(hover|active|focus|visited)$/);
+    const pseudoMatch = prop.match(/^(_[a-zA-Z]+|transform|background|border|box-shadow|text-shadow|opacity):(hover|active|focus|visited)$/);
     if (pseudoMatch) {
       const baseProp = pseudoMatch[1];
       const pseudoClass = pseudoMatch[2];
 
+      // Special handling for transform scale
       if (baseProp === 'transform') {
-        if (!settings['_transform:' + pseudoClass]) settings['_transform:' + pseudoClass] = {};
+        if (!settings[`_transform:${pseudoClass}`]) settings[`_transform:${pseudoClass}`] = {};
         const scaleValue = value.match(/scale\(([^)]+)\)/)?.[1];
         if (scaleValue) {
-          settings['_transform:' + pseudoClass].scaleX = `scale(${scaleValue})`;
-          settings['_transform:' + pseudoClass].scaleY = `scale(${scaleValue})`;
+          settings[`_transform:${pseudoClass}`].scaleX = `scale(${scaleValue})`;
+          settings[`_transform:${pseudoClass}`].scaleY = `scale(${scaleValue})`;
         }
         return;
       }
 
+      // Convert CSS property to Bricks format if needed
       const bricksProp = baseProp.startsWith('_') ? baseProp : `_${baseProp.replace(/-([a-z])/g, (_, l) => l.toUpperCase())}`;
+      
+      // Apply property mapper if available
       const mapper = CSS_PROP_MAPPERS[bricksProp] || CSS_PROP_MAPPERS[baseProp];
-
       if (mapper) {
         const pseudoSettings = {};
         mapper(value, pseudoSettings);
-        settings[`${bricksProp}:${pseudoClass}`] = pseudoSettings[bricksProp] || pseudoSettings;
+        const mappedValue = pseudoSettings[bricksProp] || pseudoSettings;
+        settings[`${bricksProp}:${pseudoClass}`] = mappedValue;
+        if (!settings[pseudoClass]) settings[pseudoClass] = {};
+        settings[pseudoClass][bricksProp] = mappedValue;
+      } else {
+        // Fallback: store raw value
+        settings[`${bricksProp}:${pseudoClass}`] = value;
+        if (!settings[pseudoClass]) settings[pseudoClass] = {};
+        settings[pseudoClass][bricksProp] = value;
       }
       return;
     }

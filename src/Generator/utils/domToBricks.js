@@ -181,6 +181,20 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         if (cssRulesMap[cls]) {
           const baseStyles = parseCssDeclarations(cssRulesMap[cls], cls);
           Object.assign(targetClass.settings, baseStyles);
+
+          // Extract pseudo-class styles (.class:hover, .class:active, etc.)
+          ['hover', 'active', 'focus', 'visited'].forEach(pseudo => {
+            const pseudoKey = `${cls}:${pseudo}`;
+            if (cssRulesMap[pseudoKey]) {
+              const pseudoStyles = parseCssDeclarations(cssRulesMap[pseudoKey], cls);
+              if (!targetClass.settings[pseudo]) targetClass.settings[pseudo] = {};
+              Object.entries(pseudoStyles).forEach(([prop, value]) => {
+                targetClass.settings[pseudo][prop] = value;
+                // Also store flat variant expected by Bricks like _background:hover
+                targetClass.settings[`${prop}:${pseudo}`] = value;
+              });
+            }
+          });
         }
 
         globalClasses.push(targetClass);
