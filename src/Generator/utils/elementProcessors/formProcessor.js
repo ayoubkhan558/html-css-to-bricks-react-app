@@ -2,7 +2,6 @@ import { getUniqueId } from '../utils';
 
 export const getBricksFieldType = (node) => {
   const type = (node.getAttribute('type') || 'text').toLowerCase();
-  console.log("getBricksFieldType: Form input type ", type);
   const tagName = node.tagName.toLowerCase();
 
   if (tagName === 'textarea') return 'textarea';
@@ -27,14 +26,13 @@ export const getBricksFieldType = (node) => {
 };
 
 export const processFormField = (form, node) => {
-  console.log("processFormField form, node", form, node);
   const tagName = node.tagName.toLowerCase();
   if (!['input', 'select', 'textarea', 'button'].includes(tagName)) return null;
 
   const type = node.getAttribute('type')?.toLowerCase() || 'text';
 
-  // Skip hidden and submit buttons (handled separately)
-  if (type === 'hidden' || (tagName === 'button' && type === 'submit')) {
+  // Skip hidden fields (but not submit buttons - we handle them separately)
+  if (type === 'hidden') {
     return null;
   }
 
@@ -47,15 +45,34 @@ export const processFormField = (form, node) => {
     required: node.hasAttribute('required'),
     value: node.getAttribute('value') || ''
   };
-  console.log("processFormField: Form input type ", type);
 
-  // Handle labels
+  // Handle labels - multiple approaches
   if (node.id) {
+    // 1. Label with for= attribute matching input id
     const label = form.querySelector(`label[for="${node.id}"]`);
     if (label) {
       field.label = label.textContent.replace('*', '').replace(':', '').trim();
     }
   }
+
+  // 2. Previous sibling is a label element
+  if (!field.label && node.previousElementSibling?.tagName?.toLowerCase() === 'label') {
+    field.label = node.previousElementSibling.textContent.trim();
+  }
+
+  // 3. Use type, name, or placeholder as fallback (in that order)
+  if (!field.label) {
+    const typeLabel = node.getAttribute('type')?.replace('-', ' ') || '';
+    field.label = typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1) ||
+      field.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') ||
+      field.placeholder;
+  }
+
+  // Clean up label
+  field.label = field.label
+    .replace('*', '')
+    .replace(':', '')
+    .trim();
 
   // Handle specific field types
   switch (field.type) {
@@ -113,8 +130,58 @@ export const processFormField = (form, node) => {
   return field;
 };
 
+// Helper function to extract submit button text
+const getSubmitButtonText = (buttonElement) => {
+  const tagName = buttonElement.tagName.toLowerCase();
+  const type = buttonElement.getAttribute('type')?.toLowerCase();
+
+  let buttonText = '';
+
+  if (tagName === 'button') {
+    // For <button> elements, prefer textContent over value attribute
+    buttonText = buttonElement.textContent?.trim() ||
+      buttonElement.getAttribute('value')?.trim() || '';
+  } else if (tagName === 'input' && (type === 'submit' || type === 'button')) {
+    // For <input> elements, use value attribute
+    buttonText = buttonElement.getAttribute('value')?.trim() ||
+      buttonElement.value?.trim() || '';
+  }
+
+  return buttonText;
+};
+
+// Helper function to find submit buttons in form
+const findSubmitButtons = (formNode) => {
+  const submitButtons = [];
+
+  // Find all potential submit buttons
+  const buttons = Array.from(formNode.querySelectorAll('button, input[type="submit"], input[type="button"]'));
+
+  buttons.forEach(button => {
+    const tagName = button.tagName.toLowerCase();
+    const type = button.getAttribute('type')?.toLowerCase();
+
+    // Check if it's a submit button
+    if (
+      (tagName === 'button' && (!type || type === 'submit')) || // <button> without type or type="submit"
+      (tagName === 'input' && type === 'submit') || // <input type="submit">
+      (tagName === 'input' && type === 'button' && button.getAttribute('onclick')?.includes('submit')) // <input type="button"> with submit onclick
+    ) {
+      const buttonText = getSubmitButtonText(button);
+      if (buttonText) {
+        submitButtons.push(buttonText);
+      }
+    }
+  });
+
+  return submitButtons;
+};
+
 export const processFormElement = (formNode) => {
-  console.log("processFormElement formNode", formNode);
+  // Find submit button text dynamically
+  const submitButtons = findSubmitButtons(formNode);
+  const dynamicSubmitText = submitButtons.length > 0 ? submitButtons[0] : 'Submit';
+
   const formElement = {
     id: getUniqueId().substring(0, 6),
     name: 'form',
@@ -134,21 +201,28 @@ export const processFormElement = (formNode) => {
       mailchimpErrorMessage: 'Sorry, but we could not subscribe you.',
       sendgridErrorMessage: 'Sorry, but we could not subscribe you.',
       showLabels: true,
-      submitButtonText: 'Submit'
+      submitButtonText: dynamicSubmitText // Dynamic submit button text
     }
   };
 
-  // Process all form fields
-  const fieldElements = Array.from(formNode.querySelectorAll('input, select, textarea, button'));
+  // Process all form fields (excluding submit buttons since we handle them separately)
+  const fieldElements = Array.from(formNode.querySelectorAll('input, select, textarea'))
+    .filter(el => {
+      const type = el.getAttribute('type')?.toLowerCase();
+      const tagName = el.tagName.toLowerCase();
+
+      // Exclude submit buttons and hidden fields from regular field processing
+      return !(
+        (tagName === 'input' && type === 'submit') ||
+        (tagName === 'input' && type === 'button') ||
+        type === 'hidden'
+      );
+    });
 
   fieldElements.forEach(fieldEl => {
     const field = processFormField(formNode, fieldEl);
     if (field) {
-      if (field.type === 'submit') {
-        formElement.settings.submitButtonText = fieldEl.textContent.trim() || 'Submit';
-      } else {
-        formElement.settings.fields.push(field);
-      }
+      formElement.settings.fields.push(field);
     }
   });
 
