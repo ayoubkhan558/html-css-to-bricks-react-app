@@ -3,9 +3,13 @@
  */
 export const processHeadingElement = (node, element, tag) => {
   element.name = 'heading';
-  element.label = `Heading ${tag.replace('h', '')}`;
-  element.settings.tag = 'custom';
-  element.settings.customTag = tag;
-  
+  element.label = node.textContent.trim() || `Heading ${tag.replace('h', '')}`;
+
+  // Use the native heading tag (h1-h6)
+  element.settings.tag = tag;
+
+  // Store the heading text so it renders properly in Bricks
+  element.settings.text = node.textContent.trim();
+
   return element;
 };

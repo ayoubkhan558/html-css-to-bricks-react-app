@@ -64,20 +64,17 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     settings: {}
   };
 
-  // Determine element type
-  if (processStructureLayoutElement(node, element, tag)) {
-    return element;
-  }
 
-  // Generic div handling
-  if (tag === 'div') {
-    name = 'div';
+  // Structure/layout elements
+  if (['article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'].includes(tag) || node.classList.contains('section')) {
+    processStructureLayoutElement(node, element, tag);
+  } else if (tag === 'div') {
+    // Generic div handling
+    element.name = 'div';
     element.label = 'Div';
     element.settings.tag = 'custom';
     element.settings.customTag = tag;
-  }
-
-  if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
+  } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
     processHeadingElement(node, element, tag);
   } else if (['time', 'mark', 'span', 'address', 'p'].includes(tag)) {
     // Unified text element handler
@@ -95,7 +92,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         element.label = 'Rich Text';
         element.settings.text = node.innerHTML;
         element.settings.tag = tag;
-        allElements.push(element);
+       allElements.push(element);
         return element;
       }
 
@@ -164,26 +161,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     }
     // For complex lists, continue with normal processing (just like tables)
   }
-  // Process children (remove ul, ol from exclusion list)
-  if (!['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
-    Array.from(node.childNodes).forEach(childNode => {
-      if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
-        return;
-      }
-      const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements);
-      if (childElement) {
-        if (Array.isArray(childElement)) {
-          childElement.forEach(c => element.children.push(c.id));
-        } else {
-          element.children.push(childElement.id);
-        }
-      }
-    });
-  }
-  // Process children for non-list elements
-  if (!['ul', 'ol'].includes(tag)) {
 
-  }
 
   if (node.closest('form') && ['input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
     return null;
@@ -279,6 +257,29 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   };
 
   handleAttributes(node, element);
+
+  // --------------------------------------------------------------
+  // Recursively process child nodes so that structural elements
+  // (e.g. <section>, <header>, <footer>) correctly include their
+  // inner content in the Bricks output.
+  // --------------------------------------------------------------
+  // Recursively process child nodes (skip table-related tags to avoid duplication)
+  if (!['table','thead','tbody','tfoot','tr','th','td'].includes(tag)) {
+    Array.from(node.childNodes).forEach(childNode => {
+      if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
+        return;
+      }
+      const childEl = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements);
+      if (childEl) {
+        if (Array.isArray(childEl)) {
+          element.children.push(...childEl.map(c => c.id));
+        } else {
+          element.children.push(childEl.id);
+        }
+      }
+    });
+  }
+
 
   allElements.push(element);
   return element;
