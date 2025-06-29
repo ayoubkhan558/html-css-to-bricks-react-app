@@ -4,6 +4,16 @@ export function processStructureLayoutElement(node, element, tag) {
   // Tags that represent major layout/section wrappers
   const layoutTags = ['article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'];
 
+  // Handle full-width block elements (only on div tags)
+  if (tag === 'div' && (node.classList?.contains('container-fluid') || 
+                       node.classList?.contains('full-width') ||
+                       node.classList?.contains('fullwidth'))) {
+    element.name = 'block';
+    element.label = 'Block';
+    element.settings.tag = 'div';
+    return true;
+  }
+
   // Handle container elements (only on div tags)
   if (tag === 'div' && (node.classList?.contains('container') || node.classList?.contains('boxed'))) {
     element.name = 'container';
