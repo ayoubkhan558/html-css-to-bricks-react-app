@@ -14,6 +14,41 @@ import { processMiscElement } from './elementProcessors/miscProcessor';
 import { processStructureLayoutElement } from './elementProcessors/structureLayoutProcessor';
 import { processTextElement } from './elementProcessors/textElementProcessor';
 import { processAttributes } from './processors/attributeProcessor';
+import { processAlertElement } from './elementProcessors/alertProcessor';
+import { processNavElement } from './elementProcessors/navProcessor';
+
+// Alert/message class patterns to check
+const ALERT_CLASS_PATTERNS = [
+  'alert', 'notification', 'message', 'toast', 'msg', 'flash',
+  'banner', 'notice', 'warning', 'error', 'success', 'info',
+  'callout', 'hint', 'tip', 'note', 'status'
+];
+
+// Helper function to check if element has alert-related classes
+const hasAlertClasses = (node) => {
+  if (!node.classList || node.classList.length === 0) return false;
+
+  const classes = Array.from(node.classList);
+
+  // Check for exact matches or classes that start with alert patterns
+  return ALERT_CLASS_PATTERNS.some(pattern =>
+    classes.some(cls =>
+      cls === pattern ||
+      cls.startsWith(pattern + '-') ||
+      cls.startsWith(pattern + '_') ||
+      cls.endsWith('-' + pattern) ||
+      cls.endsWith('_' + pattern)
+    )
+  );
+};
+
+// Helper function to check if element has container/layout classes
+const hasContainerClasses = (node) => {
+  if (!node.classList || node.classList.length === 0) return false;
+
+  const containerClasses = ['container', 'boxed', 'wrapper', 'content'];
+  return containerClasses.some(cls => node.classList.contains(cls));
+};
 
 /**
  * Processes a DOM node and converts it to a Bricks element
@@ -63,6 +98,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     !node.className && node.attributes.length <= 1) { // length <= 1 to account for just the tag name
     return null;
   }
+
   let name = 'div';
   const elementId = getUniqueId();
   const element = {
@@ -73,37 +109,68 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     settings: {}
   };
 
-
+  // Check for alert elements first (higher priority)
+  if (tag === 'div' && hasAlertClasses(node)) {
+    return processAlertElement(node);
+  }
+  // Check for nav elements
+  if (tag === 'nav' || (tag === 'div' && (
+    node.classList.contains('nav') ||
+    node.classList.contains('menu') ||
+    node.classList.contains('navigation') ||
+    node.classList.contains('links') ||
+    node.classList.contains('navbar') ||
+    node.classList.contains('main-nav') ||
+    node.classList.contains('primary-nav') ||
+    node.classList.contains('header-nav') ||
+    node.classList.contains('site-nav') ||
+    node.classList.contains('top-nav') ||
+    node.classList.contains('subnav') ||
+    node.classList.contains('submenu') ||
+    node.classList.contains('breadcrumb') ||
+    node.classList.contains('pagination')
+  ))) {
+    return processNavElement(node);
+  }
   // Structure/layout elements
-  if (['div', 'article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'].includes(tag) ||
+  else if (['div', 'article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'].includes(tag) ||
     node.classList.contains('section') ||
-    (tag === 'div' && (node.classList.contains('container') || node.classList.contains('boxed')))) {
+    (tag === 'div' && hasContainerClasses(node))) {
     processStructureLayoutElement(node, element, tag);
-  } else if (tag === 'div') {
-    // Generic div handling
+  }
+  else if (tag === 'div') {
+    // Process as generic div if no special classes are present
     element.name = 'div';
     element.label = 'Div';
     element.settings.tag = 'div';
-  } else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
+  }
+  else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
     processHeadingElement(node, element, tag);
-  } else if (['time', 'mark', 'span', 'address', 'p', 'blockquote'].includes(tag)) {
+  }
+  else if (['time', 'mark', 'span', 'address', 'p', 'blockquote'].includes(tag)) {
     processTextElement(node, element, tag, allElements);
-  } else if (['a'].includes(tag)) {
+  }
+  else if (['a'].includes(tag)) {
     processLinkElement(node, element);
-  } else if (tag === 'img') {
+  }
+  else if (tag === 'img') {
     processImageElement(node, element);
-  } else if (tag === 'button') {
+  }
+  else if (tag === 'button') {
     processButtonElement(node, element);
-  } else if (tag === 'svg') {
+  }
+  else if (tag === 'svg') {
     processSvgElement(node, element);
-  } else if (tag === 'form') {
+  }
+  else if (tag === 'form') {
     name = 'form';
     element.label = 'Form';
     const formElement = processFormElement(node);
     formElement.id = elementId;
     formElement.parent = parentId;
     Object.assign(element, formElement);
-  } else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
+  }
+  else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
     const processedElement = processTableElement(node, element, tag);
     if (['td', 'th'].includes(tag)) {
       // For cells, return early to avoid duplicate processing
@@ -111,7 +178,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       return processedElement;
     }
     // For other table elements, continue with normal processing
-  } else if (['ul', 'ol', 'li'].includes(tag)) {
+  }
+  else if (['ul', 'ol', 'li'].includes(tag)) {
     const processedElement = processListElement(node, element, tag);
     if (processedElement && processedElement.name === 'text') {
       // For simple lists, return early (like tables do)
@@ -119,11 +187,14 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       return processedElement;
     }
     // For complex lists, continue with normal processing (just like tables)
-  } else if (tag === 'audio') {
+  }
+  else if (tag === 'audio') {
     processAudioElement(node, element);
-  } else if (tag === 'video') {
+  }
+  else if (tag === 'video') {
     processVideoElement(node, element);
-  } else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
+  }
+  else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
     processMiscElement(node, element, tag);
   }
 
@@ -154,20 +225,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Generate class name in format [tag][randomID][classAppend]
   const randomId = Math.random().toString(36).substring(2, 6); // 4-char random ID
   const primaryClassName = attrClassNames.length > 0 ? attrClassNames[0] : `${tag}-tag-${randomId}-class`;
-
-  // Generate default class if element has no classes
-  if (!node.className && !['form', 'input', 'select', 'textarea', 'button', 'label'].includes(tag)) {
-    const defaultClass = primaryClassName;
-    node.classList.add(defaultClass);
-    if (!globalClasses.some(c => c.name === defaultClass)) {
-      globalClasses.push({
-        id: getUniqueId(),
-        name: defaultClass,
-        settings: {}
-      });
-    }
-  }
-
 
   // Handle CSS classes
   if (node.classList && node.classList.length > 0) {
