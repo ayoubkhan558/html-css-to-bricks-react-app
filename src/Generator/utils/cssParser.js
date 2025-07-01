@@ -96,194 +96,202 @@ export const parseValue = (value) => {
 };
 
 // CSS properties Bricks has native controls for and how to map them
-export const CSS_PROP_MAPPERS = {
-  'display': displayMappers['display'],
-  ...(settings._display !== 'grid' ? {
-    'flex-direction': flexboxMappers['flex-direction'],
-    'flex-wrap': flexboxMappers['flex-wrap'],
-    'justify-content': flexboxMappers['justify-content'],
-    'align-items': flexboxMappers['align-items'],
-    'align-content': flexboxMappers['align-content'],
-    'flex-grow': flexboxMappers['flex-grow'],
-    'flex-shrink': flexboxMappers['flex-shrink'],
-    'flex-basis': flexboxMappers['flex-basis'],
-    'align-self': flexboxMappers['align-self'],
-    'order': flexboxMappers['order'],
-    'gap': (value, settings) => {
-      const [columnGap, rowGap = columnGap] = value.split(' ').map(v => v.replace('px', ''));
-      settings._columnGap = columnGap;
-      settings._rowGap = rowGap;
+export const getCssPropMappers = (settings) => {
+  const mappers = {
+    'display': displayMappers['display'],
+    // Layout Mappers
+    // Layout - Spacing - Margin - Padding
+    'margin': spacingMappers['margin'],
+    'margin-top': spacingMappers['margin-top'],
+    'margin-right': spacingMappers['margin-right'],
+    'margin-bottom': spacingMappers['margin-bottom'],
+    'margin-left': spacingMappers['margin-left'],
+    'padding': spacingMappers['padding'],
+    'padding-top': spacingMappers['padding-top'],
+    'padding-right': spacingMappers['padding-right'],
+    'padding-bottom': spacingMappers['padding-bottom'],
+    'padding-left': spacingMappers['padding-left'],
+    // Layout - Sizing
+    'width': sizingMappers['width'],
+    'height': sizingMappers['height'],
+    'min-width': sizingMappers['min-width'],
+    'max-width': sizingMappers['max-width'],
+    'min-height': sizingMappers['min-height'],
+    'max-height': sizingMappers['max-height'],
+    'aspect-ratio': sizingMappers['aspect-ratio'],
+    // Layout - Position
+    'position': positionMappers['position'],
+    'top': positionMappers['top'],
+    'right': positionMappers['right'],
+    'bottom': positionMappers['bottom'],
+    'left': positionMappers['left'],
+    'z-index': positionMappers['z-index'],
+    // Layout- Scroll Snap
+    'scroll-snap-type': scrollSnapMappers['scroll-snap-type'],
+    'scroll-snap-align': scrollSnapMappers['scroll-snap-align'],
+    'scroll-snap-stop': scrollSnapMappers['scroll-snap-stop'],
+    // Layout - Misc
+    'pointer-events': layoutMiscMappers['pointer-events'],
+    'mix-blend-mode': layoutMiscMappers['mix-blend-mode'],
+    'isolation': layoutMiscMappers['isolation'],
+    'cursor': layoutMiscMappers['cursor'],
+    'opacity': layoutMiscMappers['opacity'],
+    'overflow': layoutMiscMappers['overflow'],
+    'overflow-x': layoutMiscMappers['overflow-x'],
+    'overflow-y': layoutMiscMappers['overflow-y'],
+    'visibility': layoutMiscMappers['visibility'],
+    // End Layout Mappers
+
+    // Typography
+    'color': typographyMappers['color'],
+    'font-size': typographyMappers['font-size'],
+    'font-weight': typographyMappers['font-weight'],
+    'font-style': typographyMappers['font-style'],
+    'font-family': typographyMappers['font-family'],
+    'line-height': typographyMappers['line-height'],
+    'letter-spacing': typographyMappers['letter-spacing'],
+    'text-align': typographyMappers['text-align'],
+    'text-transform': typographyMappers['text-transform'],
+    'text-decoration': typographyMappers['text-decoration'],
+    'white-space': typographyMappers['white-space'],
+    'text-wrap': typographyMappers['text-wrap'],
+    'text-shadow': typographyMappers['text-shadow'],
+
+    // Background
+    'background-color': backgroundMappers['background-color'],
+    'background-image': backgroundMappers['background-image'],
+    'background-repeat': backgroundMappers['background-repeat'],
+    'background-size': backgroundMappers['background-size'],
+    'background-position': backgroundMappers['background-position'],
+    'background-attachment': backgroundMappers['background-attachment'],
+    'background-blend-mode': backgroundMappers['background-blend-mode'],
+    'background-origin': backgroundMappers['background-origin'],
+    'background-clip': backgroundMappers['background-clip'],
+    'background': backgroundMappers['background'],
+
+    // Border
+    'box-shadow': borderBoxShadowMappers['box-shadow'],
+    'border': borderBoxShadowMappers['border'],
+    'border-width': borderBoxShadowMappers['border-width'],
+    'border-style': borderBoxShadowMappers['border-style'],
+    'border-color': borderBoxShadowMappers['border-color'],
+    'border-radius': borderBoxShadowMappers['border-radius'],
+    'border-top-width': borderBoxShadowMappers['border-top-width'],
+    'border-right-width': borderBoxShadowMappers['border-right-width'],
+    'border-bottom-width': borderBoxShadowMappers['border-bottom-width'],
+    'border-left-width': borderBoxShadowMappers['border-left-width'],
+
+    // Transform
+    '_transform': (value, settings) => {
+      settings._transform = settings._transform || {};
+
+      // Handle pseudo-class states
+      if (typeof value === 'object') {
+        Object.assign(settings._transform, value);
+      }
+      // Handle regular transform values
+      else if (value.includes('scale')) {
+        const scaleValue = value.match(/scale\(([^)]+)\)/)[1];
+        settings._transform.scaleX = `scaleX(${scaleValue})`;
+        settings._transform.scaleY = `scaleY(${scaleValue})`;
+      }
     },
-    'row-gap': flexboxMappers['row-gap'],
-    'column-gap': flexboxMappers['column-gap']
-  } : {}),
-  ...(settings._display === 'grid' ? {
-    'grid-gap': gridMappers['grid-gap'],
-    'grid-row-gap': gridMappers['grid-row-gap'],
-    'grid-column-gap': gridMappers['grid-column-gap'],
-    'grid-template-columns': gridMappers['grid-template-columns'],
-    'grid-template-rows': gridMappers['grid-template-rows'],
-    'grid-template-areas': gridMappers['grid-template-areas'],
-    'grid-auto-columns': gridMappers['grid-auto-columns'],
-    'grid-auto-rows': gridMappers['grid-auto-rows'],
-    'grid-auto-flow': gridMappers['grid-auto-flow'],
-    'grid-column': gridMappers['grid-column'],
-    'grid-row': gridMappers['grid-row'],
-    'grid-area': gridMappers['grid-area'],
-    'justify-items': gridMappers['justify-items'],
-    'gap': (value, settings) => {
-      const values = value.split(' ').map(v => v.replace('px', '').trim()).filter(Boolean);
-      if (values.length === 1) {
-        settings._gridGap = `${values[0]} ${values[0]}`;
-      } else if (values.length >= 2) {
-        settings._gridGap = `${values[0]} ${values[1]}`;
+
+    // CSS Filters - Transition
+    'filter': effectsMappers['filter'],
+    'backdrop-filter': effectsMappers['backdrop-filter'],
+    'blur': filterMappers['blur'],
+    'brightness': filterMappers['brightness'],
+    'contrast': filterMappers['contrast'],
+    'hue-rotate': filterMappers['hue-rotate'],
+    'invert': filterMappers['invert'],
+    'opacity': filterMappers['opacity'],
+    'saturate': filterMappers['saturate'],
+    'sepia': filterMappers['sepia'],
+    // Transition
+    'transition': transitionsMappers['transition'],
+    'transition-property': transitionsMappers['transition-property'],
+    'transition-duration': transitionsMappers['transition-duration'],
+    'transition-timing-function': transitionsMappers['transition-timing-function'],
+    'transition-delay': transitionsMappers['transition-delay'],
+
+    // CSS Classes & ID
+    'css-classes': (val, settings) => {
+      settings._cssClasses = val;
+    },
+
+    // Special mapper for pseudo-classes
+    '_pseudo': (value, settings, pseudoClass) => {
+      if (!settings._pseudo) settings._pseudo = {};
+      if (!settings._pseudo[pseudoClass]) settings._pseudo[pseudoClass] = {};
+
+      // Handle nested properties for pseudo-classes
+      if (value.startsWith('_')) {
+        // Handle Bricks-specific properties like _background, _typography
+        const [prop, val] = value.split(':').map(s => s.trim());
+        settings._pseudo[pseudoClass][prop] = JSON.parse(val);
+      } else {
+        // Handle regular CSS properties
+        const [prop, val] = value.split(':').map(s => s.trim());
+        const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+        const mapper = getCssPropMappers(settings)[prop] || getCssPropMappers(settings)[normalizedProp];
+
+        if (mapper) {
+          const pseudoSettings = {};
+          mapper(val, pseudoSettings);
+          Object.assign(settings._pseudo[pseudoClass], pseudoSettings);
+        }
       }
-    }
-  } : {}),
-  // Layout Mappers
-  // Layout - Spacing - Margin - Padding
-  'margin': spacingMappers['margin'],
-  'margin-top': spacingMappers['margin-top'],
-  'margin-right': spacingMappers['margin-right'],
-  'margin-bottom': spacingMappers['margin-bottom'],
-  'margin-left': spacingMappers['margin-left'],
-  'padding': spacingMappers['padding'],
-  'padding-top': spacingMappers['padding-top'],
-  'padding-right': spacingMappers['padding-right'],
-  'padding-bottom': spacingMappers['padding-bottom'],
-  'padding-left': spacingMappers['padding-left'],
-  // Layout - Sizing
-  'width': sizingMappers['width'],
-  'height': sizingMappers['height'],
-  'min-width': sizingMappers['min-width'],
-  'max-width': sizingMappers['max-width'],
-  'min-height': sizingMappers['min-height'],
-  'max-height': sizingMappers['max-height'],
-  'aspect-ratio': sizingMappers['aspect-ratio'],
-  // Layout - Position
-  'position': positionMappers['position'],
-  'top': positionMappers['top'],
-  'right': positionMappers['right'],
-  'bottom': positionMappers['bottom'],
-  'left': positionMappers['left'],
-  'z-index': positionMappers['z-index'],
-  // Layout- Scroll Snap
-  'scroll-snap-type': scrollSnapMappers['scroll-snap-type'],
-  'scroll-snap-align': scrollSnapMappers['scroll-snap-align'],
-  'scroll-snap-stop': scrollSnapMappers['scroll-snap-stop'],
-  // Layout - Misc
-  'pointer-events': layoutMiscMappers['pointer-events'],
-  'mix-blend-mode': layoutMiscMappers['mix-blend-mode'],
-  'isolation': layoutMiscMappers['isolation'],
-  'cursor': layoutMiscMappers['cursor'],
-  'opacity': layoutMiscMappers['opacity'],
-  'overflow': layoutMiscMappers['overflow'],
-  'overflow-x': layoutMiscMappers['overflow-x'],
-  'overflow-y': layoutMiscMappers['overflow-y'],
-  'visibility': layoutMiscMappers['visibility'],
-  // End Layout Mappers
+    },
+  };
 
-  // Typography
-  'color': typographyMappers['color'],
-  'font-size': typographyMappers['font-size'],
-  'font-weight': typographyMappers['font-weight'],
-  'font-style': typographyMappers['font-style'],
-  'font-family': typographyMappers['font-family'],
-  'line-height': typographyMappers['line-height'],
-  'letter-spacing': typographyMappers['letter-spacing'],
-  'text-align': typographyMappers['text-align'],
-  'text-transform': typographyMappers['text-transform'],
-  'text-decoration': typographyMappers['text-decoration'],
-  'white-space': typographyMappers['white-space'],
-  'text-wrap': typographyMappers['text-wrap'],
-  'text-shadow': typographyMappers['text-shadow'],
-
-  // Background
-  'background-color': backgroundMappers['background-color'],
-  'background-image': backgroundMappers['background-image'],
-  'background-repeat': backgroundMappers['background-repeat'],
-  'background-size': backgroundMappers['background-size'],
-  'background-position': backgroundMappers['background-position'],
-  'background-attachment': backgroundMappers['background-attachment'],
-  'background-blend-mode': backgroundMappers['background-blend-mode'],
-  'background-origin': backgroundMappers['background-origin'],
-  'background-clip': backgroundMappers['background-clip'],
-  'background': backgroundMappers['background'],
-
-  // Border
-  'box-shadow': borderBoxShadowMappers['box-shadow'],
-  'border': borderBoxShadowMappers['border'],
-  'border-width': borderBoxShadowMappers['border-width'],
-  'border-style': borderBoxShadowMappers['border-style'],
-  'border-color': borderBoxShadowMappers['border-color'],
-  'border-radius': borderBoxShadowMappers['border-radius'],
-  'border-top-width': borderBoxShadowMappers['border-top-width'],
-  'border-right-width': borderBoxShadowMappers['border-right-width'],
-  'border-bottom-width': borderBoxShadowMappers['border-bottom-width'],
-  'border-left-width': borderBoxShadowMappers['border-left-width'],
-
-  // Transform 
-  '_transform': (value, settings) => {
-    settings._transform = settings._transform || {};
-
-    // Handle pseudo-class states
-    if (typeof value === 'object') {
-      Object.assign(settings._transform, value);
-    }
-    // Handle regular transform values
-    else if (value.includes('scale')) {
-      const scaleValue = value.match(/scale\(([^)]+)\)/)[1];
-      settings._transform.scaleX = `scaleX(${scaleValue})`;
-      settings._transform.scaleY = `scaleY(${scaleValue})`;
-    }
-  },
-
-  // CSS Filters - Transition
-  'filter': effectsMappers['filter'],
-  'backdrop-filter': effectsMappers['backdrop-filter'],
-  'blur': filterMappers['blur'],
-  'brightness': filterMappers['brightness'],
-  'contrast': filterMappers['contrast'],
-  'hue-rotate': filterMappers['hue-rotate'],
-  'invert': filterMappers['invert'],
-  'opacity': filterMappers['opacity'],
-  'saturate': filterMappers['saturate'],
-  'sepia': filterMappers['sepia'],
-  // Transition
-  'transition': transitionsMappers['transition'],
-  'transition-property': transitionsMappers['transition-property'],
-  'transition-duration': transitionsMappers['transition-duration'],
-  'transition-timing-function': transitionsMappers['transition-timing-function'],
-  'transition-delay': transitionsMappers['transition-delay'],
-
-  // CSS Classes & ID
-  'css-classes': (val, settings) => {
-    settings._cssClasses = val;
-  },
-
-  // Special mapper for pseudo-classes
-  '_pseudo': (value, settings, pseudoClass) => {
-    if (!settings._pseudo) settings._pseudo = {};
-    if (!settings._pseudo[pseudoClass]) settings._pseudo[pseudoClass] = {};
-
-    // Handle nested properties for pseudo-classes
-    if (value.startsWith('_')) {
-      // Handle Bricks-specific properties like _background, _typography
-      const [prop, val] = value.split(':').map(s => s.trim());
-      settings._pseudo[pseudoClass][prop] = JSON.parse(val);
-    } else {
-      // Handle regular CSS properties
-      const [prop, val] = value.split(':').map(s => s.trim());
-      const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-      const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
-
-      if (mapper) {
-        const pseudoSettings = {};
-        mapper(val, pseudoSettings);
-        Object.assign(settings._pseudo[pseudoClass], pseudoSettings);
+  if (settings._display === 'grid') {
+    Object.assign(mappers, {
+      'grid-gap': gridMappers['grid-gap'],
+      'grid-row-gap': gridMappers['grid-row-gap'],
+      'grid-column-gap': gridMappers['grid-column-gap'],
+      'grid-template-columns': gridMappers['grid-template-columns'],
+      'grid-template-rows': gridMappers['grid-template-rows'],
+      'grid-template-areas': gridMappers['grid-template-areas'],
+      'grid-auto-columns': gridMappers['grid-auto-columns'],
+      'grid-auto-rows': gridMappers['grid-auto-rows'],
+      'grid-auto-flow': gridMappers['grid-auto-flow'],
+      'grid-column': gridMappers['grid-column'],
+      'grid-row': gridMappers['grid-row'],
+      'grid-area': gridMappers['grid-area'],
+      'justify-items': gridMappers['justify-items'],
+      'gap': (value, settings) => {
+        const values = value.split(' ').map(v => v.replace('px', '').trim()).filter(Boolean);
+        if (values.length === 1) {
+          settings._gridGap = `${values[0]} ${values[0]}`;
+        } else if (values.length >= 2) {
+          settings._gridGap = `${values[0]} ${values[1]}`;
+        }
       }
-    }
-  },
+    });
+  } else {
+    Object.assign(mappers, {
+      'flex-direction': flexboxMappers['flex-direction'],
+      'flex-wrap': flexboxMappers['flex-wrap'],
+      'justify-content': flexboxMappers['justify-content'],
+      'align-items': flexboxMappers['align-items'],
+      'align-content': flexboxMappers['align-content'],
+      'flex-grow': flexboxMappers['flex-grow'],
+      'flex-shrink': flexboxMappers['flex-shrink'],
+      'flex-basis': flexboxMappers['flex-basis'],
+      'align-self': flexboxMappers['align-self'],
+      'order': flexboxMappers['order'],
+      'gap': (value, settings) => {
+        const [columnGap, rowGap = columnGap] = value.split(' ').map(v => v.replace('px', ''));
+        settings._columnGap = columnGap;
+        settings._rowGap = rowGap;
+      },
+      'row-gap': flexboxMappers['row-gap'],
+      'column-gap': flexboxMappers['column-gap']
+    });
+  }
+
+  return mappers;
 };
 
 // Parse CSS declarations into Bricks settings
@@ -296,6 +304,7 @@ export function parseCssDeclarations(combinedProperties, className = '') {
   if (typeof combinedProperties === 'object') {
     Object.entries(combinedProperties).forEach(([prop, value]) => {
       const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      const CSS_PROP_MAPPERS = getCssPropMappers(settings);
       const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
 
       if (mapper) {
@@ -329,6 +338,7 @@ export function parseCssDeclarations(combinedProperties, className = '') {
       if (!prop || !value) return;
 
       const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      const CSS_PROP_MAPPERS = getCssPropMappers(settings);
       const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
 
       if (mapper) {

@@ -249,6 +249,18 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       Object.assign(targetClass.settings, parsedSettings);
     }
 
+    // Handle pseudo-classes
+    Object.keys(cssRulesMap).forEach(selector => {
+      const pseudoMatch = selector.match(new RegExp(`^\\.${cls}:(\\w+)`));
+      if (pseudoMatch) {
+        const pseudoClass = pseudoMatch[1];
+        const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], cls);
+        Object.entries(pseudoStyles).forEach(([prop, value]) => {
+          targetClass.settings[`${prop}:${pseudoClass}`] = value;
+        });
+      }
+    });
+
     // Link this element to the global class
     if (!cssGlobalClasses.includes(targetClass.id)) {
       cssGlobalClasses.push(targetClass.id);

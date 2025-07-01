@@ -1,4 +1,54 @@
 /**
+ * Processes a <table> element to dynamically add CSS classes for advanced styling.
+ * @param {HTMLElement} tableElement - The HTML <table> element.
+ */
+export const processTable = (tableElement) => {
+  if (!tableElement || tableElement.tagName !== 'TABLE') {
+    return;
+  }
+
+  // Regular expression to detect numbers or currency strings.
+  // Handles integers, decimals, and common currency formats.
+  const isNumericOrCurrency = /^-?(\$|€|£|¥)?\s*\d{1,3}(,?\d{3})*(\.\d+)?\s*$/;
+
+  const processSection = (section) => {
+    if (!section) return;
+    const rows = Array.from(section.children).filter(el => el.tagName === 'TR');
+    rows.forEach((row, rowIndex) => {
+      // Add row-odd or row-even class
+      row.classList.add(rowIndex % 2 === 0 ? 'row-odd' : 'row-even');
+
+      const cells = Array.from(row.children);
+      cells.forEach((cell, cellIndex) => {
+        // Add column identifier class
+        cell.classList.add(`col-${cellIndex}`);
+
+        // Add text alignment class based on content
+        const content = cell.textContent.trim();
+        if (isNumericOrCurrency.test(content)) {
+          cell.classList.add('text-right');
+        } else {
+          cell.classList.add('text-left');
+        }
+
+        // Add role-based class
+        if (cell.tagName === 'TH') {
+          cell.classList.add('table-header-cell');
+        } else if (cell.tagName === 'TD') {
+          cell.classList.add('table-data-cell');
+        }
+      });
+    });
+  };
+
+  // Process thead, tbody, and tfoot sections
+  processSection(tableElement.tHead);
+  Array.from(tableElement.tBodies).forEach(processSection);
+  processSection(tableElement.tFoot);
+};
+
+
+/**
  * Processes table elements for Bricks conversion
  */
 export const processTableElement = (node, element, tag) => {
