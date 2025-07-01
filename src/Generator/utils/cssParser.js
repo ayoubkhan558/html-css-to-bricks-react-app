@@ -41,22 +41,6 @@ export function toHex(val) {
   return namedColors[val.toLowerCase()] || null;
 }
 
-// Helper to convert rgb/rgba to hex
-function rgbToHex(color) {
-  if (!color) return '#000000';
-  if (color.startsWith('#')) return color;
-
-  // Handle rgb/rgba colors
-  const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
-  if (rgbMatch) {
-    const r = parseInt(rgbMatch[1]).toString(16).padStart(2, '0');
-    const g = parseInt(rgbMatch[2]).toString(16).padStart(2, '0');
-    const b = parseInt(rgbMatch[3]).toString(16).padStart(2, '0');
-    return `#${r}${g}${b}`;
-  }
-  return '#000000';
-}
-
 // Parse numeric values, removing 'px' unit but keeping other units
 export const parseValue = (value) => {
   if (typeof value !== 'string') return value;
@@ -248,14 +232,9 @@ export const CSS_PROP_MAPPERS = {
   },
 };
 
-// List of supported CSS properties that have direct mappings in Bricks
-const supportedProperties = [
-  'padding', 'margin', 'background', 'color', 'font-size', 'border',
-  'width', 'height', 'display', 'position', 'top', 'right', 'bottom', 'left', 'box-shadow'
-];
-
 // Parse CSS declarations into Bricks settings
 export function parseCssDeclarations(cssText, className = '') {
+  console.log("parseCssDeclarations ", cssText);
   const settings = {};
   const customRules = {};
 
@@ -354,86 +333,6 @@ export function parseCssDeclarations(cssText, className = '') {
  * @param {string} css - The CSS content
  * @returns {Object} Bricks JSON structure
  */
-export function convertToBricks(html, css) {
-  // Parse the HTML to get button text
-  const buttonTextMatch = html.match(/>([^<]+)</);
-  const buttonText = buttonTextMatch ? buttonTextMatch[1].trim() : '';
-
-  // Extract class name from HTML
-  const classMatch = html.match(/class=["']([^"']+)["']/);
-  const className = classMatch ? classMatch[1] : 'custom-button';
-
-  // Parse CSS
-  const cssMap = buildCssMap(css);
-  const cssClass = Object.keys(cssMap)[0];
-  const cssBody = cssMap[cssClass] || '';
-
-  // Parse CSS declarations
-  const settings = parseCssDeclarations(cssBody, className);
-
-  // Clean up _cssCustom array by removing any properties that are already mapped
-  if (settings._cssCustom && Array.isArray(settings._cssCustom)) {
-    const mappedProps = [
-      'color', 'font-size', 'background-color', 'border', 'border-radius',
-      'cursor', 'padding', 'margin', 'box-shadow'
-    ];
-
-    // Convert mapped props to a regex pattern
-    const mappedPropsPattern = new RegExp(`^(${mappedProps.join('|')}):`);
-
-    // Filter out any properties that match our mapped props
-    settings._cssCustom = settings._cssCustom.filter(prop => {
-      return !mappedPropsPattern.test(prop);
-    });
-
-    // Format _cssCustom as a proper CSS rule
-    if (settings._cssCustom && Array.isArray(settings._cssCustom) && settings._cssCustom.length > 0) {
-      // Filter out any empty strings and remove duplicates
-      const validProps = settings._cssCustom.filter(prop => prop && prop.trim() !== '');
-      if (validProps.length > 0) {
-        const uniqueProps = [...new Set(validProps)];
-        const cssRules = uniqueProps.join('; ');
-        // Create a single line CSS rule with escaped newlines
-        settings._cssCustom = `.${className} { ${cssRules}; }`;
-      } else {
-        settings._cssCustom = '';
-      }
-    } else {
-      settings._cssCustom = '';
-    }
-  }
-
-  // Generate a random ID for the global class
-  const classId = Math.random().toString(36).substring(2, 8);
-
-  return {
-    content: [{
-      id: Math.random().toString(36).substring(2, 8),
-      name: 'button',
-      parent: 'root',
-      children: [],
-      settings: {
-        text: buttonText,
-        style: 'primary',
-        _cssGlobalClasses: [classId]
-      }
-    }],
-    globalClasses: [{
-      id: classId,
-      name: className,
-      settings: {
-        ...settings,
-        _exists: false,
-        _isGlobalClass: true
-      }
-    }],
-    globalElements: [],
-    source: 'bricksCopiedElements',
-    sourceUrl: 'http://localhost/bricks',
-    version: '2.0-beta'
-  };
-}
-
 export function buildCssMap(cssText) {
   const map = {};
   // Remove CSS comments first

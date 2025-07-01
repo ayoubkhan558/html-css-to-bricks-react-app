@@ -1,26 +1,38 @@
 import React, { useState, useEffect } from 'react';
 
 const CSSHTMLAnalyzer = () => {
-  const [htmlInput, setHtmlInput] = useState(`<div class="container">
-  <h1 id="title">Title</h1>
-  <p class="text">Sample text</p>
-</div>`);
+  const [htmlInput, setHtmlInput] = useState(`
+    <div class="container">
+      <h1 id="title">Title</h1>
+      <p class="text">Sample text</p>
+    </div>
+`);
 
-  const [cssInput, setCssInput] = useState(`.container {
-  padding: 20px;
-}
+  const [cssInput, setCssInput] = useState(`
+    .container {
+      padding: 20px;
+    }
 
-#title {
-  color: blue;
-}
+    #title {
+      color: blue;
+    }
 
-.text {
-  font-size: 16px;
-}
+    .text {
+      font-size: 16px;
+    }
 
-.non-existent {
-  color: red;
-}`);
+    .container .text {
+      line-height: 1.5;
+    }
+
+    p {
+      background-color: lightgray;
+    }
+
+    .non-existent {
+      color: red;
+    }
+`);
 
   const [analysis, setAnalysis] = useState([]);
 
@@ -40,49 +52,69 @@ const CSSHTMLAnalyzer = () => {
     return selectors;
   };
 
-  const analyzeSelectors = () => {
+  const parseProperties = (propertiesString) => {
+    const properties = {};
+    const declarations = propertiesString.split(';').filter(decl => decl.trim());
+    
+    declarations.forEach(decl => {
+      const [property, value] = decl.split(':').map(part => part.trim());
+      if (property && value) {
+        properties[property] = value;
+      }
+    });
+    
+    return properties;
+  };
+
+  const analyzeElements = () => {
     try {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlInput, 'text/html');
       const selectors = parseCSS(cssInput);
       
-      const results = selectors.map(({ selector, properties }) => {
-        try {
-          const elements = doc.querySelectorAll(selector);
-          const matches = Array.from(elements).map(el => ({
-            tagName: el.tagName.toLowerCase(),
-            id: el.id || null,
-            className: el.className || null,
-            textContent: el.textContent?.trim()
-          }));
+      // Get all elements from the HTML
+      const allElements = doc.querySelectorAll('*');
+      const elementAnalysis = [];
 
-          return {
-            selector,
-            properties,
-            matches,
-            isValid: elements.length > 0,
-            count: elements.length
-          };
-        } catch (error) {
-          return {
-            selector,
-            properties,
-            matches: [],
-            isValid: false,
-            count: 0,
-            error: error.message
-          };
+      Array.from(allElements).forEach(element => {
+        const elementInfo = {
+          tagName: element.tagName.toLowerCase(),
+          id: element.id || null,
+          className: element.className || null,
+          textContent: element.textContent?.trim(),
+          appliedStyles: {},
+          matchingSelectors: []
+        };
+
+        // Check which selectors match this element
+        selectors.forEach(({ selector, properties }) => {
+          try {
+            if (element.matches(selector)) {
+              elementInfo.matchingSelectors.push(selector);
+              const parsedProperties = parseProperties(properties);
+              
+              // Merge properties (later selectors override earlier ones)
+              Object.assign(elementInfo.appliedStyles, parsedProperties);
+            }
+          } catch (error) {
+            // Invalid selector, skip it
+          }
+        });
+
+        // Only include elements that have matching CSS rules
+        if (elementInfo.matchingSelectors.length > 0) {
+          elementAnalysis.push(elementInfo);
         }
       });
 
-      setAnalysis(results);
+      setAnalysis(elementAnalysis);
     } catch (error) {
       console.error('Analysis error:', error);
     }
   };
 
   useEffect(() => {
-    analyzeSelectors();
+    analyzeElements();
   }, [htmlInput, cssInput]);
 
   const styles = {
@@ -132,53 +164,64 @@ const CSSHTMLAnalyzer = () => {
     resultContainer: {
       marginTop: '20px'
     },
-    resultItem: {
-      border: '1px solid #ddd',
+    elementItem: {
+      border: '1px solid #28a745',
       borderRadius: '4px',
       padding: '15px',
-      marginBottom: '10px'
+      marginBottom: '15px',
+      backgroundColor: '#f8f9fa'
     },
-    validItem: {
-      backgroundColor: '#f0f8f0',
-      borderColor: '#28a745'
+    elementHeader: {
+      fontFamily: 'monospace',
+      fontSize: '16px',
+      fontWeight: 'bold',
+      marginBottom: '10px',
+      color: '#333'
     },
-    invalidItem: {
-      backgroundColor: '#f8f0f0',
-      borderColor: '#dc3545'
+    textContent: {
+      fontSize: '12px',
+      color: '#666',
+      marginBottom: '10px',
+      fontStyle: 'italic'
+    },
+    selectorsSection: {
+      marginBottom: '15px'
+    },
+    selectorsList: {
+      fontSize: '12px',
+      color: '#666',
+      marginTop: '5px'
     },
     selectorCode: {
       fontFamily: 'monospace',
-      backgroundColor: '#f5f5f5',
+      backgroundColor: '#e9ecef',
       padding: '2px 4px',
       borderRadius: '2px',
-      fontSize: '14px'
+      margin: '2px'
     },
-    properties: {
-      fontFamily: 'monospace',
-      backgroundColor: '#f5f5f5',
-      padding: '10px',
-      borderRadius: '4px',
-      fontSize: '12px',
-      whiteSpace: 'pre-wrap',
+    propertiesSection: {
+      marginTop: '15px'
+    },
+    propertiesGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+      gap: '8px',
       marginTop: '10px'
     },
-    matchItem: {
+    propertyItem: {
       backgroundColor: 'white',
-      border: '1px solid #eee',
-      padding: '8px',
+      border: '1px solid #dee2e6',
       borderRadius: '4px',
-      marginTop: '5px',
-      fontSize: '12px'
+      padding: '8px',
+      fontSize: '12px',
+      fontFamily: 'monospace'
     },
-    status: {
+    propertyName: {
       fontWeight: 'bold',
-      marginRight: '10px'
+      color: '#0056b3'
     },
-    valid: {
-      color: '#28a745'
-    },
-    invalid: {
-      color: '#dc3545'
+    propertyValue: {
+      color: '#d63384'
     }
   };
 
@@ -208,59 +251,53 @@ const CSSHTMLAnalyzer = () => {
         </div>
       </div>
 
-      <button style={styles.button} onClick={analyzeSelectors}>
+      <button style={styles.button} onClick={analyzeElements}>
         Analyze
       </button>
 
       <div style={styles.resultContainer}>
-        <h2>Results:</h2>
+        <h2>Elements with Applied Styles:</h2>
         {analysis.length === 0 ? (
-          <p>No results yet.</p>
+          <p>No elements with matching CSS rules found.</p>
         ) : (
-          analysis.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                ...styles.resultItem,
-                ...(item.isValid ? styles.validItem : styles.invalidItem)
-              }}
-            >
-              <div>
-                <span style={{...styles.status, ...(item.isValid ? styles.valid : styles.invalid)}}>
-                  {item.isValid ? '✓' : '✗'}
-                </span>
-                <code style={styles.selectorCode}>{item.selector}</code>
-                <span> - {item.count} matches</span>
+          analysis.map((element, index) => (
+            <div key={index} style={styles.elementItem}>
+              <div style={styles.elementHeader}>
+                &lt;{element.tagName}
+                {element.id && ` id="${element.id}"`}
+                {element.className && ` class="${element.className}"`}
+                &gt;
               </div>
 
-              {item.error && (
-                <div style={{color: '#dc3545', marginTop: '5px'}}>
-                  Error: {item.error}
+              {element.textContent && (
+                <div style={styles.textContent}>
+                  Content: "{element.textContent}"
                 </div>
               )}
 
-              <div style={styles.properties}>
-                {item.properties}
+              <div style={styles.selectorsSection}>
+                <strong>Matched by selectors:</strong>
+                <div style={styles.selectorsList}>
+                  {element.matchingSelectors.map((selector, sIndex) => (
+                    <span key={sIndex} style={styles.selectorCode}>
+                      {selector}
+                    </span>
+                  ))}
+                </div>
               </div>
 
-              {item.matches.length > 0 && (
-                <div style={{marginTop: '10px'}}>
-                  <strong>Matched Elements:</strong>
-                  {item.matches.map((match, matchIndex) => (
-                    <div key={matchIndex} style={styles.matchItem}>
-                      &lt;{match.tagName}
-                      {match.id && ` id="${match.id}"`}
-                      {match.className && ` class="${match.className}"`}
-                      &gt;
-                      {match.textContent && (
-                        <div style={{color: '#666', fontSize: '11px'}}>
-                          "{match.textContent}"
-                        </div>
-                      )}
+              <div style={styles.propertiesSection}>
+                <strong>Applied CSS Properties:</strong>
+                <div style={styles.propertiesGrid}>
+                  {Object.entries(element.appliedStyles).map(([property, value]) => (
+                    <div key={property} style={styles.propertyItem}>
+                      <span style={styles.propertyName}>{property}</span>
+                      <span>: </span>
+                      <span style={styles.propertyValue}>{value}</span>
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
           ))
         )}
