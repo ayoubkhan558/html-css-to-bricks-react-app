@@ -226,47 +226,30 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Get all matching CSS properties for this element
   const combinedProperties = matchCSSSelectors(node, cssRulesMap);
 
-  // Make sure the element has at least one class so we have a target
-  // to attach the computed styles to. If it comes without a class we
-  // generate one that is guaranteed to be unique.
-  const existingClasses = node.classList && node.classList.length > 0
-    ? Array.from(node.classList)
-    : [];
-
+  // Ensure every element has a class, generating one if necessary
+  const existingClasses = node.classList && node.classList.length > 0 ? Array.from(node.classList) : [];
   const randomId = Math.random().toString(36).substring(2, 6);
   const generatedClass = existingClasses.length === 0 ? `${tag}-tag-${randomId}-class` : null;
-  const classNames = generatedClass ? [...existingClasses, generatedClass] : existingClasses;
+  const classNames = generatedClass ? [generatedClass, ...existingClasses] : existingClasses;
 
   // Store the mapping between this element and the CSS global classes
   const cssGlobalClasses = [];
 
-  // Use the first class name as the primary target for styles
-  const primaryClassName = classNames[0];
-
-  if (primaryClassName && Object.keys(combinedProperties).length > 0) {
+  classNames.forEach((cls, index) => {
     // Find or create the corresponding global class
-    let targetClass = globalClasses.find(c => c.name === primaryClassName);
-    if (!targetClass) {
-      targetClass = { id: getUniqueId(), name: primaryClassName, settings: {} };
-      globalClasses.push(targetClass);
-    }
-
-    // Parse and assign all combined properties to this class
-    const parsedSettings = parseCssDeclarations(combinedProperties, primaryClassName);
-    Object.assign(targetClass.settings, parsedSettings);
-
-    // Link this element to the global class
-    cssGlobalClasses.push(targetClass.id);
-  }
-
-  // Also handle other classes (without duplicate style processing)
-  classNames.slice(1).forEach(cls => {
     let targetClass = globalClasses.find(c => c.name === cls);
     if (!targetClass) {
       targetClass = { id: getUniqueId(), name: cls, settings: {} };
       globalClasses.push(targetClass);
     }
-    
+
+    // Apply combined styles only to the primary class (the first one)
+    if (index === 0 && Object.keys(combinedProperties).length > 0) {
+      const parsedSettings = parseCssDeclarations(combinedProperties, cls);
+      Object.assign(targetClass.settings, parsedSettings);
+    }
+
+    // Link this element to the global class
     if (!cssGlobalClasses.includes(targetClass.id)) {
       cssGlobalClasses.push(targetClass.id);
     }
