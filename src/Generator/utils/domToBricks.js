@@ -1,6 +1,6 @@
 import { getUniqueId } from './utils';
 import { getBricksFieldType, processFormField, processFormElement } from "./elementProcessors/formProcessor"
-import { buildCssMap, parseCssDeclarations } from './cssParser';
+import { buildCssMap, parseCssDeclarations, matchCSSSelectors } from './cssParser';
 import { processAudioElement } from './elementProcessors/audioProcessor';
 import { processVideoElement } from './elementProcessors/videoProcessor';
 import { processTableElement } from './elementProcessors/tableProcessor';
@@ -220,54 +220,60 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     return null;
   }
 
-  // Handle CSS classes and generate primary class name
-  const attrClassNames = node.classList ? Array.from(node.classList) : [];
-  // Generate class name in format [tag][randomID][classAppend]
-  const randomId = Math.random().toString(36).substring(2, 6); // 4-char random ID
-  const primaryClassName = attrClassNames.length > 0 ? attrClassNames[0] : `${tag}-tag-${randomId}-class`;
+  // ------------------------------------------------------------------
+  // CSS CLASS / STYLE AGGREGATION
+  // ------------------------------------------------------------------
+  // Get all matching CSS properties for this element
+  const combinedProperties = matchCSSSelectors(node, cssRulesMap);
 
-  // Handle CSS classes
-  if (node.classList && node.classList.length > 0) {
-    const classNames = Array.from(node.classList);
-    const cssGlobalClasses = [];
+  // Make sure the element has at least one class so we have a target
+  // to attach the computed styles to. If it comes without a class we
+  // generate one that is guaranteed to be unique.
+  const existingClasses = node.classList && node.classList.length > 0
+    ? Array.from(node.classList)
+    : [];
 
-    classNames.forEach(cls => {
-      let existingClass = globalClasses.find(c => c.name === cls);
-      if (!existingClass) {
-        const classId = getUniqueId();
-        let targetClass = {
-          id: classId,
-          name: cls,
-          settings: {}
-        };
+  const randomId = Math.random().toString(36).substring(2, 6);
+  const generatedClass = existingClasses.length === 0 ? `${tag}-tag-${randomId}-class` : null;
+  const classNames = generatedClass ? [...existingClasses, generatedClass] : existingClasses;
 
-        if (cssRulesMap[cls]) {
-          const baseStyles = parseCssDeclarations(cssRulesMap[cls], cls);
-          Object.assign(targetClass.settings, baseStyles);
+  // Store the mapping between this element and the CSS global classes
+  const cssGlobalClasses = [];
 
-          // Extract pseudo-class styles (.class:hover, .class:active, etc.)
-          ['hover', 'active', 'focus', 'visited'].forEach(pseudo => {
-            const pseudoKey = `${cls}:${pseudo}`;
-            if (cssRulesMap[pseudoKey]) {
-              const pseudoStyles = parseCssDeclarations(cssRulesMap[pseudoKey], cls);
-              // Only store flat variant expected by Bricks like _background:hover
-              Object.entries(pseudoStyles).forEach(([prop, value]) => {
-                targetClass.settings[`${prop}:${pseudo}`] = value;
-              });
-            }
-          });
-        }
+  // Use the first class name as the primary target for styles
+  const primaryClassName = classNames[0];
 
-        globalClasses.push(targetClass);
-        cssGlobalClasses.push(classId);
-      } else {
-        cssGlobalClasses.push(existingClass.id);
-      }
-    });
-
-    if (cssGlobalClasses.length > 0) {
-      element.settings._cssGlobalClasses = cssGlobalClasses;
+  if (primaryClassName && Object.keys(combinedProperties).length > 0) {
+    // Find or create the corresponding global class
+    let targetClass = globalClasses.find(c => c.name === primaryClassName);
+    if (!targetClass) {
+      targetClass = { id: getUniqueId(), name: primaryClassName, settings: {} };
+      globalClasses.push(targetClass);
     }
+
+    // Parse and assign all combined properties to this class
+    const parsedSettings = parseCssDeclarations(combinedProperties, primaryClassName);
+    Object.assign(targetClass.settings, parsedSettings);
+
+    // Link this element to the global class
+    cssGlobalClasses.push(targetClass.id);
+  }
+
+  // Also handle other classes (without duplicate style processing)
+  classNames.slice(1).forEach(cls => {
+    let targetClass = globalClasses.find(c => c.name === cls);
+    if (!targetClass) {
+      targetClass = { id: getUniqueId(), name: cls, settings: {} };
+      globalClasses.push(targetClass);
+    }
+    
+    if (!cssGlobalClasses.includes(targetClass.id)) {
+      cssGlobalClasses.push(targetClass.id);
+    }
+  });
+
+  if (cssGlobalClasses.length > 0) {
+    element.settings._cssGlobalClasses = cssGlobalClasses;
   }
 
   // Process attributes
@@ -293,13 +299,7 @@ const convertHtmlToBricks = (html, css) => {
       if (typeof global.Node === 'undefined') global.Node = dom.window.Node;
     }
 
-    // Build CSS map
-    const cssMap = {};
-    const rawCssMap = buildCssMap(css);
-    Object.entries(rawCssMap).forEach(([key, value]) => {
-      const cleanKey = key.replace(/^[.\s]+/, '');
-      cssMap[cleanKey] = value;
-    });
+    const cssMap = buildCssMap(css);
 
     const content = [];
     const globalClasses = [];

@@ -1,3 +1,4 @@
+// cssParser.js
 // CSS parsing utilities
 import { displayMappers } from './propertyMappers/display';
 import { gridMappers } from './propertyMappers/content-grid';
@@ -29,13 +30,154 @@ export function toHex(val) {
 
   // Handle named colors
   const namedColors = {
-    'red': '#ff0000',
-    'green': '#008000',
-    'blue': '#0000ff',
+    'aliceblue': '#f0f8ff',
+    'antiquewhite': '#faebd7',
+    'aqua': '#00ffff',
+    'aquamarine': '#7fffd4',
+    'azure': '#f0ffff',
+    'beige': '#f5f5dc',
+    'bisque': '#ffe4c4',
     'black': '#000000',
-    'white': '#ffffff',
+    'blanchedalmond': '#ffebcd',
+    'blue': '#0000ff',
+    'blueviolet': '#8a2be2',
+    'brown': '#a52a2a',
+    'burlywood': '#deb887',
+    'cadetblue': '#5f9ea0',
+    'chartreuse': '#7fff00',
+    'chocolate': '#d2691e',
+    'coral': '#ff7f50',
+    'cornflowerblue': '#6495ed',
+    'cornsilk': '#fff8dc',
+    'crimson': '#dc143c',
+    'cyan': '#00ffff',
+    'darkblue': '#00008b',
+    'darkcyan': '#008b8b',
+    'darkgoldenrod': '#b8860b',
+    'darkgray': '#a9a9a9',
+    'darkgreen': '#006400',
+    'darkgrey': '#a9a9a9',
+    'darkkhaki': '#bdb76b',
+    'darkmagenta': '#8b008b',
+    'darkolivegreen': '#556b2f',
+    'darkorange': '#ff8c00',
+    'darkorchid': '#9932cc',
+    'darkred': '#8b0000',
+    'darksalmon': '#e9967a',
+    'darkseagreen': '#8fbc8f',
+    'darkslateblue': '#483d8b',
+    'darkslategray': '#2f4f4f',
+    'darkslategrey': '#2f4f4f',
+    'darkturquoise': '#00ced1',
+    'darkviolet': '#9400d3',
+    'deeppink': '#ff1493',
+    'deepskyblue': '#00bfff',
+    'dimgray': '#696969',
+    'dimgrey': '#696969',
+    'dodgerblue': '#1e90ff',
+    'firebrick': '#b22222',
+    'floralwhite': '#fffaf0',
+    'forestgreen': '#228b22',
+    'fuchsia': '#ff00ff',
+    'gainsboro': '#dcdcdc',
+    'ghostwhite': '#f8f8ff',
+    'gold': '#ffd700',
+    'goldenrod': '#daa520',
     'gray': '#808080',
-    'grey': '#808080'
+    'green': '#008000',
+    'greenyellow': '#adff2f',
+    'grey': '#808080',
+    'honeydew': '#f0fff0',
+    'hotpink': '#ff69b4',
+    'indianred': '#cd5c5c',
+    'indigo': '#4b0082',
+    'ivory': '#fffff0',
+    'khaki': '#f0e68c',
+    'lavender': '#e6e6fa',
+    'lavenderblush': '#fff0f5',
+    'lawngreen': '#7cfc00',
+    'lemonchiffon': '#fffacd',
+    'lightblue': '#add8e6',
+    'lightcoral': '#f08080',
+    'lightcyan': '#e0ffff',
+    'lightgoldenrodyellow': '#fafad2',
+    'lightgray': '#d3d3d3',
+    'lightgreen': '#90ee90',
+    'lightgrey': '#d3d3d3',
+    'lightpink': '#ffb6c1',
+    'lightsalmon': '#ffa07a',
+    'lightseagreen': '#20b2aa',
+    'lightskyblue': '#87cefa',
+    'lightslategray': '#778899',
+    'lightslategrey': '#778899',
+    'lightsteelblue': '#b0c4de',
+    'lightyellow': '#ffffe0',
+    'lime': '#00ff00',
+    'limegreen': '#32cd32',
+    'linen': '#faf0e6',
+    'magenta': '#ff00ff',
+    'maroon': '#800000',
+    'mediumaquamarine': '#66cdaa',
+    'mediumblue': '#0000cd',
+    'mediumorchid': '#ba55d3',
+    'mediumpurple': '#9370db',
+    'mediumseagreen': '#3cb371',
+    'mediumslateblue': '#7b68ee',
+    'mediumspringgreen': '#00fa9a',
+    'mediumturquoise': '#48d1cc',
+    'mediumvioletred': '#c71585',
+    'midnightblue': '#191970',
+    'mintcream': '#f5fffa',
+    'mistyrose': '#ffe4e1',
+    'moccasin': '#ffe4b5',
+    'navajowhite': '#ffdead',
+    'navy': '#000080',
+    'oldlace': '#fdf5e6',
+    'olive': '#808000',
+    'olivedrab': '#6b8e23',
+    'orange': '#ffa500',
+    'orangered': '#ff4500',
+    'orchid': '#da70d6',
+    'palegoldenrod': '#eee8aa',
+    'palegreen': '#98fb98',
+    'paleturquoise': '#afeeee',
+    'palevioletred': '#db7093',
+    'papayawhip': '#ffefd5',
+    'peachpuff': '#ffdab9',
+    'peru': '#cd853f',
+    'pink': '#ffc0cb',
+    'plum': '#dda0dd',
+    'powderblue': '#b0e0e6',
+    'purple': '#800080',
+    'rebeccapurple': '#663399',
+    'red': '#ff0000',
+    'rosybrown': '#bc8f8f',
+    'royalblue': '#4169e1',
+    'saddlebrown': '#8b4513',
+    'salmon': '#fa8072',
+    'sandybrown': '#f4a460',
+    'seagreen': '#2e8b57',
+    'seashell': '#fff5ee',
+    'sienna': '#a0522d',
+    'silver': '#c0c0c0',
+    'skyblue': '#87ceeb',
+    'slateblue': '#6a5acd',
+    'slategray': '#708090',
+    'slategrey': '#708090',
+    'snow': '#fffafa',
+    'springgreen': '#00ff7f',
+    'steelblue': '#4682b4',
+    'tan': '#d2b48c',
+    'teal': '#008080',
+    'thistle': '#d8bfd8',
+    'tomato': '#ff6347',
+    'turquoise': '#40e0d0',
+    'violet': '#ee82ee',
+    'wheat': '#f5deb3',
+    'white': '#ffffff',
+    'whitesmoke': '#f5f5f5',
+    'yellow': '#ffff00',
+    'yellowgreen': '#9acd32'
   };
 
   return namedColors[val.toLowerCase()] || null;
@@ -233,70 +375,66 @@ export const CSS_PROP_MAPPERS = {
 };
 
 // Parse CSS declarations into Bricks settings
-export function parseCssDeclarations(cssText, className = '') {
-  console.log("parseCssDeclarations ", cssText);
+export function parseCssDeclarations(combinedProperties, className = '') {
+  console.log("parseCssDeclarations ", combinedProperties);
   const settings = {};
   const customRules = {};
 
-  // Remove CSS comments
-  const commentlessCss = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
+  // Handle combined properties object
+  if (typeof combinedProperties === 'object') {
+    Object.entries(combinedProperties).forEach(([prop, value]) => {
+      const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
 
-  // Remove any newlines and extra spaces
-  const cleanCss = commentlessCss.replace(/\s+/g, ' ').replace(/\s*([:;{}])\s*/g, '$1').trim();
-  const declarations = cleanCss.split(';').filter(Boolean);
-
-  declarations.forEach(decl => {
-    if (!decl.trim()) return;
-
-    const colonIndex = decl.indexOf(':');
-    if (colonIndex === -1) return;
-
-    const prop = decl.slice(0, colonIndex).trim();
-    const value = decl.slice(colonIndex + 1).trim();
-
-    if (!prop || !value) return;
-
-    // Handle Bricks' pseudo-class format (property:pseudo)
-    const bricksPseudoMatch = prop.match(/^(_[a-zA-Z]+):(hover|active|focus|visited)$/);
-    if (bricksPseudoMatch) {
-      const baseProp = bricksPseudoMatch[1];
-      const pseudoClass = bricksPseudoMatch[2];
-
-      if (CSS_PROP_MAPPERS[baseProp]) {
-        const pseudoSettings = {};
-        CSS_PROP_MAPPERS[baseProp](value, pseudoSettings);
-        settings[`${baseProp}:${pseudoClass}`] = pseudoSettings[baseProp];
-      }
-      return;
-    }
-
-    // Handle regular properties
-    const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-    const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
-
-    if (mapper) {
-      try {
-        mapper(value, settings);
-      } catch (e) {
-        console.error(`Error processing ${prop}: ${value}`, e);
+      if (mapper) {
+        try {
+          mapper(value, settings);
+        } catch (e) {
+          console.error(`Error processing ${prop}: ${value}`, e);
+          if (!customRules[prop]) customRules[prop] = {};
+          customRules[prop][value] = true;
+        }
+      } else {
         if (!customRules[prop]) customRules[prop] = {};
         customRules[prop][value] = true;
       }
-    } else {
-      // Handle box-shadow specially
-      if (prop.toLowerCase() === 'box-shadow') {
-        const boxShadow = parseBoxShadow(value);
-        settings._boxShadow = boxShadow;
-        // Also set in _effects for consistency with other effects
-        settings._effects = settings._effects || {};
-        settings._effects.boxShadow = boxShadow;
-        return;
-      }
-      if (!customRules[prop]) customRules[prop] = {};
-      customRules[prop][value] = true;
-    }
-  });
+    });
+  } else {
+    // Handle CSS string
+    const commentlessCss = combinedProperties.replace(/\/\*[\s\S]*?\*\//g, '');
+    const cleanCss = commentlessCss.replace(/\s+/g, ' ').replace(/\s*([:;{}])\s*/g, '$1').trim();
+    const declarations = cleanCss.split(';').filter(Boolean);
 
+    declarations.forEach(decl => {
+      if (!decl.trim()) return;
+
+      const colonIndex = decl.indexOf(':');
+      if (colonIndex === -1) return;
+
+      const prop = decl.slice(0, colonIndex).trim();
+      const value = decl.slice(colonIndex + 1).trim();
+
+      if (!prop || !value) return;
+
+      const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
+
+      if (mapper) {
+        try {
+          mapper(value, settings);
+        } catch (e) {
+          console.error(`Error processing ${prop}: ${value}`, e);
+          if (!customRules[prop]) customRules[prop] = {};
+          customRules[prop][value] = true;
+        }
+      } else {
+        if (!customRules[prop]) customRules[prop] = {};
+        customRules[prop][value] = true;
+      }
+    });
+  }
+
+  // Handle custom rules
   const nativeProperties = [
     'padding', 'margin', 'background', 'color', 'font-size', 'border',
     'width', 'height', 'display', 'position', 'top', 'right', 'bottom', 'left', 'box-shadow'
@@ -317,83 +455,138 @@ export function parseCssDeclarations(cssText, className = '') {
     if (!settings._skipTransitionCustom) {
       settings._cssCustom = `.${fallbackClassName} {\n  ${cssRules};\n}`;
     }
-    if (!settings._skipGapCustom) {
-      // Existing custom CSS generation for gaps
-    }
     settings._skipTransitionCustom = false;
-    settings._skipGapCustom = false;
   }
 
   return settings;
 }
 
-/**
- * Converts CSS text to Bricks JSON structure
- * @param {string} html - The HTML content
- * @param {string} css - The CSS content
- * @returns {Object} Bricks JSON structure
- */
-export function buildCssMap(cssText) {
-  const map = {};
-  // Remove CSS comments first
-  const cleanedCss = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
-  // Match CSS rules, handling nested rules and media queries
-  const regex = /([^{]+)\s*{([^}]*)}/g;
-  let match;
-
-  while ((match = regex.exec(cleanedCss))) {
-    const selector = match[1].trim();
-    const body = match[2].trim();
-
-    // Extract class names (e.g., `.btn`, `.foo-bar:hover`, `header .hero__wrapper`) and simple tag selectors
-    const selectors = selector.split(',');
-    selectors.forEach(sel => {
-      const trimmedSel = sel.trim();
-      if (!trimmedSel) return;
-
-      // Capture all class names within this selector (may include pseudo-classes / combinators)
-      const classRegex = /\.([A-Za-z0-9_-]+)(?::([a-z]+))?/g;
-      let classMatch;
-      while ((classMatch = classRegex.exec(trimmedSel)) !== null) {
-        const className = classMatch[1];
-        const pseudoClass = classMatch[2];
-
-        if (pseudoClass) {
-          // Store pseudo-class variant separately
-          const pseudoKey = `${className}:${pseudoClass}`;
-          if (!map[pseudoKey]) {
-            map[pseudoKey] = body;
-          }
-        } else {
-          // Store base class
-          if (!map[className]) {
-            map[className] = body;
-          }
-        }
-      }
-      // If selector is a lone class (e.g., `.foo`) handle above logic; otherwise handled by regex
-      if (trimmedSel.startsWith('.')) {
-        const parts = trimmedSel.replace(/^[.\s]+/, '').split(':');
-        const loneClass = parts[0];
-        if (!map[loneClass]) {
-          map[loneClass] = body;
-        }
-        // If there's a pseudo-class, store it separately
-        if (parts.length > 1) {
-          const pseudoKey = `${loneClass}:${parts[1]}`;
-          if (!map[pseudoKey]) {
-            map[pseudoKey] = body;
-          }
-        }
-      }
-
-      // Capture simple tag selectors that have no combinators/pseudo
-      const tagCandidate = trimmedSel.replace(/:[^\s]*/, '').trim();
-      if (/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(tagCandidate)) {
-        map[tagCandidate.toLowerCase()] = body;
+// Enhanced CSS matching function
+export function matchCSSSelectors(element, cssMap) {
+  const combinedProperties = {};
+  const doc = element.ownerDocument;
+  
+  // Helper to parse CSS properties string into object
+  const parseProperties = (propertiesString) => {
+    const properties = {};
+    const declarations = propertiesString.split(';').filter(decl => decl.trim());
+    
+    declarations.forEach(decl => {
+      const [property, value] = decl.split(':').map(part => part.trim());
+      if (property && value) {
+        properties[property] = value;
       }
     });
-  }
+    
+    return properties;
+  };
 
+  // Check each CSS selector against the element
+  Object.entries(cssMap).forEach(([selector, properties]) => {
+    try {
+      let matches = false;
+      
+      // Try to match the selector
+      try {
+        matches = element.matches(selector);
+      } catch (e) {
+        // If selector is invalid for matches(), try alternative methods
+        const selectorType = getSelectorType(selector);
+        
+        if (selectorType === 'tag' && element.tagName.toLowerCase() === selector.toLowerCase()) {
+          matches = true;
+        } else if (selectorType === 'class' && element.classList.contains(selector.substring(1))) {
+          matches = true;
+        } else if (selectorType === 'id' && element.id === selector.substring(1)) {
+          matches = true;
+        } else if (selectorType === 'complex') {
+          // For complex selectors, try querySelectorAll on document
+          try {
+            const matchingElements = doc.querySelectorAll(selector);
+            matches = Array.from(matchingElements).includes(element);
+          } catch (err) {
+            // If still fails, skip this selector
+            matches = false;
+          }
+        }
+      }
+      
+      if (matches) {
+        const parsedProperties = parseProperties(properties);
+        Object.assign(combinedProperties, parsedProperties);
+        
+        console.log(`Element matched by: ${selector}`);
+        console.log('Properties:', parsedProperties);
+      }
+    } catch (error) {
+      console.warn(`Error processing selector: ${selector}`, error);
+    }
+  });
+  
+  return combinedProperties;
+}
+
+// Helper to determine selector type
+const getSelectorType = (selector) => {
+  if (selector.startsWith('#')) return 'id';
+  if (selector.startsWith('.')) return 'class';
+  if (selector.includes('>') || selector.includes('+') || selector.includes('~') || 
+      selector.includes(' ') || selector.includes('[')) return 'complex';
+  return 'tag';
+};
+
+
+/**
+ * Enhanced buildCssMap function to handle complex selectors
+ * @param {string} cssText - The CSS content
+ * @returns {Object} Map of selectors to their CSS declarations
+ */
+export function buildCssMap(cssText) {
+  console.log("buildCssMap ", cssText);
+  const map = {};
+  
+  // Remove comments and normalize whitespace
+  const cleanCSS = cssText
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  // Split into rules
+  const rules = [];
+  let current = '';
+  let inBrackets = 0;
+  
+  for (let i = 0; i < cleanCSS.length; i++) {
+    const char = cleanCSS[i];
+    if (char === '{') {
+      inBrackets++;
+    } else if (char === '}') {
+      inBrackets--;
+      if (inBrackets === 0) {
+        rules.push(current.trim() + '}');
+        current = '';
+        continue;
+      }
+    }
+    current += char;
+  }
+  
+  // Process each rule
+  rules.forEach(rule => {
+    const [selectorPart, ...rest] = rule.split('{');
+    if (!selectorPart || !rest.length) return;
+    
+    const properties = rest.join('{').replace(/}$/, '').trim();
+    if (!properties) return;
+    
+    // Split multiple selectors and process each one
+    selectorPart.split(',').forEach(selector => {
+      const trimmed = selector.trim();
+      if (trimmed) {
+        map[trimmed] = properties;
+      }
+    });
+  });
+  
   return map;
 }

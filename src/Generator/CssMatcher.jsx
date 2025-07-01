@@ -5,6 +5,7 @@ const CSSHTMLAnalyzer = () => {
     <div class="container">
       <h1 id="title">Title</h1>
       <p class="text">Sample text</p>
+      <p class="">Another Sample text</p>
     </div>
 `);
 
@@ -38,18 +39,63 @@ const CSSHTMLAnalyzer = () => {
 
   const parseCSS = (cssString) => {
     const selectors = [];
-    const rules = cssString.split('}').filter(rule => rule.trim());
+    // Remove comments and normalize whitespace
+    const cleanCSS = cssString
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
     
-    rules.forEach(rule => {
-      const parts = rule.split('{');
-      if (parts.length === 2) {
-        const selector = parts[0].trim();
-        const properties = parts[1].trim();
-        selectors.push({ selector, properties });
+    // Split into rules
+    const rules = [];
+    let current = '';
+    let inBrackets = 0;
+    
+    for (let i = 0; i < cleanCSS.length; i++) {
+      const char = cleanCSS[i];
+      if (char === '{') {
+        inBrackets++;
+      } else if (char === '}') {
+        inBrackets--;
+        if (inBrackets === 0) {
+          rules.push(current.trim() + '}');
+          current = '';
+          continue;
+        }
       }
+      current += char;
+    }
+    
+    // Process each rule
+    rules.forEach(rule => {
+      const [selectorPart, ...rest] = rule.split('{');
+      if (!selectorPart || !rest.length) return;
+      
+      const properties = rest.join('{').replace(/}$/, '').trim();
+      if (!properties) return;
+      
+      // Split multiple selectors and process each one
+      selectorPart.split(',').forEach(selector => {
+        const trimmed = selector.trim();
+        if (trimmed) {
+          selectors.push({
+            selector: trimmed,
+            properties: properties,
+            type: getSelectorType(trimmed)
+          });
+        }
+      });
     });
     
     return selectors;
+  };
+  
+  // Helper to determine selector type
+  const getSelectorType = (selector) => {
+    if (selector.startsWith('#')) return 'id';
+    if (selector.startsWith('.')) return 'class';
+    if (selector.includes('>') || selector.includes('+') || selector.includes('~') || 
+        selector.includes(' ') || selector.includes('[')) return 'complex';
+    return 'tag';
   };
 
   const parseProperties = (propertiesString) => {
@@ -72,38 +118,143 @@ const CSSHTMLAnalyzer = () => {
       const doc = parser.parseFromString(htmlInput, 'text/html');
       const selectors = parseCSS(cssInput);
       
-      // Get all elements from the HTML
-      const allElements = doc.querySelectorAll('*');
+      console.log('=== ALL SELECTORS ===');
+      selectors.forEach(({ selector, properties, type }) => {
+        console.log(`[${type}] ${selector} => ${properties}`);
+      });
+      
+      // Get all elements from the HTML including body and html
+      const allElements = Array.from(doc.querySelectorAll('*'));
       const elementAnalysis = [];
 
-      Array.from(allElements).forEach(element => {
-        const elementInfo = {
-          tagName: element.tagName.toLowerCase(),
-          id: element.id || null,
-          className: element.className || null,
-          textContent: element.textContent?.trim(),
-          appliedStyles: {},
-          matchingSelectors: []
-        };
-
-        // Check which selectors match this element
-        selectors.forEach(({ selector, properties }) => {
-          try {
-            if (element.matches(selector)) {
-              elementInfo.matchingSelectors.push(selector);
-              const parsedProperties = parseProperties(properties);
-              
-              // Merge properties (later selectors override earlier ones)
-              Object.assign(elementInfo.appliedStyles, parsedProperties);
-            }
-          } catch (error) {
-            // Invalid selector, skip it
+      // First pass: process all elements and collect their info
+      const elementsInfo = allElements.map(element => {
+        return {
+          element,
+          info: {
+            tagName: element.tagName.toLowerCase(),
+            id: element.id || null,
+            className: element.className || null,
+            textContent: element.textContent?.trim(),
+            appliedStyles: {},
+            matchingSelectors: [],
+            selectorMatches: [] // Store detailed match info
           }
-        });
+        };
+      });
 
-        // Only include elements that have matching CSS rules
-        if (elementInfo.matchingSelectors.length > 0) {
-          elementAnalysis.push(elementInfo);
+      // Second pass: match all selectors against all elements
+      selectors.forEach(({ selector, properties, type }) => {
+        try {
+          // Try to find matching elements using querySelectorAll
+          let matches;
+          let matchMethod = 'querySelectorAll';
+          try {
+            matches = doc.querySelectorAll(selector);
+          } catch (e) {
+            // If selector is invalid for querySelectorAll, try to handle it manually
+            if (type === 'tag') {
+              matches = doc.getElementsByTagName(selector);
+              matchMethod = 'getElementsByTagName';
+            } else if (type === 'class') {
+              matches = doc.getElementsByClassName(selector.substring(1));
+              matchMethod = 'getElementsByClassName';
+            } else if (type === 'id') {
+              const el = doc.getElementById(selector.substring(1));
+              matches = el ? [el] : [];
+              matchMethod = 'getElementById';
+            } else {
+              // For complex selectors, try to find a parent that matches
+              const parts = selector.split(' ');
+              const lastPart = parts[parts.length - 1];
+              matches = doc.querySelectorAll(lastPart);
+              matchMethod = 'querySelectorAll (partial)';
+            }
+          }
+
+          // Process all matches
+          Array.from(matches).forEach(matchedElement => {
+            const elementEntry = elementsInfo.find(e => e.element === matchedElement);
+            if (elementEntry) {
+              const { info } = elementEntry;
+              
+              // For descendant selectors, verify the full path
+              let fullPathValid = true;
+              if (selector.includes(' ')) {
+                const parentMatch = matchedElement.closest(selector);
+                fullPathValid = !!parentMatch;
+              }
+              
+              if (fullPathValid) {
+                info.matchingSelectors.push(selector);
+                const parsedProperties = parseProperties(properties);
+                
+                // Log the match details
+                const matchInfo = {
+                  selector,
+                  type,
+                  matchMethod,
+                  properties: properties,
+                  parsedProperties,
+                  element: {
+                    tag: info.tagName,
+                    id: info.id,
+                    class: info.className
+                  }
+                };
+                info.selectorMatches.push(matchInfo);
+                
+                console.log('\n=== MATCH FOUND ===');
+                console.log(`Element: <${info.tagName}${info.id ? `#${info.id}` : ''}${info.className ? `.${info.className.split(' ').join('.')}` : ''}>`);
+                console.log(`Matched by: ${selector} (${type})`);
+                console.log('Properties:', parsedProperties);
+                
+                // Apply the styles
+                Object.assign(info.appliedStyles, parsedProperties);
+              }
+            }
+          });
+
+        } catch (error) {
+          console.warn(`Error processing selector: ${selector}`, error);
+        }
+      });
+
+      // Third pass: collect all elements with matching selectors and log final styles
+      elementsInfo.forEach(({ info }) => {
+        if (info.matchingSelectors.length > 0) {
+          console.log('\n=== ELEMENT STYLES ===');
+          console.log(`Element: <${info.tagName}${info.id ? `#${info.id}` : ''}${info.className ? `.${info.className.split(' ').join('.')}` : ''}>`);
+          console.log('All matching selectors:', info.matchingSelectors);
+          console.log('Final applied styles:', info.appliedStyles);
+          
+          elementAnalysis.push(info);
+        }
+      });
+
+      // Combine styles for elements with the same class
+      const classMap = new Map();
+      elementAnalysis.forEach(info => {
+        if (info.className) {
+          if (!classMap.has(info.className)) {
+            classMap.set(info.className, []);
+          }
+          classMap.get(info.className).push(info);
+        }
+      });
+
+      // Merge styles for elements with the same class
+      classMap.forEach((elements, className) => {
+        if (elements.length > 1) {
+          // Get all unique styles from all elements with this class
+          const allStyles = {};
+          elements.forEach(el => {
+            Object.assign(allStyles, el.appliedStyles);
+          });
+          // Apply all styles to each element with this class
+          elements.forEach(el => {
+            Object.assign(el.appliedStyles, allStyles);
+          });
         }
       });
 
