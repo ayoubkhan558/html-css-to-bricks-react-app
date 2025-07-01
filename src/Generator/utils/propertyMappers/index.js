@@ -7,7 +7,6 @@ import { positionMappers } from './layout-position';
 import { typographyMappers } from './typography';
 import { backgroundMappers } from './background';
 import { borderBoxShadowMappers } from './boder-box-shadow';
-import { flexboxMappers } from './flexbox-mappers';
 import { transformsMappers } from './transforms';
 import { scrollMappers } from './scroll';
 import { scrollSnapMappers } from './layout-scroll-snap';
@@ -22,7 +21,6 @@ export const CSS_PROP_MAPPERS = {
   ...typographyMappers,
   ...backgroundMappers,
   ...borderBoxShadowMappers,
-  ...flexboxMappers,
   ...transformsMappers,
   ...scrollMappers,
   ...scrollSnapMappers,

@@ -31,14 +31,19 @@ export const flexboxMappers = {
     settings._order = parseInt(val);
   },
   'gap': (val, settings) => {
-    const gapValue = parseValue(val);
-    settings._rowGap = gapValue;
-    settings._columnGap = gapValue;
+    const values = val.split(' ').map(v => v.replace('px', '').trim()).filter(Boolean);
+    if (values.length === 1) {
+      settings._columnGap = values[0];
+      settings._rowGap = values[0];
+    } else if (values.length >= 2) {
+      settings._columnGap = values[1]; // Second value is column gap
+      settings._rowGap = values[0];    // First value is row gap
+    }
   },
   'row-gap': (val, settings) => {
-    settings._rowGap = parseValue(val);
+    settings._rowGap = val.replace('px', '');
   },
   'column-gap': (val, settings) => {
-    settings._columnGap = parseValue(val);
+    settings._columnGap = val.replace('px', '');
   }
 };

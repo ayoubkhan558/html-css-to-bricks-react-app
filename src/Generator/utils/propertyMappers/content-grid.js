@@ -11,11 +11,20 @@ export const gridMappers = {
     settings._skipGapCustom = true;
   },
   'gap': (val, settings) => {
-    const [rowGap, columnGap] = val.split(/\s+/);
-    settings._gridGap = columnGap
-      ? `${parseValue(rowGap)} ${parseValue(columnGap)}`
-      : parseValue(rowGap);
-    settings._skipGapCustom = true;
+    const values = val.split(' ').map(v => v.replace('px', '').trim()).filter(Boolean);
+    if (values.length === 1) {
+      settings._gridGap = `${values[0]} ${values[0]}`;
+    } else if (values.length >= 2) {
+      settings._gridGap = `${values[0]} ${values[1]}`; // row column
+    }
+  },
+  'row-gap': (val, settings) => {
+    const currentGap = (settings._gridGap || '0 0').split(' ');
+    settings._gridGap = `${val.replace('px', '')} ${currentGap[1] || '0'}`;
+  },
+  'column-gap': (val, settings) => {
+    const currentGap = (settings._gridGap || '0 0').split(' ');
+    settings._gridGap = `${currentGap[0] || '0'} ${val.replace('px', '')}`;
   },
   'grid-row-gap': (val, settings) => {
     settings._gridRowGap = parseValue(val);
