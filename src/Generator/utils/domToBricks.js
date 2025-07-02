@@ -53,7 +53,7 @@ const hasContainerClasses = (node) => {
 /**
  * Processes a DOM node and converts it to a Bricks element
  */
-const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], allElements = []) => {
+const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], allElements = [], variables = {}) => {
   // Handle text nodes
   if (node.nodeType !== Node.ELEMENT_NODE) {
     // Skip text nodes that are inside a form element (labels, button text, etc.)
@@ -205,7 +205,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
         return;
       }
-      const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements);
+      const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements, variables);
       if (childElement) {
         if (Array.isArray(childElement)) {
           childElement.forEach(c => element.children.push(c.id));
@@ -245,7 +245,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
     // Apply combined styles only to the primary class (the first one)
     if (index === 0 && Object.keys(combinedProperties).length > 0) {
-      const parsedSettings = parseCssDeclarations(combinedProperties, cls);
+      const parsedSettings = parseCssDeclarations(combinedProperties, cls, variables);
       Object.assign(targetClass.settings, parsedSettings);
     }
 
@@ -254,7 +254,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       const pseudoMatch = selector.match(new RegExp(`^\\.${cls}:(\\w+)`));
       if (pseudoMatch) {
         const pseudoClass = pseudoMatch[1];
-        const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], cls);
+        const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], cls, variables);
         Object.entries(pseudoStyles).forEach(([prop, value]) => {
           targetClass.settings[`${prop}:${pseudoClass}`] = value;
         });
@@ -294,14 +294,14 @@ const convertHtmlToBricks = (html, css) => {
       if (typeof global.Node === 'undefined') global.Node = dom.window.Node;
     }
 
-    const cssMap = buildCssMap(css);
+    const { cssMap, variables, rootStyles } = buildCssMap(css);
 
     const content = [];
     const globalClasses = [];
     const allElements = [];
 
     Array.from(doc.body.childNodes).forEach(node => {
-      const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements);
+      const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements, variables);
       if (element) {
         if (Array.isArray(element)) {
           content.push(...element);
@@ -316,6 +316,24 @@ const convertHtmlToBricks = (html, css) => {
         content.push(el);
       }
     });
+
+    if (rootStyles) {
+      if (globalClasses.length > 0) {
+        const firstClass = globalClasses[0];
+        if (!firstClass.settings._cssCustom) {
+          firstClass.settings._cssCustom = '';
+        }
+        firstClass.settings._cssCustom = `:root {\n  ${rootStyles}\n}\n${firstClass.settings._cssCustom}`;
+      } else {
+        globalClasses.push({
+          id: getUniqueId(),
+          name: 'custom-css',
+          settings: {
+            _cssCustom: `:root {\n  ${rootStyles}\n}`,
+          },
+        });
+      }
+    }
 
     return {
       content,

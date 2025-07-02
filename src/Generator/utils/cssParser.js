@@ -296,29 +296,38 @@ export const getCssPropMappers = (settings) => {
 };
 
 // Parse CSS declarations into Bricks settings
-export function parseCssDeclarations(combinedProperties, className = '') {
-  console.log("parseCssDeclarations ", combinedProperties);
+export function parseCssDeclarations(combinedProperties, className = '', variables = {}) {
   const settings = {};
   const customRules = {};
+
+  const resolveCssVariables = (value) => {
+    if (typeof value !== 'string' || !value.includes('var(')) {
+      return value;
+    }
+    return value.replace(/var\((--[\w-]+)\)/g, (match, varName) => {
+      return variables[varName] || match;
+    });
+  };
 
   // Handle combined properties object
   if (typeof combinedProperties === 'object') {
     Object.entries(combinedProperties).forEach(([prop, value]) => {
+      const resolvedValue = resolveCssVariables(value);
       const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
       const CSS_PROP_MAPPERS = getCssPropMappers(settings);
       const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
 
       if (mapper) {
         try {
-          mapper(value, settings);
+          mapper(resolvedValue, settings);
         } catch (e) {
-          console.error(`Error processing ${prop}: ${value}`, e);
+          console.error(`Error processing ${prop}: ${resolvedValue}`, e);
           if (!customRules[prop]) customRules[prop] = {};
-          customRules[prop][value] = true;
+          customRules[prop][resolvedValue] = true;
         }
       } else {
         if (!customRules[prop]) customRules[prop] = {};
-        customRules[prop][value] = true;
+        customRules[prop][resolvedValue] = true;
       }
     });
   } else {
@@ -338,21 +347,22 @@ export function parseCssDeclarations(combinedProperties, className = '') {
 
       if (!prop || !value) return;
 
+      const resolvedValue = resolveCssVariables(value);
       const normalizedProp = prop.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
       const CSS_PROP_MAPPERS = getCssPropMappers(settings);
       const mapper = CSS_PROP_MAPPERS[prop] || CSS_PROP_MAPPERS[normalizedProp];
 
       if (mapper) {
         try {
-          mapper(value, settings);
+          mapper(resolvedValue, settings);
         } catch (e) {
-          console.error(`Error processing ${prop}: ${value}`, e);
+          console.error(`Error processing ${prop}: ${resolvedValue}`, e);
           if (!customRules[prop]) customRules[prop] = {};
-          customRules[prop][value] = true;
+          customRules[prop][resolvedValue] = true;
         }
       } else {
         if (!customRules[prop]) customRules[prop] = {};
-        customRules[prop][value] = true;
+        customRules[prop][resolvedValue] = true;
       }
     });
   }
@@ -376,7 +386,8 @@ export function parseCssDeclarations(combinedProperties, className = '') {
       return `${prop}: ${values}`;
     }).join('; ');
     if (!settings._skipTransitionCustom) {
-      settings._cssCustom = `.${fallbackClassName} {\n  ${cssRules};\n}`;
+      const selector = fallbackClassName === ':root' ? ':root' : `.${fallbackClassName}`;
+      settings._cssCustom = `${selector} {\n  ${cssRules};\n}`;
     }
     settings._skipTransitionCustom = false;
   }
@@ -465,8 +476,9 @@ const getSelectorType = (selector) => {
  * @returns {Object} Map of selectors to their CSS declarations
  */
 export function buildCssMap(cssText) {
-  console.log("buildCssMap ", cssText);
   const map = {};
+  const variables = {};
+  let rootStyles = '';
 
   // Remove comments and normalize whitespace
   const cleanCSS = cssText
@@ -507,9 +519,19 @@ export function buildCssMap(cssText) {
       const trimmed = selector.trim();
       if (trimmed) {
         map[trimmed] = properties;
+
+        if (trimmed === ':root') {
+          rootStyles = properties;
+          properties.split(';').forEach(prop => {
+            const [key, value] = prop.split(':').map(s => s.trim());
+            if (key && key.startsWith('--')) {
+              variables[key] = value;
+            }
+          });
+        }
       }
     });
   });
 
-  return map;
+  return { cssMap: map, variables, rootStyles };
 }
