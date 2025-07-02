@@ -167,6 +167,7 @@ export const getCssPropMappers = (settings) => {
     'background-blend-mode': backgroundMappers['background-blend-mode'],
     'background-origin': backgroundMappers['background-origin'],
     'background-clip': backgroundMappers['background-clip'],
+    '-webkit-background-clip': backgroundMappers['-webkit-background-clip'],
     'background': backgroundMappers['background'],
 
     // Border

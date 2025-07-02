@@ -8,7 +8,14 @@ const isColor = (value) => {
   const lowerCaseValue = value.toLowerCase();
   const colorKeywords = ['transparent', 'currentcolor'];
   if (colorKeywords.includes(lowerCaseValue)) return true;
-  if (lowerCaseValue.startsWith('#') || lowerCaseValue.startsWith('rgb') || lowerCaseValue.startsWith('hsl')) return true;
+  
+  // Enhanced hex color detection - supports 3, 4, 6, and 8 digit hex colors
+  if (lowerCaseValue.startsWith('#')) {
+    const hexPart = lowerCaseValue.slice(1);
+    return /^[0-9a-f]{3,8}$/i.test(hexPart);
+  }
+  
+  if (lowerCaseValue.startsWith('rgb') || lowerCaseValue.startsWith('hsl')) return true;
 
   // Basic color name check (can be expanded)
   const namedColors = ['red', 'green', 'blue', 'white', 'black', 'yellow', 'purple', 'orange'];
@@ -71,15 +78,29 @@ const parseColorStop = (stop) => {
     // For multiple positions, use the last one as the main stop position
     // This handles cases like "color 0 97%" where we want 97% as the stop
     const lastPosition = positionParts[positionParts.length - 1];
-    colorObj.stop = lastPosition.includes('%') ? lastPosition : lastPosition + '%';
+    colorObj.stop = lastPosition.includes('%') ? lastPosition.replace('%', '') : lastPosition;
   }
 
   // Handle additional color properties for transparent colors
-  if (colorPart.includes('rgba') || colorPart.includes('hsla') || colorPart === '#fff0' || colorPart === 'transparent') {
-    const originalColor = toHex(colorPart.replace(/0$/, ''));  // Remove trailing 0 for base color
-    if (originalColor) {
-      colorObj.color.rgb = colorPart.includes('rgba') ? colorPart : `rgba(255, 255, 255, 0)`;
-      colorObj.color.hsl = `hsla(0, 0%, 100%, 0)`;
+  if (colorPart.includes('rgba') || colorPart.includes('hsla') || 
+      (colorPart.startsWith('#') && (colorPart.length === 5 || colorPart.length === 9)) || 
+      colorPart === 'transparent') {
+    
+    // For 4-digit hex colors like #fff0, convert to rgba
+    if (colorPart.startsWith('#') && colorPart.length === 5) {
+      const r = parseInt(colorPart[1] + colorPart[1], 16);
+      const g = parseInt(colorPart[2] + colorPart[2], 16);
+      const b = parseInt(colorPart[3] + colorPart[3], 16);
+      const a = parseInt(colorPart[4] + colorPart[4], 16) / 255;
+      colorObj.color.rgb = `rgba(${r}, ${g}, ${b}, ${a})`;
+      colorObj.color.hsl = `hsla(0, 0%, ${Math.round((r + g + b) / 3 / 255 * 100)}%, ${a})`;
+    } else if (colorPart.includes('rgba')) {
+      colorObj.color.rgb = colorPart;
+    } else if (colorPart.includes('hsla')) {
+      colorObj.color.hsl = colorPart;
+    } else if (colorPart === 'transparent') {
+      colorObj.color.rgb = 'rgba(255, 255, 255, 0)';
+      colorObj.color.hsl = 'hsla(0, 0%, 100%, 0)';
     }
   }
 
@@ -87,6 +108,7 @@ const parseColorStop = (stop) => {
 };
 
 const parseGradient = (gradientString) => {
+  console.log(gradientString);
   const typeMatch = gradientString.match(/(linear|radial|conic)-gradient/);
   if (!typeMatch) return null;
 
@@ -102,25 +124,27 @@ const parseGradient = (gradientString) => {
 
   // Handle angle or direction
   const firstCommaIndex = content.indexOf(',');
-  let firstPart = content.substring(0, firstCommaIndex).trim();
+  if (firstCommaIndex !== -1) {
+    let firstPart = content.substring(0, firstCommaIndex).trim();
 
-  if (gradientType === 'linear' && (firstPart.includes('deg') || firstPart.startsWith('to '))) {
-    if (firstPart.includes('deg')) {
-      result.angle = firstPart.replace('deg', '').trim();
-    } else {
-      const directionMap = {
-        'to top': '0',
-        'to top right': '45',
-        'to right': '90',
-        'to bottom right': '135',
-        'to bottom': '180',
-        'to bottom left': '225',
-        'to left': '270',
-        'to top left': '315',
-      };
-      result.angle = directionMap[firstPart] || '180';
+    if (gradientType === 'linear' && (firstPart.includes('deg') || firstPart.startsWith('to '))) {
+      if (firstPart.includes('deg')) {
+        result.angle = firstPart.replace('deg', '').trim();
+      } else {
+        const directionMap = {
+          'to top': '0',
+          'to top right': '45',
+          'to right': '90',
+          'to bottom right': '135',
+          'to bottom': '180',
+          'to bottom left': '225',
+          'to left': '270',
+          'to top left': '315',
+        };
+        result.angle = directionMap[firstPart] || '180';
+      }
+      content = content.substring(firstCommaIndex + 1).trim();
     }
-    content = content.substring(firstCommaIndex + 1).trim();
   }
 
   // Split color stops carefully
@@ -146,7 +170,6 @@ const parseGradient = (gradientString) => {
   }
   return null;
 };
-
 
 // Helper function to parse background shorthand values
 export const background = (...args) => {
@@ -211,7 +234,12 @@ export const background = (...args) => {
     } else if (['border-box', 'padding-box', 'content-box'].includes(value)) {
       // This could be origin or clip, we'll assign to both for simplicity
       properties['background-origin'] = value;
-      properties['background-clip'] = value;
+      if (value === 'text') {
+        properties['-webkit-background-clip'] = 'text';
+        properties['background-clip'] = 'text';
+      } else {
+        properties['background-clip'] = value;
+      }
     } else if (value.includes('/') || ['center', 'top', 'bottom', 'left', 'right'].some(pos => value.includes(pos))) {
       // Handle position and size
       if (value.includes('/')) {
@@ -294,8 +322,21 @@ export const backgroundMappers = {
     settings._background.origin = val;
   },
   'background-clip': (val, settings) => {
-    settings._background = settings._background || {};
-    settings._background.clip = val;
+    if (val === 'text') {
+      if (settings._gradient) {
+        settings._gradient.applyTo = 'text';
+      }
+    } else {
+      settings._background = settings._background || {};
+      settings._background.clip = val;
+    }
+  },
+  '-webkit-background-clip': (val, settings) => {
+    if (val === 'text') {
+      if (settings._gradient) {
+        settings._gradient.applyTo = 'text';
+      }
+    }
   }
 };
 
@@ -309,3 +350,4 @@ export const backgroundAttachmentMapper = backgroundMappers['background-attachme
 export const backgroundBlendModeMapper = backgroundMappers['background-blend-mode'];
 export const backgroundOriginMapper = backgroundMappers['background-origin'];
 export const backgroundClipMapper = backgroundMappers['background-clip'];
+export const webkitBackgroundClipMapper = backgroundMappers['-webkit-background-clip'];
