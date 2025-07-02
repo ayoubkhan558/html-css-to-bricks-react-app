@@ -1,5 +1,7 @@
 import { toHex } from '../cssParser';
 
+const generateId = () => Math.random().toString(36).substring(2, 8);
+
 // Helper function to check if a value is a color
 const isColor = (value) => {
   if (typeof value !== 'string') return false;
@@ -7,21 +9,200 @@ const isColor = (value) => {
   const colorKeywords = ['transparent', 'currentcolor'];
   if (colorKeywords.includes(lowerCaseValue)) return true;
   if (lowerCaseValue.startsWith('#') || lowerCaseValue.startsWith('rgb') || lowerCaseValue.startsWith('hsl')) return true;
-  
+
   // Basic color name check (can be expanded)
   const namedColors = ['red', 'green', 'blue', 'white', 'black', 'yellow', 'purple', 'orange'];
   return namedColors.includes(lowerCaseValue);
 };
 
+const splitBySpacePreservingCalc = (input) => {
+  const result = [];
+  let buffer = '';
+  let depth = 0;
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+
+    if (char === '(') depth++;
+    if (char === ')') depth--;
+    if (char === ' ' && depth === 0) {
+      if (buffer.trim()) {
+        result.push(buffer.trim());
+        buffer = '';
+      }
+    } else {
+      buffer += char;
+    }
+  }
+
+  if (buffer.trim()) result.push(buffer.trim());
+  return result;
+};
+
+const parseColorStop = (stop) => {
+  const parts = splitBySpacePreservingCalc(stop.trim());
+  const colorPart = parts.find(isColor);
+
+  if (!colorPart) return null;
+
+  const hex = toHex(colorPart);
+  if (!hex) return null;
+
+  const colorObj = {
+    id: generateId(),
+    color: { hex }
+  };
+
+  const colorIndex = parts.indexOf(colorPart);
+
+  // Get position parts before the color
+  const beforeColorParts = parts.slice(0, colorIndex);
+  // Get position parts after the color
+  const afterColorParts = parts.slice(colorIndex + 1);
+
+  // Combine all position parts and filter out non-numeric values
+  const allPositionParts = [...beforeColorParts, ...afterColorParts];
+  const positionParts = allPositionParts.filter(part => {
+    const numericValue = part.replace('%', '');
+    return !isNaN(parseFloat(numericValue)) && isFinite(numericValue);
+  });
+
+  if (positionParts.length >= 1) {
+    // For multiple positions, use the last one as the main stop position
+    // This handles cases like "color 0 97%" where we want 97% as the stop
+    const lastPosition = positionParts[positionParts.length - 1];
+    colorObj.stop = lastPosition.includes('%') ? lastPosition : lastPosition + '%';
+  }
+
+  // Handle additional color properties for transparent colors
+  if (colorPart.includes('rgba') || colorPart.includes('hsla') || colorPart === '#fff0' || colorPart === 'transparent') {
+    const originalColor = toHex(colorPart.replace(/0$/, ''));  // Remove trailing 0 for base color
+    if (originalColor) {
+      colorObj.color.rgb = colorPart.includes('rgba') ? colorPart : `rgba(255, 255, 255, 0)`;
+      colorObj.color.hsl = `hsla(0, 0%, 100%, 0)`;
+    }
+  }
+
+  return colorObj;
+};
+
+const parseGradient = (gradientString) => {
+  const typeMatch = gradientString.match(/(linear|radial|conic)-gradient/);
+  if (!typeMatch) return null;
+
+  const gradientType = typeMatch[1];
+  const contentMatch = gradientString.match(/\((.*)\)/);
+  if (!contentMatch) return null;
+
+  let content = contentMatch[1];
+  const result = {
+    gradientType,
+    colors: [],
+  };
+
+  // Handle angle or direction
+  const firstCommaIndex = content.indexOf(',');
+  let firstPart = content.substring(0, firstCommaIndex).trim();
+
+  if (gradientType === 'linear' && (firstPart.includes('deg') || firstPart.startsWith('to '))) {
+    if (firstPart.includes('deg')) {
+      result.angle = firstPart.replace('deg', '').trim();
+    } else {
+      const directionMap = {
+        'to top': '0',
+        'to top right': '45',
+        'to right': '90',
+        'to bottom right': '135',
+        'to bottom': '180',
+        'to bottom left': '225',
+        'to left': '270',
+        'to top left': '315',
+      };
+      result.angle = directionMap[firstPart] || '180';
+    }
+    content = content.substring(firstCommaIndex + 1).trim();
+  }
+
+  // Split color stops carefully
+  const colorStopsRaw = [];
+  let buffer = '';
+  let depth = 0;
+  for (let char of content) {
+    if (char === '(') depth++;
+    if (char === ')') depth--;
+    if (char === ',' && depth === 0) {
+      colorStopsRaw.push(buffer.trim());
+      buffer = '';
+    } else {
+      buffer += char;
+    }
+  }
+  if (buffer) colorStopsRaw.push(buffer.trim());
+
+  result.colors = colorStopsRaw.map(parseColorStop).filter(Boolean);
+
+  if (result.colors.length > 0) {
+    return result;
+  }
+  return null;
+};
+
+
 // Helper function to parse background shorthand values
-export const background = (...values) => {
+export const background = (...args) => {
+  let values;
+
+  // Handle both single string argument and multiple arguments
+  if (args.length === 1 && typeof args[0] === 'string') {
+    // Split the single string into tokens, being careful with function calls
+    const input = args[0];
+    values = [];
+    let current = '';
+    let depth = 0;
+    let inQuotes = false;
+    let quoteChar = '';
+
+    for (let i = 0; i < input.length; i++) {
+      const char = input[i];
+
+      if ((char === '"' || char === "'") && !inQuotes) {
+        inQuotes = true;
+        quoteChar = char;
+        current += char;
+      } else if (char === quoteChar && inQuotes) {
+        inQuotes = false;
+        quoteChar = '';
+        current += char;
+      } else if (char === '(' && !inQuotes) {
+        depth++;
+        current += char;
+      } else if (char === ')' && !inQuotes) {
+        depth--;
+        current += char;
+      } else if (char === ' ' && depth === 0 && !inQuotes) {
+        if (current.trim()) {
+          values.push(current.trim());
+          current = '';
+        }
+      } else {
+        current += char;
+      }
+    }
+
+    if (current.trim()) {
+      values.push(current.trim());
+    }
+  } else {
+    values = args;
+  }
+
   const properties = {};
   let position, size;
 
   values.forEach(value => {
     if (isColor(value)) {
       properties['background-color'] = value;
-    } else if (value.includes('url(') || value.includes('gradient(')) {
+    } else if (value.includes('url(') || value.includes('-gradient(')) {
       properties['background-image'] = value;
     } else if (['repeat', 'repeat-x', 'repeat-y', 'no-repeat', 'space', 'round'].includes(value)) {
       properties['background-repeat'] = value;
@@ -43,30 +224,21 @@ export const background = (...values) => {
     }
   });
 
-  // Combine into a single string for the final output
-  const styleString = Object.entries(properties)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join('; ');
-
-  return { background: styleString };
+  return properties;
 };
 
 export const backgroundMappers = {
   'background': (val, settings) => {
-    const styles = background(val);
-    if (styles.background) {
-        const declarations = styles.background.split(';');
-        declarations.forEach(decl => {
-            if (!decl.trim()) return;
-            const [prop, value] = decl.split(':').map(s => s.trim());
-            if (prop && value) {
-                const mapper = backgroundMappers[prop];
-                if (mapper) {
-                    mapper(value, settings);
-                }
-            }
-        });
-    }
+    // Parse the shorthand directly
+    const parsedProperties = background(val);
+
+    // Apply each parsed property using its specific mapper
+    Object.entries(parsedProperties).forEach(([property, value]) => {
+      const mapper = backgroundMappers[property];
+      if (mapper && property !== 'background') { // Prevent infinite recursion
+        mapper(value, settings);
+      }
+    });
   },
   'background-color': (val, settings) => {
     const hex = toHex(val);
@@ -76,11 +248,25 @@ export const backgroundMappers = {
     }
   },
   'background-image': (val, settings) => {
-    if (val.includes('url')) {
-      settings._background = settings._background || {};
-      settings._background.image = {
-        url: val.match(/url\(['"]?(.*?)['"]?\)/)[1]
-      };
+    settings._background = settings._background || {};
+    if (val.includes('url(')) {
+      const urlMatch = val.match(/url\(['"]?(.*?)['"]?\)/);
+      if (urlMatch) {
+        settings._background.image = {
+          url: urlMatch[1],
+        };
+      }
+    } else if (val.includes('-gradient(')) {
+      const parsedGradient = parseGradient(val);
+      if (parsedGradient) {
+        settings._gradient = parsedGradient;
+        if (settings._background) {
+          delete settings._background.image;
+          if (Object.keys(settings._background).length === 0) {
+            delete settings._background;
+          }
+        }
+      }
     }
   },
   'background-repeat': (val, settings) => {
