@@ -9,27 +9,12 @@ import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
 import CodeEditor from './CodeEditor';
 import prettier from 'prettier/standalone';
-import parserHtml from 'prettier/parser-html';
-import parserCss from 'prettier/parser-postcss';
-import parserBabel from 'prettier/parser-babel';
+import * as parserHtml from 'prettier/parser-html';
+import * as parserCss from 'prettier/parser-postcss';
+import * as parserBabel from 'prettier/parser-babel';
 import './GeneratorComponent.scss';
 
 const GeneratorComponent = () => {
-  const formatCurrent = () => {
-    if (activeTab === 'html') {
-      try {
-        setHtml(prettier.format(html, { parser: 'html', plugins: [parserHtml] }));
-      } catch { }
-    } else if (activeTab === 'css') {
-      try {
-        setCss(prettier.format(css, { parser: 'css', plugins: [parserCss] }));
-      } catch { }
-    } else if (activeTab === 'js') {
-      try {
-        setJs(prettier.format(js, { parser: 'babel', plugins: [parserBabel] }));
-      } catch { }
-    }
-  };
   const [html, setHtml] = useState('');
   const [css, setCss] = useState('');
   const [js, setJs] = useState('');
@@ -40,12 +25,80 @@ const GeneratorComponent = () => {
     if (stored) return stored === 'dark';
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
-  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
   const [isMinified, setIsMinified] = useState(false);
   const [includeJs, setIncludeJs] = useState(false);
   const [showJsonPreview, setShowJsonPreview] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [styleHandling, setStyleHandling] = useState('inline'); // 'skip', 'inline', 'class'
+
+  const formatCurrent = async () => {
+    const formatCode = async (code, parser) => {
+      if (!code || typeof code !== 'string') return code;
+
+      try {
+        let options;
+
+        if (parser === 'html') {
+          options = {
+            parser: 'html',
+            plugins: [parserHtml],
+            printWidth: 80,
+            tabWidth: 2,
+            useTabs: false,
+            htmlWhitespaceSensitivity: 'css',
+            endOfLine: 'auto',
+          };
+        } else if (parser === 'css') {
+          options = {
+            parser: 'css',
+            plugins: [parserCss],
+            printWidth: 80,
+            tabWidth: 2,
+            useTabs: false,
+            singleQuote: true,
+            endOfLine: 'auto',
+          };
+        } else if (parser === 'babel') {
+          options = {
+            parser: 'babel',
+            plugins: [parserBabel],
+            printWidth: 80,
+            tabWidth: 2,
+            useTabs: false,
+            singleQuote: true,
+            semi: true,
+            trailingComma: 'es5',
+            bracketSpacing: true,
+            arrowParens: 'avoid',
+            endOfLine: 'auto',
+          };
+        }
+
+        const formatted = await prettier.format(code, options);
+        return formatted;
+      } catch (error) {
+        console.error(`Error formatting ${parser}:`, error);
+        return code;
+      }
+    };
+
+    try {
+      if (activeTab === 'html' && html) {
+        const formatted = await formatCode(html, 'html');
+        setHtml(formatted);
+      } else if (activeTab === 'css' && css) {
+        const formatted = await formatCode(css, 'css');
+        setCss(formatted);
+      } else if (activeTab === 'js' && js) {
+        const formatted = await formatCode(js, 'babel');
+        setJs(formatted);
+      }
+    } catch (error) {
+      console.error('Error formatting code:', error);
+    }
+  };
+
+  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
 
   const handleGenerateAndCopy = () => {
     try {
@@ -116,7 +169,7 @@ const GeneratorComponent = () => {
               className="app-header__button primary"
               style={{ minWidth: '223px' }}
               onClick={handleGenerateAndCopy}
-              disabled={!html.trim()}
+              disabled={typeof html !== 'string' || !html.trim()}
             >
               {isCopied ? 'Copied to Clipboard!' : 'Copy Bricks Builder Structure'}
             </button>
@@ -154,8 +207,14 @@ const GeneratorComponent = () => {
               </div>
 
               <div className="code-editor__actions">
-                <button className="code-editor__action">
-                  Format
+                <button
+                  className="code-editor__action"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    formatCurrent();
+                  }}
+                >
+                  Format Code
                 </button>
               </div>
             </div>
@@ -282,7 +341,7 @@ const GeneratorComponent = () => {
               ) : (
                 <div className="structure-placeholder">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                     <line x1="16" y1="13" x2="8" y2="13"></line>
                     <line x1="16" y1="17" x2="8" y2="17"></line>
