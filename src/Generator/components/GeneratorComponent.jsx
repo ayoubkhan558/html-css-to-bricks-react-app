@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 import { RiJavascriptLine } from "react-icons/ri";
 import { RiHtml5Line } from "react-icons/ri";
@@ -29,7 +30,7 @@ const GeneratorComponent = () => {
   const [includeJs, setIncludeJs] = useState(false);
   const [showJsonPreview, setShowJsonPreview] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
-  const [styleHandling, setStyleHandling] = useState('inline'); // 'skip', 'inline', 'class'
+  const [styleHandling, setStyleHandling] = useState('inline');
 
   const formatCurrent = async () => {
     const formatCode = async (code, parser) => {
@@ -108,7 +109,6 @@ const GeneratorComponent = () => {
         : JSON.stringify(result, null, 2);
       setOutput(json);
 
-      // Copy to clipboard
       navigator.clipboard.writeText(json);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
@@ -129,7 +129,6 @@ const GeneratorComponent = () => {
     }
   };
 
-  // Get preview HTML with sanitized content
   const previewHtml = useMemo(() => {
     try {
       const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -178,181 +177,194 @@ const GeneratorComponent = () => {
       </header>
 
       <main className="app-main">
-        {/* Left Panel - Code Editors */}
-        <div className="app-panel app-panel--left">
-          <div className="code-editor">
-            <div className="code-editor__header">
-              <div className="code-editor__tabs">
-                <button
-                  className={`code-editor__tab ${activeTab === 'html' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('html')}
-                >
-                  <RiHtml5Line size={16} style={{ marginRight: 6 }} />
-                  HTML
-                </button>
-                <button
-                  className={`code-editor__tab ${activeTab === 'css' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('css')}
-                >
-                  <FaCss3 size={16} style={{ marginRight: 6 }} />
-                  CSS
-                </button>
-                <button
-                  className={`code-editor__tab ${activeTab === 'js' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('js')}
-                >
-                  <RiJavascriptLine size={16} style={{ marginRight: 6 }} />
-                  JS
-                </button>
-              </div>
+        {/* Resizable Panel Layout */}
+        <PanelGroup direction="horizontal" className="panel-group">
+          {/* Left Panel - Code Editors */}
+          <Panel defaultSize={33} minSize={20} className="panel-left">
+            <PanelGroup direction="vertical">
+              <Panel defaultSize={70} minSize={30} className="panel-code-editor">
+                <div className="code-editor">
+                  <div className="code-editor__header">
+                    <div className="code-editor__tabs">
+                      <button
+                        className={`code-editor__tab ${activeTab === 'html' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('html')}
+                      >
+                        <RiHtml5Line size={16} style={{ marginRight: 6 }} />
+                        HTML
+                      </button>
+                      <button
+                        className={`code-editor__tab ${activeTab === 'css' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('css')}
+                      >
+                        <FaCss3 size={16} style={{ marginRight: 6 }} />
+                        CSS
+                      </button>
+                      <button
+                        className={`code-editor__tab ${activeTab === 'js' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('js')}
+                      >
+                        <RiJavascriptLine size={16} style={{ marginRight: 6 }} />
+                        JS
+                      </button>
+                    </div>
 
-              <div className="code-editor__actions">
-                <button
-                  className="code-editor__action"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    formatCurrent();
-                  }}
-                >
-                  Format Code
-                </button>
-              </div>
-            </div>
-            <div className="code-editor__content">
-              <div className="code-editor__pane active">
-                {activeTab === 'html' && (
-                  <>
-                    <div className="code-editor__label">HTML</div>
-                    <CodeEditor
-                      value={html}
-                      onChange={setHtml}
-                      language="markup"
-                      placeholder="<!-- Your HTML here… -->"
-                    />
-                  </>
-                )}
-                {activeTab === 'css' && (
-                  <>
-                    <div className="code-editor__label">CSS</div>
-                    <CodeEditor
-                      value={css}
-                      onChange={setCss}
-                      language="css"
-                      placeholder="/* Your CSS here… */"
-                    />
-                  </>
-                )}
-                {activeTab === 'js' && (
-                  <>
-                    <div className="code-editor__label">JavaScript</div>
-                    <CodeEditor
-                      value={js}
-                      onChange={setJs}
-                      language="javascript"
-                      placeholder="// Your JavaScript here…"
-                    />
-                  </>
-                )}
-              </div>
-            </div>
-
-          </div>
-
-          <div className="generator-options">
-            <div className="inline-styles-handling">
-              <label className="inline-styles-handling__label">Inline Style Handling:</label>
-              <div className="inline-styles-handling__options">
-                <label className="inline-styles-handling__option">
-                  <input
-                    type="radio"
-                    name="styleHandling"
-                    value="skip"
-                    checked={styleHandling === 'skip'}
-                    onChange={() => setStyleHandling('skip')}
-                    className="inline-styles-handling__radio"
-                  />
-                  <span className="inline-styles-handling__text">Skip</span>
-                </label>
-                <label className="inline-styles-handling__option">
-                  <input
-                    type="radio"
-                    name="styleHandling"
-                    value="inline"
-                    checked={styleHandling === 'inline'}
-                    onChange={() => setStyleHandling('inline')}
-                    className="inline-styles-handling__radio"
-                  />
-                  <span className="inline-styles-handling__text">Inline</span>
-                </label>
-                <label className="inline-styles-handling__option">
-                  <input
-                    type="radio"
-                    name="styleHandling"
-                    value="class"
-                    checked={styleHandling === 'class'}
-                    onChange={() => setStyleHandling('class')}
-                    className="inline-styles-handling__radio"
-                  />
-                  <span className="inline-styles-handling__text">Class</span>
-                </label>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Center Panel - Preview */}
-        <div className="app-panel app-panel--center">
-          <div className="preview-container">
-            <div className="preview-header">
-              <h3>Preview</h3>
-              <div className="preview-actions"></div>
-            </div>
-            <div className="preview-content">
-              {html || css || js ? (
-                <Preview html={html} css={css} />
-              ) : (
-                <div className="preview-placeholder">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="3" y1="9" x2="21" y2="9"></line>
-                    <line x1="9" y1="21" x2="9" y2="9"></line>
-                  </svg>
-                  <p>Preview will appear here</p>
+                    <div className="code-editor__actions">
+                      <button
+                        className="code-editor__action"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          formatCurrent();
+                        }}
+                      >
+                        Format Code
+                      </button>
+                    </div>
+                  </div>
+                  <div className="code-editor__content">
+                    <div className="code-editor__pane active">
+                      {activeTab === 'html' && (
+                        <>
+                          <div className="code-editor__label">HTML</div>
+                          <CodeEditor
+                            value={html}
+                            onChange={setHtml}
+                            language="markup"
+                            placeholder="<!-- Your HTML here… -->"
+                          />
+                        </>
+                      )}
+                      {activeTab === 'css' && (
+                        <>
+                          <div className="code-editor__label">CSS</div>
+                          <CodeEditor
+                            value={css}
+                            onChange={setCss}
+                            language="css"
+                            placeholder="/* Your CSS here… */"
+                          />
+                        </>
+                      )}
+                      {activeTab === 'js' && (
+                        <>
+                          <div className="code-editor__label">JavaScript</div>
+                          <CodeEditor
+                            value={js}
+                            onChange={setJs}
+                            language="javascript"
+                            placeholder="// Your JavaScript here…"
+                          />
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
+              </Panel>
+              
+              <PanelResizeHandle className="resize-handle resize-handle--horizontal" />
+              
+              <Panel defaultSize={30} minSize={20} className="panel-options">
+                <div className="generator-options">
+                  <div className="inline-styles-handling">
+                    <label className="inline-styles-handling__label">Inline Style Handling:</label>
+                    <div className="inline-styles-handling__options">
+                      <label className="inline-styles-handling__option">
+                        <input
+                          type="radio"
+                          name="styleHandling"
+                          value="skip"
+                          checked={styleHandling === 'skip'}
+                          onChange={() => setStyleHandling('skip')}
+                          className="inline-styles-handling__radio"
+                        />
+                        <span className="inline-styles-handling__text">Skip</span>
+                      </label>
+                      <label className="inline-styles-handling__option">
+                        <input
+                          type="radio"
+                          name="styleHandling"
+                          value="inline"
+                          checked={styleHandling === 'inline'}
+                          onChange={() => setStyleHandling('inline')}
+                          className="inline-styles-handling__radio"
+                        />
+                        <span className="inline-styles-handling__text">Inline</span>
+                      </label>
+                      <label className="inline-styles-handling__option">
+                        <input
+                          type="radio"
+                          name="styleHandling"
+                          value="class"
+                          checked={styleHandling === 'class'}
+                          onChange={() => setStyleHandling('class')}
+                          className="inline-styles-handling__radio"
+                        />
+                        <span className="inline-styles-handling__text">Class</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </Panel>
+            </PanelGroup>
+          </Panel>
 
-        {/* Right Panel - Structure */}
-        <div className="app-panel app-panel--right">
-          <div className="structure-panel">
-            <div className="structure-panel__header">
-              <h3>Structure</h3>
-              <div className="structure-actions">
+          <PanelResizeHandle className="resize-handle resize-handle--vertical" />
+
+          {/* Center Panel - Preview */}
+          <Panel defaultSize={34} minSize={20} className="panel-center">
+            <div className="preview-container">
+              <div className="preview-header">
+                <h3>Preview</h3>
+                <div className="preview-actions"></div>
+              </div>
+              <div className="preview-content">
+                {html || css || js ? (
+                  <Preview html={html} css={css} />
+                ) : (
+                  <div className="preview-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="3" y1="9" x2="21" y2="9"></line>
+                      <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    <p>Preview will appear here</p>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="structure-panel__content">
-              {output ? (
-                <div className="json-viewer">
-                  <pre>{JSON.stringify(JSON.parse(output), null, 2)}</pre>
+          </Panel>
+
+          <PanelResizeHandle className="resize-handle resize-handle--vertical" />
+
+          {/* Right Panel - Structure */}
+          <Panel defaultSize={33} minSize={20} className="panel-right">
+            <div className="structure-panel">
+              <div className="structure-panel__header">
+                <h3>Structure</h3>
+                <div className="structure-actions">
                 </div>
-              ) : (
-                <div className="structure-placeholder">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                  </svg>
-                  <p>Generated structure will appear here</p>
-                </div>
-              )}
+              </div>
+              <div className="structure-panel__content">
+                {output ? (
+                  <div className="json-viewer">
+                    <pre>{JSON.stringify(JSON.parse(output), null, 2)}</pre>
+                  </div>
+                ) : (
+                  <div className="structure-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                      <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <p>Generated structure will appear here</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
+          </Panel>
+        </PanelGroup>
       </main>
     </div>
   );
