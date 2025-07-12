@@ -34,16 +34,13 @@ const Preview = ({ html, css }) => {
   }, [html, css]);
 
   return (
-    <div className="preview">
-      <h3>Live Preview</h3>
-      <div className="preview__container">
+    <div className="preview"> 
         <iframe
           ref={iframeRef}
           title="HTML/CSS Preview"
           className="preview__iframe"
           sandbox="allow-same-origin allow-scripts"
-        />
-      </div>
+        />  
     </div>
   );
 };

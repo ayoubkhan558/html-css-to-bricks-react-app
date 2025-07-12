@@ -1,16 +1,458 @@
+:root {
+  /* Light Theme (default) */
+  --color-primary: #2E7D32;
+  --color-secondary: #8D6E63;
+  --color-accent: #FF8F00;
+  --color-bg: #F5F5F1;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8f8f8;
+  --color-surface-3: #f0f0f0;
+  --color-border: #e0e0e0;
+  --color-text: #333333;
+  --color-text-secondary: #757575;
+  --color-text-on-primary: #ffffff;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --header-height: 64px;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px var(--color-shadow);
+  
+  /* Dark Theme - based on the image */
+  &[data-theme='dark'] {
+    --color-primary: #4CAF50; /* Brighter green for dark mode */
+    --color-secondary: #A1887F; /* Lighter brown */
+    --color-accent: #FFA000; /* Brighter orange */
+    --color-bg: #1E1E1E; /* Dark background */
+    --color-surface: #2D2D2D; /* Dark surface */
+    --color-surface-2: #252525;
+    --color-surface-3: #333333;
+    --color-border: #404040;
+    --color-text: #E0E0E0; /* Light text */
+    --color-text-secondary: #A0A0A0;
+    --color-text-on-primary: #FFFFFF;
+    --color-shadow: rgba(0, 0, 0, 0.3);
+  }
+}
+
+// Base styles
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.generator {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+// Header styles
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: var(--header-height);
+  background-color: var(--color-surface);
+  padding: 0 24px;
+  box-shadow: var(--box-shadow);
+  z-index: 10;
+  position: relative;
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-primary);
+
+    svg {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  &__controls {
+    display: flex;
+    gap: 12px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.75rem;
+    margin: 0 0.5rem;
+  }
+
+  &__button {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    height: 36px;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: var(--color-surface-2);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: var(--color-surface-2);
+    }
+
+    &.primary {
+      background-color: var(--color-primary);
+      color: var(--color-text-on-primary);
+
+      &:hover:not(:disabled) {
+        background-color: color-mix(in srgb, var(--color-primary), black 10%);
+      }
+    }
+
+    &.secondary {
+      background-color: var(--color-secondary);
+      color: var(--color-text);
+
+      &:hover:not(:disabled) {
+        background-color: color-mix(in srgb, var(--color-secondary), black 10%);
+      }
+    }
+  }
+}
+
+// Main content area
+.app-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+  background-color: var(--color-bg);
+}
+
+// Panel base styles
+.app-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+
+  &--left {
+    width: 30%; // Left panel takes 30% of the width
+    min-width: 320px;
+  }
+
+  &--center {
+    flex: 1; // Center panel takes remaining space
+    min-width: 0; // Allows the panel to shrink below its content's minimum size
+    border-right: 1px solid var(--color-border);
+  }
+
+  &--right {
+    width: 30%; // Right panel takes 30% of the width
+    min-width: 320px;
+    border-right: none;
+  }
+}
+
+// Code Editor Styles
+.code-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__tab {
+    display: flex;
+    align-items: center;
+    padding: 4px 12px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+
+    &.active {
+      color: var(--color-primary);
+      background-color: color-mix(in srgb, var(--color-primary), transparent 90%);
+      border-color: color-mix(in srgb, var(--color-primary), transparent 80%);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 5px;
+    width: auto;
+    height: 32px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: none;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: rgba(var(--color-primary), 0.05);
+      color: var(--color-primary);
+    }
+  }
+
+  &__content {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+  }
+
+  &__pane {
+    display: none;
+    height: 100%;
+    flex-direction: column;
+
+    &.active {
+      display: flex;
+    }
+  }
+
+  &__label {
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: var(--color-surface-2);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  &__textarea {
+    flex: 1;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    resize: none;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    outline: none;
+    tab-size: 2;
+  }
+}
+
+// Generator Options
+.generator-options {
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface-2);
+}
+
+.generator-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.generator-button {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+
+  &:first-child {
+    background-color: var(--color-primary);
+    color: var(--color-text-on-primary);
+
+    &:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--color-primary), black 10%);
+    }
+  }
+
+  &.secondary {
+    background-color: var(--color-secondary);
+    color: var(--color-text-on-primary);
+
+    &:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--color-secondary), black 10%);
+    }
+  }
+}
+
+// Preview Container
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.preview-header,
+.structure-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+
+  h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+}
+
+.preview-actions,
+.structure-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.preview-action,
+.structure-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: none;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(var(--color-primary), 0.05);
+    color: var(--color-primary);
+  }
+}
+
+.preview-content,
+.structure-panel__content {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  background-color: var(--color-surface);
+}
+
+.preview-placeholder,
+.structure-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-light);
+  text-align: center;
+  padding: 24px;
+
+  svg {
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9375rem;
+  }
+}
+
+// JSON Viewer
+.json-viewer {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow: auto;
+  height: 100%;
+  background-color: var(--color-surface-2);
+  padding: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+}
+
+// Inline styles handling
 .inline-styles-handling {
-  display: none; // Hide temporarily
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--color-primary), transparent 90%);
+  border-radius: var(--border-radius);
 
   &__label {
     display: block;
     margin-bottom: 0.5rem;
-    font-weight: 500;
+    font-weight: 600;
+    color: var(--color-primary);
+    font-size: 0.875rem;
   }
 
   &__options {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
   &__option {
@@ -21,9 +463,72 @@
 
   &__radio {
     margin-right: 0.5rem;
+    accent-color: var(--color-primary);
   }
 
   &__text {
     font-size: 0.875rem;
+    color: var(--color-text-secondary);
   }
+}
+
+// Responsive adjustments
+@media (max-width: 1200px) {
+  .app-panel {
+
+    &--left,
+    &--right {
+      width: 35%;
+    }
+  }
+}
+
+@media (max-width: 992px) {
+  .app-panel {
+
+    &--left,
+    &--right {
+      width: 40%;
+      min-width: 280px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    flex-direction: column;
+  }
+
+  .app-panel {
+    width: 100% !important;
+    height: 50%;
+    min-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+
+    &--center {
+      height: 60%;
+    }
+  }
+}
+
+// Animation for copy button
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Dark theme is now handled by CSS variables */
+
+// Animation for copy button
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+[data-copied="true"] {
+  background: var(--color-accent) !important;
+  animation: fadeOut 2s ease 1s forwards;
 }
