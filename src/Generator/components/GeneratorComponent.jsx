@@ -54,7 +54,7 @@ const GeneratorComponent = () => {
         ? JSON.stringify(result)
         : JSON.stringify(result, null, 2);
       setOutput(json);
-      
+
       // Copy to clipboard
       navigator.clipboard.writeText(json);
       setIsCopied(true);
@@ -160,41 +160,41 @@ const GeneratorComponent = () => {
               </div>
             </div>
             <div className="code-editor__content">
-              {activeTab === 'html' && (
-                <div className="code-editor__pane active">
-                  <div className="code-editor__label">HTML</div>
-                  <textarea
-                    className="code-editor__textarea"
-                    placeholder="<div>Your HTML here…</div>"
-                    value={html}
-                    onChange={(e) => setHtml(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {activeTab === 'css' && (
-                <div className="code-editor__pane active">
-                  <div className="code-editor__label">CSS</div>
-                  <textarea
-                    className="code-editor__textarea"
-                    placeholder="/* Your CSS here… */"
-                    value={css}
-                    onChange={(e) => setCss(e.target.value)}
-                  />
-                </div>
-              )}
-
-              {activeTab === 'js' && (
-                <div className="code-editor__pane active">
-                  <div className="code-editor__label">JavaScript</div>
-                  <textarea
-                    className="code-editor__textarea"
-                    placeholder="// Your JavaScript here…"
-                    value={js}
-                    onChange={(e) => setJs(e.target.value)}
-                  />
-                </div>
-              )}
+              <div className="code-editor__pane active">
+                {activeTab === 'html' && (
+                  <>
+                    <div className="code-editor__label">HTML</div>
+                    <CodeEditor
+                      value={html}
+                      onChange={setHtml}
+                      language="markup"
+                      placeholder="<!-- Your HTML here… -->"
+                    />
+                  </>
+                )}
+                {activeTab === 'css' && (
+                  <>
+                    <div className="code-editor__label">CSS</div>
+                    <CodeEditor
+                      value={css}
+                      onChange={setCss}
+                      language="css"
+                      placeholder="/* Your CSS here… */"
+                    />
+                  </>
+                )}
+                {activeTab === 'js' && (
+                  <>
+                    <div className="code-editor__label">JavaScript</div>
+                    <CodeEditor
+                      value={js}
+                      onChange={setJs}
+                      language="javascript"
+                      placeholder="// Your JavaScript here…"
+                    />
+                  </>
+                )}
+              </div>
             </div>
 
           </div>
@@ -247,15 +247,7 @@ const GeneratorComponent = () => {
           <div className="preview-container">
             <div className="preview-header">
               <h3>Preview</h3>
-              <div className="preview-actions">
-                <button className="preview-action">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="3" y1="9" x2="21" y2="9"></line>
-                    <line x1="9" y1="21" x2="9" y2="9"></line>
-                  </svg>
-                </button>
-              </div>
+              <div className="preview-actions"></div>
             </div>
             <div className="preview-content">
               {html || css || js ? (

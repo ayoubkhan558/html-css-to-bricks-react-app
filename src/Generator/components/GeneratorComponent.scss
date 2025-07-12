@@ -15,18 +15,24 @@
   --header-height: 64px;
   --border-radius: 8px;
   --box-shadow: 0 2px 8px var(--color-shadow);
-  
+
   /* Dark Theme - based on the image */
   &[data-theme='dark'] {
-    --color-primary: #4CAF50; /* Brighter green for dark mode */
-    --color-secondary: #A1887F; /* Lighter brown */
-    --color-accent: #FFA000; /* Brighter orange */
-    --color-bg: #1E1E1E; /* Dark background */
-    --color-surface: #2D2D2D; /* Dark surface */
+    --color-primary: #4CAF50;
+    /* Brighter green for dark mode */
+    --color-secondary: #A1887F;
+    /* Lighter brown */
+    --color-accent: #FFA000;
+    /* Brighter orange */
+    --color-bg: #1E1E1E;
+    /* Dark background */
+    --color-surface: #2D2D2D;
+    /* Dark surface */
     --color-surface-2: #252525;
     --color-surface-3: #333333;
     --color-border: #404040;
-    --color-text: #E0E0E0; /* Light text */
+    --color-text: #E0E0E0;
+    /* Light text */
     --color-text-secondary: #A0A0A0;
     --color-text-on-primary: #FFFFFF;
     --color-shadow: rgba(0, 0, 0, 0.3);
@@ -163,6 +169,7 @@ body {
   &--left {
     width: 30%; // Left panel takes 30% of the width
     min-width: 320px;
+    flex: 1;
   }
 
   &--center {
@@ -260,6 +267,8 @@ body {
 
     &.active {
       display: flex;
+      flex-direction: column;
+      height: 100%;
     }
   }
 
@@ -274,19 +283,79 @@ body {
     border-bottom: 1px solid var(--color-border);
   }
 
-  &__textarea {
+  &__wrapper {
     flex: 1;
-    width: 100%;
-    padding: 16px;
-    border: none;
-    font-family: 'Fira Code', 'Courier New', monospace;
-    font-size: 0.875rem;
+    overflow: auto;
+    background: var(--color-surface);
+    position: relative;
+    min-height: 200px;
+  }
+
+  &__editor {
+    font-family: 'Fira Code', 'Fira Mono', monospace !important;
+    font-size: 14px !important;
     line-height: 1.5;
-    resize: none;
-    background-color: var(--color-surface);
-    color: var(--color-text);
-    outline: none;
-    tab-size: 2;
+    min-height: 100%;
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+  }
+
+  &__textarea {
+    outline: none !important;
+    caret-color: var(--color-text) !important;
+  }
+
+  /* Prism.js overrides */
+  :global {
+
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+      color: #6a9955;
+    }
+
+    .token.punctuation {
+      color: #d4d4d4;
+    }
+
+    .token.property,
+    .token.tag,
+    .token.boolean,
+    .token.number,
+    .token.constant,
+    .token.symbol,
+    .token.deleted {
+      color: #b5cea8;
+    }
+
+    .token.selector,
+    .token.attr-name,
+    .token.string,
+    .token.char,
+    .token.builtin,
+    .token.inserted {
+      color: #ce9178;
+    }
+
+    .token.operator,
+    .token.entity,
+    .token.url,
+    .language-css .token.string,
+    .style .token.string {
+      color: #d4d4d4;
+    }
+
+    .token.atrule,
+    .token.attr-value,
+    .token.keyword {
+      color: #569cd6;
+    }
+
+    .token.function,
+    .token.class-name {
+      color: #dcdcaa;
+    }
   }
 }
 
@@ -349,8 +418,18 @@ body {
   overflow: hidden;
 }
 
+// Structure Panel
+.structure-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-surface);
+}
+
 .preview-header,
 .structure-panel__header {
+  min-height: 57px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -429,10 +508,16 @@ body {
   word-break: break-all;
   overflow: auto;
   height: 100%;
-  background-color: var(--color-surface-2);
+  background-color: var(--color-surface);
   padding: 16px;
   border-radius: 4px;
   border: 1px solid var(--color-border);
+  color: var(--color-text);
+  margin: 0;
+
+  pre {
+    margin: 0;
+  }
 }
 
 // Inline styles handling
