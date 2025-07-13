@@ -9,6 +9,7 @@ import { RiSunLine, RiMoonLine } from "react-icons/ri";
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
 import CodeEditor from './CodeEditor';
+import StructureView from './StructureView';
 import prettier from 'prettier/standalone';
 import * as parserHtml from 'prettier/parser-html';
 import * as parserCss from 'prettier/parser-postcss';
@@ -102,20 +103,10 @@ const GeneratorComponent = () => {
   const toggleDarkMode = () => setIsDarkMode(prev => !prev);
 
   const handleGenerateAndCopy = () => {
-    try {
-      const result = createBricksStructure(html, css, includeJs ? js : '', styleHandling);
-      const json = isMinified
-        ? JSON.stringify(result)
-        : JSON.stringify(result, null, 2);
-      setOutput(json);
-
-      navigator.clipboard.writeText(json);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to generate structure:', err);
-      alert('Failed to generate structure. Please check your input.');
-    }
+    if (!output) return;
+    navigator.clipboard.writeText(output);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   const handleCopyJson = async () => {
@@ -142,6 +133,23 @@ const GeneratorComponent = () => {
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
+
+  useEffect(() => {
+    try {
+      if (html.trim()) {
+        const result = createBricksStructure(html, css, includeJs ? js : '', styleHandling);
+        const json = isMinified
+          ? JSON.stringify(result)
+          : JSON.stringify(result, null, 2);
+        setOutput(json);
+      } else {
+        setOutput('');
+      }
+    } catch (err) {
+      console.error('Failed to generate structure:', err);
+      // Optionally, you can set an error state here to show in the UI
+    }
+  }, [html, css, js, includeJs, styleHandling, isMinified]);
 
   return (
     <div className="generator">
@@ -337,18 +345,19 @@ const GeneratorComponent = () => {
           <PanelResizeHandle className="resize-handle resize-handle--vertical" />
 
           {/* Right Panel - Structure */}
-          <Panel defaultSize={33} minSize={20} className="panel-right">
+          <Panel defaultSize={15} minSize={12} maxSize={25} className="panel-right">
             <div className="structure-panel">
               <div className="structure-panel__header">
-                <h3>Structure</h3>
+                <h3>Structure/Layers</h3>
                 <div className="structure-actions">
                 </div>
               </div>
               <div className="structure-panel__content">
                 {output ? (
-                  <div className="json-viewer">
-                    <pre>{JSON.stringify(JSON.parse(output), null, 2)}</pre>
-                  </div>
+                  <StructureView
+                    data={output ? JSON.parse(output).content : []}
+                    globalClasses={output ? JSON.parse(output).globalClasses : []}
+                  />
                 ) : (
                   <div className="structure-placeholder">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">

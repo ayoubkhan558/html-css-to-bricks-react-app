@@ -1,6 +1,6 @@
 :root {
   /* Light Theme (default) */
-  --color-primary: #2E7D32;
+  --color-primary: #e20000;
   --color-secondary: #8D6E63;
   --color-accent: #FF8F00;
   --color-bg: #F5F5F1;
@@ -18,7 +18,7 @@
 
   /* Dark Theme - based on the image */
   &[data-theme='dark'] {
-    --color-primary: #4CAF50;
+    --color-primary: #c2970a;
     /* Brighter green for dark mode */
     --color-secondary: #A1887F;
     /* Lighter brown */
@@ -172,13 +172,13 @@ body {
   flex-direction: column;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
-  
+
   &.resizing {
     box-shadow: 0 0 0 1px var(--color-primary);
     z-index: 10;
     user-select: none;
   }
-  
+
   .resize-handle {
     position: absolute;
     top: 0;
@@ -187,8 +187,9 @@ body {
     height: 100%;
     cursor: col-resize;
     z-index: 1;
-    
-    &:hover, &:active {
+
+    &:hover,
+    &:active {
       background-color: var(--color-primary);
       opacity: 0.5;
     }
@@ -203,13 +204,14 @@ body {
   background-color: var(--color-surface);
   border-right: 1px solid var(--color-border);
   overflow: hidden;
-  
-  &--left, &--right {
+
+  &--left,
+  &--right {
     flex: 0 0 auto;
     min-width: 200px;
     max-width: 70%;
   }
-  
+
   &--center {
     flex: 1;
     min-width: 200px;
@@ -232,16 +234,16 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  
+
   &--left {
     border-right: 1px solid var(--color-border);
   }
-  
+
   &--center {
     flex: 1;
     min-width: 200px;
   }
-  
+
   &--right {
     border-left: 1px solid var(--color-border);
     width: 30%; // Right panel takes 30% of the width
@@ -303,7 +305,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2px 5px;
+    padding: 2px 10px;
     width: auto;
     height: 32px;
     border: 1px solid var(--color-border);
