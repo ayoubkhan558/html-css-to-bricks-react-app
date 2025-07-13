@@ -32,6 +32,7 @@ const GeneratorComponent = () => {
   const [showJsonPreview, setShowJsonPreview] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [styleHandling, setStyleHandling] = useState('inline');
+  const [cssTarget, setCssTarget] = useState('class'); // 'class' or 'id'
 
   const formatCurrent = async () => {
     const formatCode = async (code, parser) => {
@@ -137,7 +138,7 @@ const GeneratorComponent = () => {
   useEffect(() => {
     try {
       if (html.trim()) {
-        const result = createBricksStructure(html, css, includeJs ? js : '', styleHandling);
+        const result = createBricksStructure(html, css, includeJs ? js : '', { styleHandling, cssTarget });
         const json = isMinified
           ? JSON.stringify(result)
           : JSON.stringify(result, null, 2);
@@ -149,7 +150,7 @@ const GeneratorComponent = () => {
       console.error('Failed to generate structure:', err);
       // Optionally, you can set an error state here to show in the UI
     }
-  }, [html, css, js, includeJs, styleHandling, isMinified]);
+  }, [html, css, js, includeJs, styleHandling, isMinified, cssTarget]);
 
   return (
     <div className="generator">
@@ -157,13 +158,45 @@ const GeneratorComponent = () => {
       <header className="app-header">
         <div className="app-header__logo">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#2E7D32" />
-            <path d="M2 17L12 22L22 17" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round" />
-            <path d="M2 12L12 17L22 12" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round" />
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="var(--color-primary)" />
+            <path d="M2 17L12 22L22 17" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" />
+            <path d="M2 12L12 17L22 12" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <span>Code2Bricks</span>
         </div>
         <div className="app-header__controls">
+          <div className="generator-options">
+            <div className="inline-styles-handling">
+              <label className="inline-styles-handling__label">Inline Styles:</label>
+              <div className="inline-styles-handling__options">
+                <label className="inline-styles-handling__option">
+                  <input type="radio" name="styleHandling" value="skip" checked={styleHandling === 'skip'} onChange={() => setStyleHandling('skip')} className="inline-styles-handling__radio" />
+                  <span className="inline-styles-handling__text">Skip</span>
+                </label>
+                <label className="inline-styles-handling__option">
+                  <input type="radio" name="styleHandling" value="inline" checked={styleHandling === 'inline'} onChange={() => setStyleHandling('inline')} className="inline-styles-handling__radio" />
+                  <span className="inline-styles-handling__text">Inline</span>
+                </label>
+                <label className="inline-styles-handling__option">
+                  <input type="radio" name="styleHandling" value="class" checked={styleHandling === 'class'} onChange={() => setStyleHandling('class')} className="inline-styles-handling__radio" />
+                  <span className="inline-styles-handling__text">Class</span>
+                </label>
+              </div>
+            </div>
+            <div className="inline-styles-handling">
+              <label className="inline-styles-handling__label">Apply CSS to:</label>
+              <div className="inline-styles-handling__options">
+                <label className="inline-styles-handling__option">
+                  <input type="radio" name="cssTarget" value="id" checked={cssTarget === 'id'} onChange={() => setCssTarget('id')} className="inline-styles-handling__radio" />
+                  <span className="inline-styles-handling__text">ID</span>
+                </label>
+                <label className="inline-styles-handling__option">
+                  <input type="radio" name="cssTarget" value="class" checked={cssTarget === 'class'} onChange={() => setCssTarget('class')} className="inline-styles-handling__radio" />
+                  <span className="inline-styles-handling__text">Global Class</span>
+                </label>
+              </div>
+            </div>
+          </div>
           <button
             className="app-header__button"
             onClick={toggleDarkMode}
@@ -268,51 +301,8 @@ const GeneratorComponent = () => {
                   </div>
                 </div>
               </Panel>
-              
+
               <PanelResizeHandle className="resize-handle resize-handle--horizontal" />
-              
-              <Panel defaultSize={30} minSize={20} className="panel-options">
-                <div className="generator-options">
-                  <div className="inline-styles-handling">
-                    <label className="inline-styles-handling__label">Inline Style Handling:</label>
-                    <div className="inline-styles-handling__options">
-                      <label className="inline-styles-handling__option">
-                        <input
-                          type="radio"
-                          name="styleHandling"
-                          value="skip"
-                          checked={styleHandling === 'skip'}
-                          onChange={() => setStyleHandling('skip')}
-                          className="inline-styles-handling__radio"
-                        />
-                        <span className="inline-styles-handling__text">Skip</span>
-                      </label>
-                      <label className="inline-styles-handling__option">
-                        <input
-                          type="radio"
-                          name="styleHandling"
-                          value="inline"
-                          checked={styleHandling === 'inline'}
-                          onChange={() => setStyleHandling('inline')}
-                          className="inline-styles-handling__radio"
-                        />
-                        <span className="inline-styles-handling__text">Inline</span>
-                      </label>
-                      <label className="inline-styles-handling__option">
-                        <input
-                          type="radio"
-                          name="styleHandling"
-                          value="class"
-                          checked={styleHandling === 'class'}
-                          onChange={() => setStyleHandling('class')}
-                          className="inline-styles-handling__radio"
-                        />
-                        <span className="inline-styles-handling__text">Class</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </Panel>
             </PanelGroup>
           </Panel>
 

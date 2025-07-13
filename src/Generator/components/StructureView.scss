@@ -1,96 +1,139 @@
 :root {
-    /* Light Theme (default) */
-    --color-primary: #e20000;
-    --color-secondary: #8D6E63;
-    --color-accent: #FF8F00;
-    --color-bg: #F5F5F1;
-    --color-surface: #ffffff;
-    --color-surface-2: #f8f8f8;
-    --color-surface-3: #f0f0f0;
-    --color-border: #e0e0e0;
-    --color-text: #333333;
-    --color-text-secondary: #757575;
-    --color-text-on-primary: #ffffff;
-    --color-shadow: rgba(0, 0, 0, 0.1);
-    --header-height: 64px;
-    --border-radius: 8px;
-    --box-shadow: 0 2px 8px var(--color-shadow);
+  /* Light Theme (default) */
+  --color-primary: #e20000;
+  --color-secondary: #8D6E63;
+  --color-accent: #FF8F00;
+  --color-bg: #F5F5F1;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8f8f8;
+  --color-surface-3: #f0f0f0;
+  --color-border: #e0e0e0;
+  --color-text: #333333;
+  --color-text-secondary: #757575;
+  --color-text-on-primary: #ffffff;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --header-height: 64px;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px var(--color-shadow);
 
-    /* Dark Theme - based on the image */
-    &[data-theme='dark'] {
-        --color-primary: #c2970a;
-        /* Brighter green for dark mode */
-        --color-secondary: #A1887F;
-        /* Lighter brown */
-        --color-accent: #FFA000;
-        /* Brighter orange */
-        --color-bg: #1E1E1E;
-        /* Dark background */
-        --color-surface: #2D2D2D;
-        /* Dark surface */
-        --color-surface-2: #252525;
-        --color-surface-3: #333333;
-        --color-border: #404040;
-        --color-text: #E0E0E0;
-        /* Light text */
-        --color-text-secondary: #A0A0A0;
-        --color-text-on-primary: #FFFFFF;
-        --color-shadow: rgba(0, 0, 0, 0.3);
-    }
+  /* Dark Theme - based on the image */
+  &[data-theme='dark'] {
+    --color-primary: #c2970a;
+    /* Brighter green for dark mode */
+    --color-secondary: #A1887F;
+    /* Lighter brown */
+    --color-accent: #FFA000;
+    /* Brighter orange */
+    --color-bg: #1E1E1E;
+    /* Dark background */
+    --color-surface: #2D2D2D;
+    /* Dark surface */
+    --color-surface-2: #252525;
+    --color-surface-3: #333333;
+    --color-border: #404040;
+    --color-text: #E0E0E0;
+    /* Light text */
+    --color-text-secondary: #A0A0A0;
+    --color-text-on-primary: #FFFFFF;
+    --color-shadow: rgba(0, 0, 0, 0.3);
+  }
 }
 
 .structure-view {
-    font-family: sans-serif;
-    padding: 10px;
-    background-color: var(--color-surface);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-  
-    ul {
-      list-style-type: none;
-      padding-left: 20px;
-      margin: 0;
-    }
-  
-    li {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  padding: 12px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--border-radius);
+  height: 100%;
+  overflow: auto;
+
+  ul {
+    list-style-type: none;
+    padding-left: 18px;
+    margin: 0;
+  }
+
+  li {
+    position: relative;
+
+    .node-content {
+      display: flex;
+      align-items: center;
+      padding: 5px 5px;
+      cursor: pointer;
+      border-radius: 4px;
+      background-color: var(--color-surface-2);
+      transition: background-color 0.2s ease;
+      margin-bottom: 5px;
+
+      &:hover {
+        background-color: var(--color-surface-3);
+      }
+
       position: relative;
-      padding: 4px 0;
-  
+
       &::before,
       &::after {
         content: '';
         position: absolute;
         left: -15px;
       }
-  
+
       &::before {
         border-top: 1px solid var(--color-border);
         top: 12px;
         width: 10px;
         height: 0;
       }
-  
+
       &::after {
         border-left: 1px solid var(--color-border);
         height: 100%;
         width: 0px;
         top: -5px;
       }
-  
+
       &:last-child::after {
         height: 18px;
       }
     }
-  
-    span {
-      display: inline-block;
+
+    .node-toggle {
+      width: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-secondary);
+
+      .no-toggle {
+        width: 16px;
+      }
+    }
+
+    .node-icon {
+      margin: 0 6px;
+      color: var(--color-text-secondary);
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .node-label {
+      padding: 2px 5px;
+      font-size: 0.8em;
+      line-height: 1;
+      font-weight: 500;
+      color: var(--color-primary);
+      background-color: var(--color-primary-light);
+    }
+
+    .node-class {
+      margin-left: 8px;
+      font-size: 0.8em;
+      color: var(--color-text-secondary);
+      background-color: var(--color-surface-2);
       padding: 2px 5px;
       border-radius: 3px;
-      background-color: var(--color-surface-2);
-      color: var(--color-text-secondary);
-      border: 1px solid var(--color-text-secondary);
-      font-size: 12px;
     }
   }
-  
+}

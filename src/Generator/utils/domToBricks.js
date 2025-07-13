@@ -53,7 +53,7 @@ const hasContainerClasses = (node) => {
 /**
  * Processes a DOM node and converts it to a Bricks element
  */
-const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], allElements = [], variables = {}) => {
+const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], allElements = [], variables = {}, options = {}) => {
   // Handle text nodes
   if (node.nodeType !== Node.ELEMENT_NODE) {
     // Skip text nodes that are inside a form element (labels, button text, etc.)
@@ -205,7 +205,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
         return;
       }
-      const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements, variables);
+      const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements, variables, options);
       if (childElement) {
         if (Array.isArray(childElement)) {
           childElement.forEach(c => element.children.push(c.id));
@@ -225,50 +225,65 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // ------------------------------------------------------------------
   // Get all matching CSS properties for this element
   const combinedProperties = matchCSSSelectors(node, cssRulesMap);
+  const { cssTarget = 'class' } = options;
 
-  // Ensure every element has a class, generating one if necessary
-  const existingClasses = node.classList && node.classList.length > 0 ? Array.from(node.classList) : [];
-  const randomId = Math.random().toString(36).substring(2, 6);
-  const generatedClass = existingClasses.length === 0 ? `${tag}-tag-${randomId}-class` : null;
-  const classNames = generatedClass ? [generatedClass, ...existingClasses] : existingClasses;
-
-  // Store the mapping between this element and the CSS global classes
-  const cssGlobalClasses = [];
-
-  classNames.forEach((cls, index) => {
-    // Find or create the corresponding global class
-    let targetClass = globalClasses.find(c => c.name === cls);
-    if (!targetClass) {
-      targetClass = { id: getUniqueId(), name: cls, settings: {} };
-      globalClasses.push(targetClass);
+  if (cssTarget === 'id') {
+    // Apply styles directly to the element's ID
+    if (Object.keys(combinedProperties).length > 0) {
+      const parsedSettings = parseCssDeclarations(combinedProperties, `#brx-${element.id}`, variables);
+      Object.assign(element.settings, parsedSettings);
     }
-
-    // Apply combined styles only to the primary class (the first one)
-    if (index === 0 && Object.keys(combinedProperties).length > 0) {
-      const parsedSettings = parseCssDeclarations(combinedProperties, cls, variables);
-      Object.assign(targetClass.settings, parsedSettings);
-    }
-
-    // Handle pseudo-classes
+    // Handle pseudo-classes for ID
     Object.keys(cssRulesMap).forEach(selector => {
-      const pseudoMatch = selector.match(new RegExp(`^\\.${cls}:(\\w+)`));
-      if (pseudoMatch) {
-        const pseudoClass = pseudoMatch[1];
-        const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], cls, variables);
-        Object.entries(pseudoStyles).forEach(([prop, value]) => {
-          targetClass.settings[`${prop}:${pseudoClass}`] = value;
-        });
+        const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\\w+)`)); // This might need adjustment based on how you identify elements for pseudo-styling
+        if (pseudoMatch) {
+            const pseudoClass = pseudoMatch[1];
+            const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], `#brx-${element.id}`, variables);
+            Object.entries(pseudoStyles).forEach(([prop, value]) => {
+                element.settings[`${prop}:${pseudoClass}`] = value;
+            });
+        }
+    });
+
+  } else {
+    // Apply styles via global classes (existing logic)
+    const existingClasses = node.classList && node.classList.length > 0 ? Array.from(node.classList) : [];
+    const randomId = Math.random().toString(36).substring(2, 6);
+    const generatedClass = existingClasses.length === 0 ? `${tag}-tag-${randomId}-class` : null;
+    const classNames = generatedClass ? [generatedClass, ...existingClasses] : existingClasses;
+    const cssGlobalClasses = [];
+
+    classNames.forEach((cls, index) => {
+      let targetClass = globalClasses.find(c => c.name === cls);
+      if (!targetClass) {
+        targetClass = { id: getUniqueId(), name: cls, settings: {} };
+        globalClasses.push(targetClass);
+      }
+
+      if (index === 0 && Object.keys(combinedProperties).length > 0) {
+        const parsedSettings = parseCssDeclarations(combinedProperties, cls, variables);
+        Object.assign(targetClass.settings, parsedSettings);
+      }
+
+      Object.keys(cssRulesMap).forEach(selector => {
+        const pseudoMatch = selector.match(new RegExp(`^\\.${cls}:(\\w+)`));
+        if (pseudoMatch) {
+          const pseudoClass = pseudoMatch[1];
+          const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], cls, variables);
+          Object.entries(pseudoStyles).forEach(([prop, value]) => {
+            targetClass.settings[`${prop}:${pseudoClass}`] = value;
+          });
+        }
+      });
+
+      if (!cssGlobalClasses.includes(targetClass.id)) {
+        cssGlobalClasses.push(targetClass.id);
       }
     });
 
-    // Link this element to the global class
-    if (!cssGlobalClasses.includes(targetClass.id)) {
-      cssGlobalClasses.push(targetClass.id);
+    if (cssGlobalClasses.length > 0) {
+      element.settings._cssGlobalClasses = cssGlobalClasses;
     }
-  });
-
-  if (cssGlobalClasses.length > 0) {
-    element.settings._cssGlobalClasses = cssGlobalClasses;
   }
 
   // Process attributes
@@ -281,7 +296,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 /**
  * Converts HTML and CSS to Bricks structure
  */
-const convertHtmlToBricks = (html, css) => {
+const convertHtmlToBricks = (html, css, options) => {
   try {
     let doc;
     if (typeof window !== 'undefined' && typeof window.DOMParser !== 'undefined') {
@@ -301,7 +316,7 @@ const convertHtmlToBricks = (html, css) => {
     const allElements = [];
 
     Array.from(doc.body.childNodes).forEach(node => {
-      const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements, variables);
+      const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements, variables, options);
       if (element) {
         if (Array.isArray(element)) {
           content.push(...element);

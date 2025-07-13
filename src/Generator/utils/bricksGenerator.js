@@ -8,10 +8,10 @@ import { processJavaScript } from './jsProcessor';
  * @param {string} js - The JavaScript content
  * @returns {Object} Bricks structure object
  */
-const createBricksStructure = (html, css = '', js = '') => {
+const createBricksStructure = (html, css = '', js = '', options = {}) => {
   try {
     // Convert the provided HTML & CSS into Bricks JSON using tag-based logic
-    const result = convertHtmlToBricks(html, css);
+    const result = convertHtmlToBricks(html, css, options);
 
     // Optionally process JavaScript additions
     if (js && js.trim()) {

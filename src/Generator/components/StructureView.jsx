@@ -1,5 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
+import {
+  BsLayoutTextSidebar, BsSquare, BsCardHeading, BsTextParagraph,
+  BsLayoutSplit, BsLayoutThreeColumns, BsCodeSlash, BsBricks
+} from 'react-icons/bs';
+import { FiChevronRight, FiChevronDown } from 'react-icons/fi';
 import './StructureView.scss';
+
+const ICONS = {
+  section: <BsLayoutSplit />,
+  container: <BsLayoutThreeColumns />,
+  div: <BsSquare />,
+  block: <BsBricks />,
+  heading: <BsCardHeading />,
+  'text-basic': <BsTextParagraph />,
+  code: <BsCodeSlash />,
+  default: <BsSquare />,
+};
 
 const StructureView = ({ data, globalClasses }) => {
   if (!data || data.length === 0) {
@@ -20,31 +36,56 @@ const StructureView = ({ data, globalClasses }) => {
     }
   });
 
-  const getElementName = (element) => {
+  const getElementInfo = (element) => {
+    const info = {
+      icon: ICONS[element.name] || ICONS.default,
+      label: element.label || element.name,
+      className: '',
+    };
+
     if (element.settings?._cssGlobalClasses?.length > 0) {
       const classId = element.settings._cssGlobalClasses[0];
       const globalClass = globalClasses.find(gc => gc.id === classId);
       if (globalClass) {
-        return `.${globalClass.name}`;
+        info.className = `.${globalClass.name}`;
       }
     }
-    return element.label || element.name;
+    return info;
   };
 
-  const renderTree = (nodes) => (
-    <ul>
-      {nodes.map(node => (
-        <li key={node.id}>
-          <span>{getElementName(node)}</span>
-          {node.children.length > 0 && renderTree(node.children)}
-        </li>
-      ))}
-    </ul>
-  );
+  const TreeNode = ({ node }) => {
+    const [isOpen, setIsOpen] = useState(true);
+    const hasChildren = node.children.length > 0;
+    const { icon, label, className } = getElementInfo(node);
+
+    return (
+      <li>
+        <div className="node-content" onClick={() => hasChildren && setIsOpen(!isOpen)}>
+          <span className="node-toggle">
+            {hasChildren ? (isOpen ? <FiChevronDown /> : <FiChevronRight />) : <span className="no-toggle"></span>}
+          </span>
+          <span className="node-icon">{icon}</span>
+          <span className="node-label">{label}</span>
+          <span className="node-class">{className}</span>
+        </div>
+        {hasChildren && isOpen && (
+          <ul>
+            {node.children.map(child => (
+              <TreeNode key={child.id} node={child} />
+            ))}
+          </ul>
+        )}
+      </li>
+    );
+  };
 
   return (
     <div className="structure-view">
-      {renderTree(roots)}
+      <ul>
+        {roots.map(node => (
+          <TreeNode key={node.id} node={node} />
+        ))}
+      </ul>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 :root {
   /* Light Theme (default) */
   --color-primary: #e20000;
+  --color-primary-light: #e200002a;
   --color-secondary: #8D6E63;
   --color-accent: #FF8F00;
   --color-bg: #F5F5F1;
@@ -19,6 +20,7 @@
   /* Dark Theme - based on the image */
   &[data-theme='dark'] {
     --color-primary: #c2970a;
+    --color-primary-light: #c2970a2e;
     /* Brighter green for dark mode */
     --color-secondary: #A1887F;
     /* Lighter brown */
@@ -93,6 +95,7 @@ body {
 
   &__controls {
     display: flex;
+    align-items: center;
     gap: 12px;
   }
 
@@ -107,6 +110,7 @@ body {
     border: none;
     border-radius: 6px;
     background: none;
+    border: 1px solid var(--color-border);
     color: var(--color-text);
     cursor: pointer;
     transition: all 0.2s;
@@ -428,9 +432,9 @@ body {
 
 // Generator Options
 .generator-options {
-  padding: 16px;
-  border-top: 1px solid var(--color-border);
-  background-color: var(--color-surface-2);
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
 .generator-actions {
@@ -589,17 +593,19 @@ body {
 
 // Inline styles handling
 .inline-styles-handling {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
   background: color-mix(in srgb, var(--color-primary), transparent 90%);
   border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.5rem 1rem;
 
   &__label {
     display: block;
-    margin-bottom: 0.5rem;
     font-weight: 600;
     color: var(--color-primary);
     font-size: 0.875rem;
+    margin-bottom: 0;
   }
 
   &__options {
@@ -611,11 +617,29 @@ body {
     display: flex;
     align-items: center;
     cursor: pointer;
+    position: relative;
+    padding-left: 1.5rem;
   }
 
   &__radio {
-    margin-right: 0.5rem;
-    accent-color: var(--color-primary);
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid var(--color-primary);
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.3s, box-shadow 0.3s;
+
+    &:checked {
+      background-color: var(--color-primary);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary), transparent 80%);
+    }
   }
 
   &__text {
@@ -623,6 +647,7 @@ body {
     color: var(--color-text-secondary);
   }
 }
+
 
 // Responsive adjustments
 @media (max-width: 1200px) {
