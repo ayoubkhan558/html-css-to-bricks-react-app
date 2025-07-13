@@ -161,6 +161,19 @@ body {
   height: calc(100vh - 60px);
 }
 
+.panel-group {
+
+  &>.panel-left,
+  &>.panel-center,
+  &>.panel-right {
+    // border-width: 2px;
+
+    &:hover {
+      outline: 2px solid var(--color-primary);
+    }
+  }
+}
+
 .panels-container {
   display: flex;
   width: 100%;

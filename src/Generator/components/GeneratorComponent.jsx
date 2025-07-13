@@ -221,7 +221,7 @@ const GeneratorComponent = () => {
         {/* Resizable Panel Layout */}
         <PanelGroup direction="horizontal" className="panel-group">
           {/* Left Panel - Code Editors */}
-          <Panel defaultSize={33} minSize={20} className="panel-left">
+          <Panel defaultSize={33} minSize={20} className="panel-left" style={{ borderRight: '2px solid var(--color-border)' }}>
             <PanelGroup direction="vertical">
               <Panel defaultSize={70} minSize={30} className="panel-code-editor">
                 <div className="code-editor">
@@ -309,7 +309,7 @@ const GeneratorComponent = () => {
           <PanelResizeHandle className="resize-handle resize-handle--vertical" />
 
           {/* Center Panel - Preview */}
-          <Panel defaultSize={34} minSize={20} className="panel-center">
+          <Panel defaultSize={34} minSize={20} className="panel-center" style={{ borderRight: '2px solid var(--color-border)' }}>
             <div className="preview-container">
               <div className="preview-header">
                 <h3>Preview</h3>
