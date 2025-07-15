@@ -39,7 +39,7 @@ const StructureView = ({ data, globalClasses }) => {
   const getElementInfo = (element) => {
     const info = {
       icon: ICONS[element.name] || ICONS.default,
-      label: element.label || element.name,
+      label: element.name || 'div',
       className: '',
     };
 
@@ -65,7 +65,7 @@ const StructureView = ({ data, globalClasses }) => {
             {hasChildren ? (isOpen ? <FiChevronDown /> : <FiChevronRight />) : <span className="no-toggle"></span>}
           </span>
           <span className="node-icon">{icon}</span>
-          <span className="node-label">{label}</span>
+          <span className="node-tag">{label}</span>
           <span className="node-class">{className}</span>
         </div>
         {hasChildren && isOpen && (
