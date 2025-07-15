@@ -176,11 +176,16 @@ export const getCssPropMappers = (settings) => {
     'border-width': borderBoxShadowMappers['border-width'],
     'border-style': borderBoxShadowMappers['border-style'],
     'border-color': borderBoxShadowMappers['border-color'],
-    'border-radius': borderBoxShadowMappers['border-radius'],
     'border-top-width': borderBoxShadowMappers['border-top-width'],
     'border-right-width': borderBoxShadowMappers['border-right-width'],
     'border-bottom-width': borderBoxShadowMappers['border-bottom-width'],
     'border-left-width': borderBoxShadowMappers['border-left-width'],
+    'border-radius': borderBoxShadowMappers['border-radius'],
+    // Does not supported in bricks 
+    // 'border-top-left-radius': borderBoxShadowMappers['border-top-left-radius'],
+    // 'border-top-right-radius': borderBoxShadowMappers['border-top-right-radius'],
+    // 'border-bottom-right-radius': borderBoxShadowMappers['border-bottom-right-radius'],
+    // 'border-bottom-left-radius': borderBoxShadowMappers['border-bottom-left-radius'],
 
     // Transform
     '_transform': (value, settings) => {
