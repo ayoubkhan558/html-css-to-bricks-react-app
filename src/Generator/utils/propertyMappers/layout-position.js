@@ -3,7 +3,7 @@ import { parseValue } from '../cssParser';
 export const positionMappers = {
   'position': (val, settings) => {
     settings._position = settings._position || {};
-    settings._position.type = val;
+    settings._position = val;
   },
   'top': (val, settings) => {
     settings._position = settings._position || {};
