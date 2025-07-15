@@ -10,6 +10,7 @@
   --color-surface-3: #f0f0f0;
   --color-border: #e0e0e0;
   --color-text: #333333;
+  --color-text-alt: #fff;
   --color-text-secondary: #757575;
   --color-text-on-primary: #ffffff;
   --color-shadow: rgba(0, 0, 0, 0.1);
@@ -19,7 +20,8 @@
 
   /* Dark Theme - based on the image */
   &[data-theme='dark'] {
-    --color-primary: #c2970a;
+    --color-primary: #f3fa1b;
+    --color-primary: #FFD64F;
     --color-primary-light: #c2970a2e;
     /* Brighter green for dark mode */
     --color-secondary: #A1887F;
@@ -34,6 +36,7 @@
     --color-surface-3: #333333;
     --color-border: #404040;
     --color-text: #E0E0E0;
+    --color-text-alt: #333333;
     /* Light text */
     --color-text-secondary: #A0A0A0;
     --color-text-on-primary: #FFFFFF;
@@ -134,7 +137,8 @@ body {
 
     &.primary {
       background-color: var(--color-primary);
-      color: var(--color-text-on-primary);
+      // color: var(--color-text-on-primary);
+      color: var(--color-text-alt);
 
       &:hover:not(:disabled) {
         background-color: color-mix(in srgb, var(--color-primary), black 10%);
