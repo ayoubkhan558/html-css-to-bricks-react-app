@@ -57,11 +57,15 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Handle text nodes
   if (node.nodeType !== Node.ELEMENT_NODE) {
     // Skip text nodes that are inside a form element (labels, button text, etc.)
-    if (node.parentElement && node.parentElement.closest && node.parentElement.closest('form')) {
+    // or inside a heading element
+    if ((node.parentElement && node.parentElement.closest && 
+         (node.parentElement.closest('form') || 
+          node.parentElement.matches('h1, h2, h3, h4, h5, h6'))) ||
+        !node.textContent.trim()) {
       return null;
     }
-    if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-
+    
+    if (node.nodeType === Node.TEXT_NODE) {
       const textElement = {
         id: getUniqueId(),
         name: 'text-basic',
