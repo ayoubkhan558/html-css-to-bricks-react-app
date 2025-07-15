@@ -97,11 +97,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     return null;
   }
 
-  // Only skip empty divs if they have no classes and no attributes
-  if (tag === 'div' && node.textContent.trim() === '' && node.children.length === 0 &&
-    !node.className && node.attributes.length <= 1) { // length <= 1 to account for just the tag name
-    return null;
-  }
+  // Include all divs in the output, even empty ones
+  // We'll handle empty divs by setting appropriate defaults
 
   let name = 'div';
   const elementId = getUniqueId();
