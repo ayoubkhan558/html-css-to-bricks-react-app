@@ -16,12 +16,18 @@ export const processLinkElement = (node, element) => {
     };
   }
   
-  // Handle text content
+  // Handle text content directly
   const textContent = node.textContent.trim();
   if (textContent) {
     element.settings.text = textContent;
     element.settings.tag = 'a';
+  } else {
+    element.settings.text = 'Link';
+    element.settings.tag = 'a';
   }
+  
+  // Prevent processing of child text nodes
+  element._skipTextNodes = true;
   
   return element;
 };

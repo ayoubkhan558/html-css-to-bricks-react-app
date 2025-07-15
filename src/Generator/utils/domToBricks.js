@@ -113,6 +113,28 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     settings: {}
   };
 
+  // Check if this is a standalone inline element that should be converted to text-basic
+  const isStandaloneInline = ['strong', 'em', 'small', 'blockquote'].includes(tag) && 
+    node.parentElement && 
+    !['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'div', 'section', 'article', 'aside', 'header', 'footer', 'nav'].includes(node.parentElement.tagName.toLowerCase());
+
+  if (isStandaloneInline) {
+    const textElement = {
+      id: getUniqueId(),
+      name: 'text-basic',
+      parent: parentId,
+      children: [],
+      settings: {
+        text: node.textContent.trim(),
+        tag: 'custom',
+        customTag: tag
+      }
+    };
+    
+    allElements.push(textElement);
+    return textElement;
+  }
+
   // Check for alert elements first (higher priority)
   if (tag === 'div' && hasAlertClasses(node)) {
     return processAlertElement(node);
@@ -203,10 +225,15 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   }
 
   // Process children (only skip td/th to avoid duplication, allow other table elements to process children)
-  // Skip traversing children for table cells and for <form> – form fields are already extracted by processFormElement
-  if (!['td', 'th', 'form'].includes(tag)) {
+  // Skip traversing children for table cells, forms, and elements that handle their own text content
+  if (!['td', 'th', 'form'].includes(tag) && !element._skipTextNodes) {
     Array.from(node.childNodes).forEach(childNode => {
-      if (childNode.nodeType === Node.TEXT_NODE && !childNode.textContent.trim()) {
+      // Skip empty text nodes and text nodes when the parent handles its own text content
+      if (childNode.nodeType === Node.TEXT_NODE && (!childNode.textContent.trim() || element._skipTextNodes)) {
+        return;
+      }
+      // Skip processing text nodes for elements that handle their own text content
+      if (element._skipTextNodes && childNode.nodeType === Node.TEXT_NODE) {
         return;
       }
       const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements, variables, options);
