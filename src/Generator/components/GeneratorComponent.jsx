@@ -4,7 +4,9 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { RiJavascriptLine } from "react-icons/ri";
 import { RiHtml5Line } from "react-icons/ri";
 import { FaCss3 } from "react-icons/fa6";
+import { FaInfoCircle } from "react-icons/fa";
 import { RiSunLine, RiMoonLine } from "react-icons/ri";
+import AboutModal from './AboutModal';
 
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
@@ -31,6 +33,7 @@ const GeneratorComponent = () => {
   const [includeJs, setIncludeJs] = useState(false);
   const [showJsonPreview, setShowJsonPreview] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [styleHandling, setStyleHandling] = useState('inline');
   const [cssTarget, setCssTarget] = useState('class'); // 'class' or 'id'
 
@@ -163,6 +166,15 @@ const GeneratorComponent = () => {
             <path d="M2 12L12 17L22 12" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <span>Code2Bricks</span>
+          <div className="app-header__buttons">
+            <button
+              className="app-header__button"
+              onClick={() => setIsAboutOpen(true)}
+              title="About"
+            >
+              <FaInfoCircle size={16} />
+            </button>
+          </div>
         </div>
         <div className="app-header__controls">
           <div className="generator-options">
@@ -197,13 +209,20 @@ const GeneratorComponent = () => {
               </div>
             </div>
           </div>
-          <button
-            className="app-header__button"
-            onClick={toggleDarkMode}
-            title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {isDarkMode ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
-          </button>
+          <div className="app-header__buttons"> 
+            <button
+              className="app-header__button"
+              onClick={toggleDarkMode}
+              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDarkMode ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
+            </button>
+          </div>
+          
+          <AboutModal 
+            isOpen={isAboutOpen} 
+            onClose={() => setIsAboutOpen(false)} 
+          />
           <div className="app-header__actions">
             <button
               className="app-header__button primary"

@@ -70,4 +70,9 @@ This tool is designed to help Bricks Builder users quickly convert their existin
 - Fallback to jsdom in Node.js environments
 
 
+## Created By
+
+This project was created by [Ayoub Khan](https://mayoub.dev).
+
+[![Portfolio](https://img.shields.io/badge/Portfolio-mayoub.dev-4CAF50?style=flat-square)](https://mayoub.dev) [![LinkedIn](https://img.shields.io/badge/LinkedIn-ayoubkhan558-0077B5?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/ayoubkhan558)
 -------------------------------------------------------------
