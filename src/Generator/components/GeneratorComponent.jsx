@@ -1,16 +1,15 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
-import { RiJavascriptLine } from "react-icons/ri";
-import { RiHtml5Line } from "react-icons/ri";
-import { FaCss3 } from "react-icons/fa6";
+import { RiJavascriptLine, RiHtml5Line } from "react-icons/ri";
+import { FaCss3, FaCode, FaCopy, FaPlay, FaCheck } from "react-icons/fa6";
 import { FaInfoCircle } from "react-icons/fa";
 import AboutModal from './AboutModal';
 import Tooltip from '../../components/Tooltip';
 
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
-import CodeEditor from './CodeEditor';
+import CodeEditor from '../../components/CodeEditor';
 import StructureView from './StructureView';
 import prettier from 'prettier/standalone';
 import * as parserHtml from 'prettier/parser-html';
@@ -276,39 +275,20 @@ const GeneratorComponent = () => {
                   </div>
                   <div className="code-editor__content">
                     <div className="code-editor__pane active">
-                      {activeTab === 'html' && (
-                        <>
-                          <div className="code-editor__label">HTML</div>
-                          <CodeEditor
-                            value={html}
-                            onChange={setHtml}
-                            language="markup"
-                            placeholder="<!-- Your HTML here… -->"
-                          />
-                        </>
-                      )}
-                      {activeTab === 'css' && (
-                        <>
-                          <div className="code-editor__label">CSS</div>
-                          <CodeEditor
-                            value={css}
-                            onChange={setCss}
-                            language="css"
-                            placeholder="/* Your CSS here… */"
-                          />
-                        </>
-                      )}
-                      {activeTab === 'js' && (
-                        <>
-                          <div className="code-editor__label">JavaScript</div>
-                          <CodeEditor
-                            value={js}
-                            onChange={setJs}
-                            language="javascript"
-                            placeholder="// Your JavaScript here…"
-                          />
-                        </>
-                      )}
+                      <CodeEditor
+                        value={activeTab === 'html' ? html : activeTab === 'css' ? css : js}
+                        onChange={activeTab === 'html' ? setHtml : activeTab === 'css' ? setCss : setJs}
+                        language={activeTab}
+                        placeholder={
+                          activeTab === 'html' 
+                            ? '<!-- Your HTML here… -->' 
+                            : activeTab === 'css' 
+                              ? '/* Your CSS here… */' 
+                              : '// Your JavaScript here…'
+                        }
+                        height="100%"
+                        className="code-editor__content"
+                      />
                     </div>
                   </div>
                 </div>
