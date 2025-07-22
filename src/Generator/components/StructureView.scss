@@ -122,14 +122,15 @@
       padding: 2px 5px;
       font-size: 0.8em;
       line-height: 1;
+      line-height: 1;
       font-weight: 500;
       color: var(--color-primary);
       background-color: var(--color-primary-light);
     }
 
     .node-class {
-      margin-left: 8px;
       font-size: 0.8em;
+      line-height: 1;
       color: var(--color-text-secondary);
       background-color: var(--color-surface-2);
       padding: 2px 5px;

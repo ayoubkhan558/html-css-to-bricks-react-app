@@ -17,7 +17,7 @@ const ICONS = {
   default: <BsSquare />,
 };
 
-const StructureView = ({ data, globalClasses }) => {
+const StructureView = ({ data, globalClasses, activeIndex, showNodeClass }) => {
   if (!data || data.length === 0) {
     return null;
   }
@@ -57,16 +57,20 @@ const StructureView = ({ data, globalClasses }) => {
     const [isOpen, setIsOpen] = useState(true);
     const hasChildren = node.children.length > 0;
     const { icon, label, className } = getElementInfo(node);
+    const isActive = node._order === activeIndex;
 
     return (
-      <li>
-        <div className="node-content" onClick={() => hasChildren && setIsOpen(!isOpen)}>
+      <li className={isActive ? 'active' : ''}>
+        <div className={`node-content${isActive ? ' active' : ''}`} onClick={() => hasChildren && setIsOpen(!isOpen)}>
           <span className="node-toggle">
             {hasChildren ? (isOpen ? <FiChevronDown /> : <FiChevronRight />) : <span className="no-toggle"></span>}
           </span>
           <span className="node-icon">{icon}</span>
-          <span className="node-tag">{label}</span>
-          <span className="node-class">{className}</span>
+          {showNodeClass ? (
+            <span className="node-class">{className}</span>
+          ) : (
+            <span className="node-tag">{label}</span>
+          )}
         </div>
         {hasChildren && isOpen && (
           <ul>

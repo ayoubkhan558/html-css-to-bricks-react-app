@@ -18,6 +18,7 @@ import * as parserBabel from 'prettier/parser-babel';
 import './GeneratorComponent.scss';
 
 const GeneratorComponent = () => {
+  const [showNodeClass, setShowNodeClass] = useState(false);
   const [activeTagIndex, setActiveTagIndex] = useState(0);
   const [html, setHtml] = useState('');
   const [css, setCss] = useState('');
@@ -330,11 +331,22 @@ const GeneratorComponent = () => {
           <PanelResizeHandle className="resize-handle resize-handle--vertical" />
 
           {/* Right Panel - Structure */}
-          <Panel defaultSize={15} minSize={12} maxSize={25} className="panel-right">
+          <Panel defaultSize={20} minSize={15} maxSize={25} className="panel-right">
             <div className="structure-panel">
               <div className="structure-panel__header">
-                <h3>Structure/Layers</h3>
+                <h3>Layers</h3>
                 <div className="structure-actions">
+                  <label className="switch" style={{ marginRight: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={showNodeClass}
+                      onChange={() => setShowNodeClass((prev) => !prev)}
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', minWidth: 72 }}>
+                    {showNodeClass ? 'Show Class' : 'Show Tag'}
+                  </span>
                 </div>
               </div>
               <div className="structure-panel__content">
@@ -342,6 +354,8 @@ const GeneratorComponent = () => {
                   <StructureView
                     data={output ? JSON.parse(output).content : []}
                     globalClasses={output ? JSON.parse(output).globalClasses : []}
+                    activeIndex={activeTagIndex}
+                    showNodeClass={showNodeClass}
                   />
                 ) : (
                   <div className="structure-placeholder">
