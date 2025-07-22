@@ -344,19 +344,27 @@ const convertHtmlToBricks = (html, css, options) => {
     const globalClasses = [];
     const allElements = [];
 
-    Array.from(doc.body.childNodes).forEach(node => {
-      const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements, variables, {
-        ...options,
-        context: options.context || {}
-      });
-      if (element) {
-        if (Array.isArray(element)) {
-          content.push(...element);
-        } else {
-          content.push(element);
+    const processNodes = nodeList => {
+      Array.from(nodeList).forEach(node => {
+        const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements, variables, {
+          ...options,
+          context: options.context || {}
+        });
+        if (element) {
+          if (Array.isArray(element)) {
+            content.push(...element);
+          } else {
+            content.push(element);
+          }
         }
-      }
-    });
+      });
+    };
+
+    processNodes(doc.body.childNodes);
+    // Also process head nodes like <script> when body is empty
+    if (content.length === 0) {
+      processNodes(doc.head.childNodes);
+    }
 
     allElements.forEach(el => {
       if (!content.some(c => c.id === el.id)) {
