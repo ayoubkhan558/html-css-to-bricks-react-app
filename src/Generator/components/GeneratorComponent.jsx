@@ -192,24 +192,26 @@ const GeneratorComponent = () => {
                 </label>
               </div>
             </div>
-            <div className="inline-styles-handling">
-              <label className="inline-styles-handling__label">Apply CSS to:</label>
-              <div className="inline-styles-handling__options">
-                <label className="inline-styles-handling__option">
-                  <input type="radio" name="cssTarget" value="id" checked={cssTarget === 'id'} onChange={() => setCssTarget('id')} className="inline-styles-handling__radio" />
-                  <span className="inline-styles-handling__text">ID</span>
+            <div className="toggle-switch-container">
+              <label className="toggle-switch-label">Apply CSS to:</label>
+              <div className="toggle-switch">
+                <span className={`toggle-option ${cssTarget === 'id' ? 'active' : ''}`}>ID</span>
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={cssTarget === 'class'} 
+                    onChange={(e) => setCssTarget(e.target.checked ? 'class' : 'id')} 
+                  />
+                  <span className="slider round"></span>
                 </label>
-                <label className="inline-styles-handling__option">
-                  <input type="radio" name="cssTarget" value="class" checked={cssTarget === 'class'} onChange={() => setCssTarget('class')} className="inline-styles-handling__radio" />
-                  <span className="inline-styles-handling__text">Global Class</span>
-                </label>
+                <span className={`toggle-option ${cssTarget === 'class' ? 'active' : ''}`}>Class</span>
               </div>
             </div>
           </div>
-          
-          <AboutModal 
-            isOpen={isAboutOpen} 
-            onClose={() => setIsAboutOpen(false)} 
+
+          <AboutModal
+            isOpen={isAboutOpen}
+            onClose={() => setIsAboutOpen(false)}
           />
           <div className="app-header__actions">
             <button
@@ -267,7 +269,7 @@ const GeneratorComponent = () => {
                         data-tooltip-id="format-tooltip"
                         data-tooltip-content="Auto Format & indent code"
                       >
-                        Format 
+                        Format
                       </button>
                       <Tooltip id="format-tooltip" place="top" effect="solid" />
                     </div>

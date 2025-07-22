@@ -18,7 +18,7 @@
 
   /* Dark Theme - based on the image */
   &[data-theme='dark'] {
-    --color-primary: #c2970a;
+    --color-primary: #edb706;
     /* Brighter green for dark mode */
     --color-secondary: #A1887F;
     /* Lighter brown */
@@ -41,7 +41,7 @@
 
 .structure-view {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  padding: 12px;
+  padding: 16px;
   background-color: var(--color-surface);
   color: var(--color-text);
   border-radius: var(--border-radius);
