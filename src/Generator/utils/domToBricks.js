@@ -218,7 +218,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   else if (tag === 'video') {
     processVideoElement(node, element, tag, options.context || {});
   }
-  else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
+  else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress', 'script'].includes(tag)) {
     processMiscElement(node, element, tag, options.context || {});
   }
 
