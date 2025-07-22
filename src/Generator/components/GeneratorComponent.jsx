@@ -5,8 +5,8 @@ import { RiJavascriptLine } from "react-icons/ri";
 import { RiHtml5Line } from "react-icons/ri";
 import { FaCss3 } from "react-icons/fa6";
 import { FaInfoCircle } from "react-icons/fa";
-import { RiSunLine, RiMoonLine } from "react-icons/ri";
 import AboutModal from './AboutModal';
+import Tooltip from '../../components/Tooltip';
 
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
@@ -24,11 +24,8 @@ const GeneratorComponent = () => {
   const [js, setJs] = useState('');
   const [output, setOutput] = useState('');
   const [activeTab, setActiveTab] = useState('html');
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const stored = localStorage.getItem('theme');
-    if (stored) return stored === 'dark';
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  // Always use dark mode
+  const isDarkMode = true;
   const [isMinified, setIsMinified] = useState(false);
   const [includeJs, setIncludeJs] = useState(false);
   const [showJsonPreview, setShowJsonPreview] = useState(true);
@@ -134,9 +131,9 @@ const GeneratorComponent = () => {
   }, [html]);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+  }, []);
 
   useEffect(() => {
     try {
@@ -209,15 +206,6 @@ const GeneratorComponent = () => {
               </div>
             </div>
           </div>
-          <div className="app-header__buttons"> 
-            <button
-              className="app-header__button"
-              onClick={toggleDarkMode}
-              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {isDarkMode ? <RiSunLine size={16} /> : <RiMoonLine size={16} />}
-            </button>
-          </div>
           
           <AboutModal 
             isOpen={isAboutOpen} 
@@ -276,9 +264,12 @@ const GeneratorComponent = () => {
                           e.stopPropagation();
                           formatCurrent();
                         }}
+                        data-tooltip-id="format-tooltip"
+                        data-tooltip-content="Auto Format & indent code"
                       >
-                        Format Code
+                        Format 
                       </button>
+                      <Tooltip id="format-tooltip" place="top" effect="solid" />
                     </div>
                   </div>
                   <div className="code-editor__content">
