@@ -13,7 +13,12 @@ const createBricksStructure = (html, css = '', js = '', options = {}) => {
     // Convert the provided HTML & CSS into Bricks JSON using tag-based logic
     const result = convertHtmlToBricks(html, css, {
       ...options,
-      context: options.context || {}
+      context: {
+        ...(options.context || {}),
+        showNodeClass: options.context?.showNodeClass || false,
+        inlineStyleHandling: options.context?.inlineStyleHandling || 'inline',
+        cssTarget: options.context?.cssTarget || 'class'
+      }
     });
 
     // Optionally process JavaScript additions

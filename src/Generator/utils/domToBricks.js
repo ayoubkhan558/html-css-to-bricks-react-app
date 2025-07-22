@@ -17,6 +17,7 @@ import { processAttributes } from './processors/attributeProcessor';
 import { processAlertElement } from './elementProcessors/alertProcessor';
 import { processNavElement } from './elementProcessors/navProcessor';
 
+
 // Alert/message class patterns to check
 const ALERT_CLASS_PATTERNS = [
   'alert', 'notification', 'message', 'toast', 'msg', 'flash',
@@ -54,14 +55,15 @@ const hasContainerClasses = (node) => {
  * Processes a DOM node and converts it to a Bricks element
  */
 const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], allElements = [], variables = {}, options = {}) => {
-  // Get context values from options
+  // Get context values from options 
   const {
-    showNodeClass = false,
-    inlineStyleHandling,
-    cssTarget = 'class'
+    activeTab = 'html',
+    inlineStyleHandling = 'inline',
+    cssTarget = 'class',
+    showNodeClass = false
   } = options.context || {};
-  console.log('inlineStyleHandling', inlineStyleHandling);
-  console.log('cssTarget', cssTarget);
+  // Debug logs
+  console.log('Context in domNodeToBricks:', { showNodeClass, inlineStyleHandling, cssTarget });
   // Handle text nodes
   if (node.nodeType !== Node.ELEMENT_NODE) {
     // Skip text nodes that are inside a form element (labels, button text, etc.)

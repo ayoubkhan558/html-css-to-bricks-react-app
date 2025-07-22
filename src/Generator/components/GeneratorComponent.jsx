@@ -7,7 +7,7 @@ import { FaInfoCircle } from "react-icons/fa";
 import AboutModal from './AboutModal';
 import Tooltip from '../../components/Tooltip';
 
-import { useAppContext } from './../../contexts/AppContext.jsx';
+import { useGenerator } from '../../contexts/GeneratorContext';
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
 import CodeEditor from '../../components/CodeEditor';
@@ -20,26 +20,33 @@ import './GeneratorComponent.scss';
 
 const GeneratorComponent = () => {
   const { 
-    showNodeClass, 
-    setShowNodeClass, 
     activeTab, 
     setActiveTab,
     inlineStyleHandling,
     setInlineStyleHandling,
     cssTarget,
-    setCssTarget
-  } = useAppContext();
+    setCssTarget,
+    showNodeClass,
+    setShowNodeClass,
+    html,
+    setHtml,
+    css,
+    setCss,
+    js,
+    setJs,
+    output,
+    setOutput,
+    isDarkMode,
+    isMinified,
+    toggleMinified,
+    includeJs,
+    setIncludeJs,
+    showJsonPreview, 
+    setShowJsonPreview, 
+    isCopied, 
+    setIsCopied 
+  } = useGenerator();
   const [activeTagIndex, setActiveTagIndex] = useState(0);
-  const [html, setHtml] = useState('');
-  const [css, setCss] = useState('');
-  const [js, setJs] = useState('');
-  const [output, setOutput] = useState('');
-  // Always use dark mode
-  const isDarkMode = true;
-  const [isMinified, setIsMinified] = useState(false);
-  const [includeJs, setIncludeJs] = useState(false);
-  const [showJsonPreview, setShowJsonPreview] = useState(true);
-  const [isCopied, setIsCopied] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   const formatCurrent = async () => {
@@ -148,12 +155,13 @@ const GeneratorComponent = () => {
     try {
       if (html.trim()) {
         const includeJs = activeTab === 'js';
-        const context = { showNodeClass };
-        // console.log('Creating bricks structure with context:', context);
+        // console.log('Creating bricks structure with context:', { showNodeClass, inlineStyleHandling, cssTarget });
         const result = createBricksStructure(html, css, includeJs ? js : '', { 
-          inlineStyleHandling, 
-          cssTarget,
-          context
+          context: {
+            showNodeClass,
+            inlineStyleHandling,
+            cssTarget
+          }
         });
         const json = isMinified
           ? JSON.stringify(result)
