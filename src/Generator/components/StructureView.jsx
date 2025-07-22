@@ -6,6 +6,8 @@ import {
   BsMenuButtonWide, BsTextareaT, BsTag, BsImage, BsVectorPen,
   BsTable, BsLink45Deg
 } from 'react-icons/bs';
+import { TbSvg } from "react-icons/tb";
+import { IoLogoJavascript } from "react-icons/io";
 
 import { RxButton } from "react-icons/rx";
 import { BsTypeH1, BsTypeH2, BsTypeH3, BsTypeH4, BsTypeH5, BsTypeH6 } from "react-icons/bs";
@@ -59,7 +61,9 @@ const ICONS = {
 
   // Code
   code: <BsCodeSlash />,
+  script: <IoLogoJavascript />,
   pre: <BsCodeSlash />,
+  svg: <TbSvg />,
 
   // Default
   default: <BsSquare />,
