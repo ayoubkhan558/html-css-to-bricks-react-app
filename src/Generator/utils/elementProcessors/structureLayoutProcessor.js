@@ -1,4 +1,14 @@
-export function processStructureLayoutElement(node, element, tag) {
+import { getElementLabel } from './labelUtils';
+
+/**
+ * Processes structural/layout elements (section, container, row, column, etc.)
+ * @param {Node} node - The DOM node to process
+ * @param {Object} element - The element object to populate
+ * @param {string} tag - The HTML tag name
+ * @param {Object} context - Optional context values (showNodeClass, etc.)
+ * @returns {Object} The processed element
+ */
+export const processStructureLayoutElement = (node, element, tag, context = {}) => {
   // Default tags in Div, Block, Section, Container element of Bricks
   const defaultTags = ['div', 'section', 'article', 'nav', 'aside'];
   // Tags that represent major layout/section wrappers
@@ -9,7 +19,7 @@ export function processStructureLayoutElement(node, element, tag) {
                        node.classList?.contains('full-width') ||
                        node.classList?.contains('fullwidth'))) {
     element.name = 'block';
-    element.label = 'Block';
+    element.label = getElementLabel(node, 'Block', context);
     element.settings.tag = 'div';
     return true;
   }
@@ -17,7 +27,7 @@ export function processStructureLayoutElement(node, element, tag) {
   // Handle container elements (only on div tags)
   if (tag === 'div' && (node.classList?.contains('container') || node.classList?.contains('boxed'))) {
     element.name = 'container';
-    element.label = 'Container';
+    element.label = getElementLabel(node, 'Container', context);
     element.settings.tag = 'div';
     return true;
   }
@@ -25,7 +35,7 @@ export function processStructureLayoutElement(node, element, tag) {
   // Handle regular div elements
   if (tag === 'div') {
     element.name = 'div';
-    element.label = 'Div';
+    element.label = getElementLabel(node, 'Div', context);
     element.settings.tag = 'div';
     return true;
   }

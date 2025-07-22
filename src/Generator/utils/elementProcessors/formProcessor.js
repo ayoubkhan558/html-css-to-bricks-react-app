@@ -1,4 +1,5 @@
 import { getUniqueId } from '../utils';
+import { getElementLabel } from './labelUtils';
 
 export const getBricksFieldType = (node) => {
   const type = (node.getAttribute('type') || 'text').toLowerCase();
@@ -62,10 +63,11 @@ export const processFormField = (form, node) => {
 
   // 3. Use type, name, or placeholder as fallback (in that order)
   if (!field.label) {
-    const typeLabel = node.getAttribute('type')?.replace('-', ' ') || '';
-    field.label = typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1) ||
-      field.name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') ||
-      field.placeholder;
+    const fieldType = getBricksFieldType(node);
+    const name = node.getAttribute('name') || '';
+    const placeholder = node.getAttribute('placeholder') || '';
+    const defaultLabel = name || placeholder || fieldType.charAt(0).toUpperCase() + fieldType.slice(1);
+    field.label = getElementLabel(node, defaultLabel, options?.context || {});
   }
 
   // Clean up label

@@ -1,12 +1,19 @@
+import { getElementLabel } from './labelUtils';
+
 /**
  * Processes video elements for Bricks conversion
+ * @param {Node} node - The DOM node to process
+ * @param {Object} element - The element object to populate
+ * @param {string} tag - The HTML tag name
+ * @param {Object} context - Optional context values (showNodeClass, etc.)
+ * @returns {Object} The processed element
  */
-export const processVideoElement = (node, element) => {
+export const processVideoElement = (node, element, tag = 'video', context = {}) => {
   const videoSrc = node.querySelector('source')?.getAttribute('src') || node.getAttribute('src') || '';
   const posterSrc = node.getAttribute('poster') || '';
 
   element.name = 'video';
-  element.label = 'Video';
+  element.label = getElementLabel(node, 'Video', context);
   
   element.settings = {
     videoType: 'file',

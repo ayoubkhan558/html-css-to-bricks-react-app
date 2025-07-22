@@ -11,7 +11,10 @@ import { processJavaScript } from './jsProcessor';
 const createBricksStructure = (html, css = '', js = '', options = {}) => {
   try {
     // Convert the provided HTML & CSS into Bricks JSON using tag-based logic
-    const result = convertHtmlToBricks(html, css, options);
+    const result = convertHtmlToBricks(html, css, {
+      ...options,
+      context: options.context || {}
+    });
 
     // Optionally process JavaScript additions
     if (js && js.trim()) {

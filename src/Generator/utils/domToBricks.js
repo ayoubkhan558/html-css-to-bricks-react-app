@@ -134,7 +134,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   // Check for alert elements first (higher priority)
   if (tag === 'div' && hasAlertClasses(node)) {
-    return processAlertElement(node);
+    return processAlertElement(node, options.context || {});
   }
   // Check for nav elements
   if (tag === 'nav' || (tag === 'div' && (
@@ -153,13 +153,16 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     node.classList.contains('breadcrumb') ||
     node.classList.contains('pagination')
   ))) {
-    return processNavElement(node);
+    return processNavElement(node, options.context || {});
   }
   // Structure/layout elements
-  else if (['div', 'article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'].includes(tag) ||
+  else if (tag === 'section' || 
+    node.classList.contains('container') || 
+    node.classList.contains('row') || 
+    node.classList.contains('col-') ||
     node.classList.contains('section') ||
     (tag === 'div' && hasContainerClasses(node))) {
-    processStructureLayoutElement(node, element, tag);
+    processStructureLayoutElement(node, element, tag, options.context || {});
   }
   else if (tag === 'div') {
     // Process as generic div if no special classes are present
@@ -168,33 +171,31 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     element.settings.tag = 'div';
   }
   else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
-    processHeadingElement(node, element, tag);
+    processHeadingElement(node, element, tag, options.context || {});
   }
   else if (['time', 'mark', 'span', 'address', 'p', 'blockquote'].includes(tag)) {
-    processTextElement(node, element, tag, allElements);
+    processTextElement(node, element, tag, allElements, options.context || {});
   }
   else if (['a'].includes(tag)) {
-    processLinkElement(node, element);
+    processLinkElement(node, element, tag, options.context || {});
   }
   else if (tag === 'img') {
-    processImageElement(node, element);
+    processImageElement(node, element, tag, options.context || {});
   }
   else if (tag === 'button') {
-    processButtonElement(node, element);
+    processButtonElement(node, element, tag, options.context || {});
   }
   else if (tag === 'svg') {
     processSvgElement(node, element);
   }
   else if (tag === 'form') {
-    name = 'form';
-    element.label = 'Form';
-    const formElement = processFormElement(node);
+    return processFormElement(node, { context: options.context || {} });
     formElement.id = elementId;
     formElement.parent = parentId;
     Object.assign(element, formElement);
   }
   else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
-    const processedElement = processTableElement(node, element, tag);
+    const processedElement = processTableElement(node, element, tag, options.context || {});
     if (['td', 'th'].includes(tag)) {
       // For cells, return early to avoid duplicate processing
       allElements.push(processedElement);
@@ -203,7 +204,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     // For other table elements, continue with normal processing
   }
   else if (['ul', 'ol', 'li'].includes(tag)) {
-    const processedElement = processListElement(node, element, tag);
+    const processedElement = processListElement(node, element, tag, options.context || {});
     if (processedElement && processedElement.name === 'text') {
       // For simple lists, return early (like tables do)
       allElements.push(processedElement);
@@ -212,13 +213,13 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     // For complex lists, continue with normal processing (just like tables)
   }
   else if (tag === 'audio') {
-    processAudioElement(node, element);
+    processAudioElement(node, element, tag, options.context || {});
   }
   else if (tag === 'video') {
-    processVideoElement(node, element);
+    processVideoElement(node, element, tag, options.context || {});
   }
   else if (['canvas', 'details', 'summary', 'dialog', 'meter', 'progress'].includes(tag)) {
-    processMiscElement(node, element, tag);
+    processMiscElement(node, element, tag, options.context || {});
   }
 
   // Process children (only skip td/th to avoid duplication, allow other table elements to process children)
@@ -344,7 +345,10 @@ const convertHtmlToBricks = (html, css, options) => {
     const allElements = [];
 
     Array.from(doc.body.childNodes).forEach(node => {
-      const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements, variables, options);
+      const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements, variables, {
+        ...options,
+        context: options.context || {}
+      });
       if (element) {
         if (Array.isArray(element)) {
           content.push(...element);

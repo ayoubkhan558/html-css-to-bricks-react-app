@@ -1,22 +1,21 @@
+import { getElementLabel } from './labelUtils';
+
 /**
  * Processes heading elements (h1-h6) for Bricks conversion
+ * @param {Node} node - The DOM node to process
+ * @param {Object} element - The element object to populate
+ * @param {string} tag - The HTML tag name (h1-h6)
+ * @param {Object} context - Optional context values (showNodeClass, activeTagIndex, etc.)
+ * @returns {Object|null} The processed element or null if invalid
  */
-export const processHeadingElement = (node, element, tag) => {
-  // Don't process if this is a text node inside a heading
+export const processHeadingElement = (node, element, tag, context = {}) => {
   if (node.nodeType === Node.TEXT_NODE) {
     return null;
   }
 
   element.name = 'heading';
-  
-  // Use heading level (h1, h2 etc.) or first class name as label
-  const firstClass = node.classList?.length > 0 ? node.classList[0] : null;
-  element.label = firstClass || `${tag.toUpperCase()} Heading`;
-
-  // Use the native heading tag (h1-h6)
+  element.label = getElementLabel(node, `${tag.toUpperCase()} Heading`, context);
   element.settings.tag = tag;
-
-  // Store the heading text content directly
   element.settings.text = node.textContent.trim();
 
   return element;

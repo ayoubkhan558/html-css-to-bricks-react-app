@@ -48,10 +48,17 @@ export const processTable = (tableElement) => {
 };
 
 
+import { getElementLabel } from './labelUtils';
+
 /**
  * Processes table elements for Bricks conversion
+ * @param {Node} node - The DOM node to process
+ * @param {Object} element - The element object to populate
+ * @param {string} tag - The HTML tag name
+ * @param {Object} context - Optional context values (showNodeClass, etc.)
+ * @returns {Object} The processed element
  */
-export const processTableElement = (node, element, tag) => {
+export const processTableElement = (node, element, tag, context = {}) => {
   // For table cells (td, th)
   if (['td', 'th'].includes(tag)) {
     element.name = 'text-basic';
@@ -89,6 +96,20 @@ export const processTableElement = (node, element, tag) => {
   }
   
   // For other table elements (table, thead, tbody, etc)
+  const labels = {
+    table: 'Table',
+    thead: 'Table Header',
+    tbody: 'Table Body',
+    tfoot: 'Table Footer',
+    tr: 'Table Row',
+    th: 'Table Header Cell',
+    td: 'Table Cell'
+  };
+
+  element.name = 'div';
+  element.label = getElementLabel(node, labels[tag] || tag, context);
+  element.settings.tag = tag;
+  
   const baseStyles = {
     table: 'display: table; border-collapse: collapse; width: 100%;',
     thead: 'display: table-header-group;',

@@ -7,6 +7,7 @@ import { FaInfoCircle } from "react-icons/fa";
 import AboutModal from './AboutModal';
 import Tooltip from '../../components/Tooltip';
 
+import { useAppContext } from '../../contexts/AppContext.jsx';
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
 import CodeEditor from '../../components/CodeEditor';
@@ -18,7 +19,7 @@ import * as parserBabel from 'prettier/parser-babel';
 import './GeneratorComponent.scss';
 
 const GeneratorComponent = () => {
-  const [showNodeClass, setShowNodeClass] = useState(false);
+  const { showNodeClass, setShowNodeClass } = useAppContext();
   const [activeTagIndex, setActiveTagIndex] = useState(0);
   const [html, setHtml] = useState('');
   const [css, setCss] = useState('');
@@ -135,12 +136,19 @@ const GeneratorComponent = () => {
     document.documentElement.setAttribute('data-theme', 'dark');
     localStorage.setItem('theme', 'dark');
   }, []);
-  
+
 
   useEffect(() => {
     try {
       if (html.trim()) {
-        const result = createBricksStructure(html, css, includeJs ? js : '', { styleHandling, cssTarget });
+        const includeJs = activeTab === 'js';
+        const context = { showNodeClass };
+        console.log('Creating bricks structure with context:', context);
+        const result = createBricksStructure(html, css, includeJs ? js : '', { 
+          styleHandling, 
+          cssTarget,
+          context
+        });
         const json = isMinified
           ? JSON.stringify(result)
           : JSON.stringify(result, null, 2);
@@ -152,7 +160,7 @@ const GeneratorComponent = () => {
       console.error('Failed to generate structure:', err);
       // Optionally, you can set an error state here to show in the UI
     }
-  }, [html, css, js, includeJs, styleHandling, isMinified, cssTarget]);
+  }, [html, css, js, includeJs, styleHandling, isMinified, cssTarget, showNodeClass]);
 
   return (
     <div className="generator">
@@ -199,10 +207,10 @@ const GeneratorComponent = () => {
               <div className="toggle-switch">
                 <span className={`toggle-option ${cssTarget === 'id' ? 'active' : ''}`}>ID</span>
                 <label className="switch">
-                  <input 
-                    type="checkbox" 
-                    checked={cssTarget === 'class'} 
-                    onChange={(e) => setCssTarget(e.target.checked ? 'class' : 'id')} 
+                  <input
+                    type="checkbox"
+                    checked={cssTarget === 'class'}
+                    onChange={(e) => setCssTarget(e.target.checked ? 'class' : 'id')}
                   />
                   <span className="slider round"></span>
                 </label>
@@ -283,10 +291,10 @@ const GeneratorComponent = () => {
                         onChange={activeTab === 'html' ? setHtml : activeTab === 'css' ? setCss : setJs}
                         language={activeTab}
                         placeholder={
-                          activeTab === 'html' 
-                            ? '<!-- Your HTML here… -->' 
-                            : activeTab === 'css' 
-                              ? '/* Your CSS here… */' 
+                          activeTab === 'html'
+                            ? '<!-- Your HTML here… -->'
+                            : activeTab === 'css'
+                              ? '/* Your CSS here… */'
                               : '// Your JavaScript here…'
                         }
                         height="100%"

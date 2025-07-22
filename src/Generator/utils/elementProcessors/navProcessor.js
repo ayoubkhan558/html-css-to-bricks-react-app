@@ -1,9 +1,13 @@
 import { getUniqueId } from '../utils';
+import { getElementLabel } from './labelUtils';
 
 /**
  * Processes navigation elements into Bricks nested nav components
+ * @param {Node} node - The DOM node to process
+ * @param {Object} context - Optional context values (showNodeClass, etc.)
+ * @returns {Array} Array of processed elements
  */
-export const processNavElement = (node) => {
+export const processNavElement = (node, context = {}) => {
   const elements = []; // Array to collect all elements
   
   const navElement = {
@@ -11,6 +15,7 @@ export const processNavElement = (node) => {
     name: 'nav-nested',
     parent: '0',
     children: [],
+    label: getElementLabel(node, 'Navigation', context),
     settings: {
       dropdownPadding: {
         top: '12',

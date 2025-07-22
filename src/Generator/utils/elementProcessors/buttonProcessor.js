@@ -1,9 +1,16 @@
+import { getElementLabel } from './labelUtils';
+
 /**
  * Processes button elements for Bricks conversion
+ * @param {Node} node - The DOM node to process
+ * @param {Object} element - The element object to populate
+ * @param {string} tag - The HTML tag name
+ * @param {Object} context - Optional context values (showNodeClass, etc.)
+ * @returns {Object} The processed element
  */
-export const processButtonElement = (node, element) => {
+export const processButtonElement = (node, element, tag = 'button', context = {}) => {
   element.name = 'button';
-  element.label = 'Button';
+  element.label = getElementLabel(node, 'Button', context);
   
   // Set default button styles with text content
   element.settings = {

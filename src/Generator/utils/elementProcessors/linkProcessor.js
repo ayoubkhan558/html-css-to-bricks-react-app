@@ -1,9 +1,16 @@
+import { getElementLabel } from './labelUtils';
+
 /**
  * Processes link elements (a) for Bricks conversion
+ * @param {Node} node - The DOM node to process
+ * @param {Object} element - The element object to populate
+ * @param {string} tag - The HTML tag name
+ * @param {Object} context - Optional context values (showNodeClass, etc.)
+ * @returns {Object} The processed element
  */
-export const processLinkElement = (node, element) => {
+export const processLinkElement = (node, element, tag = 'a', context = {}) => {
   element.name = 'text-link';
-  element.label = 'Link';
+  element.label = getElementLabel(node, 'Link', context);
   
   // Handle href attribute and link settings
   if (node.hasAttribute('href')) {

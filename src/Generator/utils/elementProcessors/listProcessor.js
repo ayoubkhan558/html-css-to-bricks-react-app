@@ -1,7 +1,14 @@
+import { getElementLabel } from './labelUtils';
+
 /**
  * Processes list elements (ul, ol, li) for Bricks conversion
+ * @param {Node} node - The DOM node to process
+ * @param {Object} element - The element object to populate
+ * @param {string} tag - The HTML tag name
+ * @param {Object} context - Optional context values (showNodeClass, etc.)
+ * @returns {Object} The processed element
  */
-export const processListElement = (node, element, tag) => {
+export const processListElement = (node, element, tag, context = {}) => {
   // Check if list contains only simple text (no HTML tags except nested lists)
   const isSimpleList = Array.from(node.children).every(li => {
     if (li.tagName.toLowerCase() !== 'li') return false;
@@ -26,14 +33,17 @@ export const processListElement = (node, element, tag) => {
     if (isSimpleList) {
       // Simple lists - render as rich text (including nested lists)
       element.name = 'text';
+      element.label = getElementLabel(node, tag.toUpperCase() + ' List', context);
       element.settings.tag = tag;
       element.settings.text = node.innerHTML;
       element.settings.isRichText = true;
       // Don't return here - let the main function handle the return
     } else {
       // Complex lists - use div structure
-      element.name = 'div';
+      element.name = tag === 'ul' ? 'ul' : 'ol';
+      element.label = getElementLabel(node, tag.toUpperCase() + ' List', context);
       element.settings.tag = tag;
+      element.settings.items = [];
       element.settings.style = 'list-style-position: inside;';
     }
     element.label = tag === 'ul' ? 'Unordered List' : 'Ordered List';
