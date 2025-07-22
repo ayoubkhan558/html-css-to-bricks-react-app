@@ -7,7 +7,7 @@ export function processJavaScript(js, parentId = '0') {
   return {
     id: getUniqueId(),
     name: 'code',
-    parent: parentId,
+    // parent: parentId,
     children: [],
     settings: {
       executeCode: true,
