@@ -30,7 +30,7 @@ const createBricksStructure = (html, css = '', js = '', options = {}) => {
     }
 
     // Ensure version is correct
-    result.version = '2.0-beta';
+    result.version = '2.0';
 
     return result;
   } catch (error) {

@@ -381,8 +381,8 @@ const convertHtmlToBricks = (html, css, options) => {
     return {
       content,
       source: 'bricksCopiedElements',
-      sourceUrl: 'http://localhost/bricks',
-      version: '2.0-beta',
+      sourceUrl: 'https://brickify.netlify.app',
+      version: '2.0',
       globalClasses,
       globalElements: []
     };
