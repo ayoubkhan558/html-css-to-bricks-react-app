@@ -13,7 +13,7 @@ const AboutModal = ({ isOpen, onClose }) => {
         </button>
         
         <div className="about-modal__content">
-          <h2>About Code2Bricks</h2>
+          <h2>About Brickify </h2>
           
           <div className="about-modal__author">
             <h3>Created by Ayoub Khan</h3>
@@ -43,7 +43,7 @@ const AboutModal = ({ isOpen, onClose }) => {
           </div>
           
           <div className="about-modal__description">
-            <p>Code2Bricks helps developers convert their HTML, CSS, and JavaScript into Bricks Builder's JSON structure, making it easier to migrate existing websites to Bricks Builder.</p>
+            <p>Brickify  helps developers convert their HTML, CSS, and JavaScript into Bricks Builder's JSON structure, making it easier to migrate existing websites to Bricks Builder.</p>
           </div>
         </div>
       </div>

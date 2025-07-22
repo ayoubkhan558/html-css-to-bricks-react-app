@@ -165,7 +165,7 @@ const GeneratorComponent = () => {
             <path d="M2 17L12 22L22 17" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" />
             <path d="M2 12L12 17L22 12" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          <span>Code2Bricks</span>
+          <span>Brickify </span>
           <div className="app-header__buttons">
             <button
               className="app-header__button"
