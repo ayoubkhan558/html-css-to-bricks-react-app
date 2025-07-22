@@ -186,7 +186,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     processButtonElement(node, element, tag, options.context || {});
   }
   else if (tag === 'svg') {
-    processSvgElement(node, element);
+    const svgElement = processSvgElement(node, element, tag, options.context || {});
+    allElements.push(svgElement);
+    return svgElement;
   }
   else if (tag === 'form') {
     return processFormElement(node, { context: options.context || {} });
@@ -215,6 +217,10 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   else if (tag === 'audio') {
     processAudioElement(node, element, tag, options.context || {});
   }
+  else if (tag === 'svg') {
+    processSvgElement(node, element, tag, options.context || {});
+    element._skipChildren = true;
+  }
   else if (tag === 'video') {
     processVideoElement(node, element, tag, options.context || {});
   }
@@ -224,7 +230,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   // Process children (only skip td/th to avoid duplication, allow other table elements to process children)
   // Skip traversing children for table cells, forms, and elements that handle their own text content
-  if (!['td', 'th', 'form'].includes(tag) && !element._skipTextNodes) {
+  if (!['td', 'th', 'form'].includes(tag) && !element._skipTextNodes && !element._skipChildren) {
     Array.from(node.childNodes).forEach(childNode => {
       // Skip empty text nodes and text nodes when the parent handles its own text content
       if (childNode.nodeType === Node.TEXT_NODE && (!childNode.textContent.trim() || element._skipTextNodes)) {
