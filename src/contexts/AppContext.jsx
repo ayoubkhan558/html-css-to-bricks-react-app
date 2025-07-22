@@ -7,7 +7,7 @@ export function AppProvider({ children }) {
   const [activeTagIndex, setActiveTagIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('html');
   const [cssTarget, setCssTarget] = useState('class');
-  const [styleHandling, setStyleHandling] = useState('inline');
+  const [inlineStyleHandling, setInlineStyleHandling] = useState('inline');
 
   return (
     <AppContext.Provider value={{
@@ -22,8 +22,8 @@ export function AppProvider({ children }) {
       // Code Generation Settings
       cssTarget,
       setCssTarget,
-      styleHandling,
-      setStyleHandling
+      inlineStyleHandling,
+      setInlineStyleHandling
     }}>
       {children}
     </AppContext.Provider>

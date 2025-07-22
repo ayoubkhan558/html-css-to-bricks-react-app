@@ -306,14 +306,14 @@ const CodeEditor = ({
       const lineNumber = line.number;
       const column = pos - line.from + 1;
 
-      console.log(`Cursor at line ${lineNumber}, column ${column}`);
-      console.log('Context:', doc.slice(Math.max(0, pos - 50), Math.min(doc.length, pos + 50)));
+      // console.log(`Cursor at line ${lineNumber}, column ${column}`);
+      // console.log('Context:', doc.slice(Math.max(0, pos - 50), Math.min(doc.length, pos + 50)));
 
       if (language === 'html' && onCursorTagIndexChange) {
         const textUntilPos = doc.slice(0, pos);
         const tags = textUntilPos.match(/<([a-zA-Z][\w-]*)(\s|>)/g) || [];
         const tagIndex = Math.max(tags.length - 1, 0);
-        console.log('Current tag index:', tagIndex, 'Tag:', tags[tagIndex - 1] || 'none');
+        // console.log('Current tag index:', tagIndex, 'Tag:', tags[tagIndex - 1] || 'none');
         onCursorTagIndexChange(tagIndex);
       }
     }

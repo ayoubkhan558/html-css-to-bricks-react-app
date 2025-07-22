@@ -16,7 +16,7 @@ const useGeneratorStore = create((set) => ({
   includeJs: false,
   showJsonPreview: true,
   isCopied: false,
-  styleHandling: 'inline', // 'skip', 'inline', 'class'
+  inlineStyleHandling: 'inline', // 'skip', 'inline', 'class'
   isDarkMode: initialDark,
 
   // setters
@@ -29,7 +29,7 @@ const useGeneratorStore = create((set) => ({
   setIncludeJs: (inc) => set({ includeJs: inc }),
   setShowJsonPreview: (show) => set({ showJsonPreview: show }),
   setIsCopied: (val) => set({ isCopied: val }),
-  setStyleHandling: (mode) => set({ styleHandling: mode }),
+  setInlineStyleHandling: (mode) => set({ inlineStyleHandling: mode }),
   toggleDarkMode: () =>
     set((state) => {
       const newMode = !state.isDarkMode;

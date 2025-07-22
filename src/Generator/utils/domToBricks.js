@@ -54,17 +54,25 @@ const hasContainerClasses = (node) => {
  * Processes a DOM node and converts it to a Bricks element
  */
 const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], allElements = [], variables = {}, options = {}) => {
+  // Get context values from options
+  const {
+    showNodeClass = false,
+    inlineStyleHandling,
+    cssTarget = 'class'
+  } = options.context || {};
+  console.log('inlineStyleHandling', inlineStyleHandling);
+  console.log('cssTarget', cssTarget);
   // Handle text nodes
   if (node.nodeType !== Node.ELEMENT_NODE) {
     // Skip text nodes that are inside a form element (labels, button text, etc.)
     // or inside a heading element
-    if ((node.parentElement && node.parentElement.closest && 
-         (node.parentElement.closest('form') || 
-          node.parentElement.matches('h1, h2, h3, h4, h5, h6'))) ||
-        !node.textContent.trim()) {
+    if ((node.parentElement && node.parentElement.closest &&
+      (node.parentElement.closest('form') ||
+        node.parentElement.matches('h1, h2, h3, h4, h5, h6'))) ||
+      !node.textContent.trim()) {
       return null;
     }
-    
+
     if (node.nodeType === Node.TEXT_NODE) {
       const textElement = {
         id: getUniqueId(),
@@ -111,8 +119,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   };
 
   // Check if this is a standalone inline element that should be converted to text-basic
-  const isStandaloneInline = ['strong', 'em', 'small', 'blockquote'].includes(tag) && 
-    node.parentElement && 
+  const isStandaloneInline = ['strong', 'em', 'small', 'blockquote'].includes(tag) &&
+    node.parentElement &&
     !['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th', 'div', 'section', 'article', 'aside', 'header', 'footer', 'nav'].includes(node.parentElement.tagName.toLowerCase());
 
   if (isStandaloneInline) {
@@ -127,7 +135,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         customTag: tag
       }
     };
-    
+
     allElements.push(textElement);
     return textElement;
   }
@@ -156,9 +164,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     return processNavElement(node, options.context || {});
   }
   // Structure/layout elements
-  else if (tag === 'section' || 
-    node.classList.contains('container') || 
-    node.classList.contains('row') || 
+  else if (tag === 'section' ||
+    node.classList.contains('container') ||
+    node.classList.contains('row') ||
     node.classList.contains('col-') ||
     node.classList.contains('section') ||
     (tag === 'div' && hasContainerClasses(node))) {
@@ -260,9 +268,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // ------------------------------------------------------------------
   // Get all matching CSS properties for this element
   const combinedProperties = matchCSSSelectors(node, cssRulesMap);
-  const { cssTarget = 'class' } = options;
+  const { cssSelectorTarget = 'class' } = options;
 
-  if (cssTarget === 'id') {
+  if (cssSelectorTarget === 'id') {
     // Apply styles directly to the element's ID
     if (Object.keys(combinedProperties).length > 0) {
       const parsedSettings = parseCssDeclarations(combinedProperties, `#brx-${element.id}`, variables);
@@ -270,14 +278,14 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     }
     // Handle pseudo-classes for ID
     Object.keys(cssRulesMap).forEach(selector => {
-        const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\\w+)`)); // This might need adjustment based on how you identify elements for pseudo-styling
-        if (pseudoMatch) {
-            const pseudoClass = pseudoMatch[1];
-            const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], `#brx-${element.id}`, variables);
-            Object.entries(pseudoStyles).forEach(([prop, value]) => {
-                element.settings[`${prop}:${pseudoClass}`] = value;
-            });
-        }
+      const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\\w+)`)); // This might need adjustment based on how you identify elements for pseudo-styling
+      if (pseudoMatch) {
+        const pseudoClass = pseudoMatch[1];
+        const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], `#brx-${element.id}`, variables);
+        Object.entries(pseudoStyles).forEach(([prop, value]) => {
+          element.settings[`${prop}:${pseudoClass}`] = value;
+        });
+      }
     });
 
   } else {
@@ -352,10 +360,22 @@ const convertHtmlToBricks = (html, css, options) => {
 
     const processNodes = nodeList => {
       Array.from(nodeList).forEach(node => {
-        const element = domNodeToBricks(node, cssMap, '0', globalClasses, allElements, variables, {
-          ...options,
-          context: options.context || {}
-        });
+        const element = domNodeToBricks(
+          node,
+          cssMap,
+          '0',
+          globalClasses,
+          allElements,
+          variables,
+          {
+            ...options,
+            context: {
+              showNodeClass: options.context?.showNodeClass || false,
+              inlineStyleHandling: options.context?.inlineStyleHandling || 'inline',
+              cssTarget: options.context?.cssTarget || 'class'
+            }
+          }
+        );
         if (element) {
           if (Array.isArray(element)) {
             content.push(...element);

@@ -7,7 +7,7 @@ import { FaInfoCircle } from "react-icons/fa";
 import AboutModal from './AboutModal';
 import Tooltip from '../../components/Tooltip';
 
-import { useAppContext } from '../../contexts/AppContext.jsx';
+import { useAppContext } from './../../contexts/AppContext.jsx';
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
 import CodeEditor from '../../components/CodeEditor';
@@ -19,13 +19,21 @@ import * as parserBabel from 'prettier/parser-babel';
 import './GeneratorComponent.scss';
 
 const GeneratorComponent = () => {
-  const { showNodeClass, setShowNodeClass } = useAppContext();
+  const { 
+    showNodeClass, 
+    setShowNodeClass, 
+    activeTab, 
+    setActiveTab,
+    inlineStyleHandling,
+    setInlineStyleHandling,
+    cssTarget,
+    setCssTarget
+  } = useAppContext();
   const [activeTagIndex, setActiveTagIndex] = useState(0);
   const [html, setHtml] = useState('');
   const [css, setCss] = useState('');
   const [js, setJs] = useState('');
   const [output, setOutput] = useState('');
-  const [activeTab, setActiveTab] = useState('html');
   // Always use dark mode
   const isDarkMode = true;
   const [isMinified, setIsMinified] = useState(false);
@@ -33,8 +41,6 @@ const GeneratorComponent = () => {
   const [showJsonPreview, setShowJsonPreview] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [styleHandling, setStyleHandling] = useState('inline');
-  const [cssTarget, setCssTarget] = useState('class'); // 'class' or 'id'
 
   const formatCurrent = async () => {
     const formatCode = async (code, parser) => {
@@ -143,9 +149,9 @@ const GeneratorComponent = () => {
       if (html.trim()) {
         const includeJs = activeTab === 'js';
         const context = { showNodeClass };
-        console.log('Creating bricks structure with context:', context);
+        // console.log('Creating bricks structure with context:', context);
         const result = createBricksStructure(html, css, includeJs ? js : '', { 
-          styleHandling, 
+          inlineStyleHandling, 
           cssTarget,
           context
         });
@@ -160,7 +166,7 @@ const GeneratorComponent = () => {
       console.error('Failed to generate structure:', err);
       // Optionally, you can set an error state here to show in the UI
     }
-  }, [html, css, js, includeJs, styleHandling, isMinified, cssTarget, showNodeClass]);
+  }, [html, css, js, includeJs, inlineStyleHandling, isMinified, cssTarget, showNodeClass]);
 
   return (
     <div className="generator">
@@ -189,15 +195,15 @@ const GeneratorComponent = () => {
               <label className="inline-styles-handling__label">Inline Styles:</label>
               <div className="inline-styles-handling__options">
                 <label className="inline-styles-handling__option">
-                  <input type="radio" name="styleHandling" value="skip" checked={styleHandling === 'skip'} onChange={() => setStyleHandling('skip')} className="inline-styles-handling__radio" />
+                  <input type="radio" name="inlineStyleHandling" value="skip" checked={inlineStyleHandling === 'skip'} onChange={() => setInlineStyleHandling('skip')} className="inline-styles-handling__radio" />
                   <span className="inline-styles-handling__text">Skip</span>
                 </label>
                 <label className="inline-styles-handling__option">
-                  <input type="radio" name="styleHandling" value="inline" checked={styleHandling === 'inline'} onChange={() => setStyleHandling('inline')} className="inline-styles-handling__radio" />
+                  <input type="radio" name="inlineStyleHandling" value="inline" checked={inlineStyleHandling === 'inline'} onChange={() => setInlineStyleHandling('inline')} className="inline-styles-handling__radio" />
                   <span className="inline-styles-handling__text">Inline</span>
                 </label>
                 <label className="inline-styles-handling__option">
-                  <input type="radio" name="styleHandling" value="class" checked={styleHandling === 'class'} onChange={() => setStyleHandling('class')} className="inline-styles-handling__radio" />
+                  <input type="radio" name="inlineStyleHandling" value="class" checked={inlineStyleHandling === 'class'} onChange={() => setInlineStyleHandling('class')} className="inline-styles-handling__radio" />
                   <span className="inline-styles-handling__text">Class</span>
                 </label>
               </div>
