@@ -1,22 +1,22 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { javascript } from '@codemirror/lang-javascript';
-import { autocompletion, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { defaultKeymap, indentWithTab } from '@codemirror/commands';
-import { bracketMatching, indentOnInput } from '@codemirror/language';
+import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
 import { lineNumbers, highlightActiveLineGutter, highlightActiveLine, EditorView } from '@codemirror/view';
+import { bracketMatching, indentOnInput } from '@codemirror/language';
 import { darkTheme } from '../theme/codemirror-theme';
+
 
 // HTML autocompletions
 const htmlCompletions = (context) => {
   const word = context.matchBefore(/[\w-]*/);
   if (!word || word.from === word.to && !context.explicit) return null;
-  
+
   const tagBefore = context.matchBefore(/<\/?[\w-]+/);
   const tagName = tagBefore ? tagBefore.text.match(/<\/?([\w-]+)/)?.[1] : '';
-  
+
   // If inside an opening tag
   if (tagName && !tagBefore.text.endsWith('/')) {
     return {
@@ -33,7 +33,7 @@ const htmlCompletions = (context) => {
       ]
     };
   }
-  
+
   // Default HTML tag completions
   return {
     from: word.from,
@@ -80,15 +80,15 @@ const htmlCompletions = (context) => {
 const cssCompletions = (context) => {
   const word = context.matchBefore(/[\w-]*/);
   if (!word || word.from === word.to && !context.explicit) return null;
-  
+
   // Check if we're completing a property or a value
   const before = context.state.doc.toString().substring(0, word.from).trim();
   const isValue = before.endsWith(':');
-  
+
   if (isValue) {
     const property = before.substring(0, before.length - 1).trim().toLowerCase();
     const valueOptions = [];
-    
+
     // Common value completions based on property
     switch (property) {
       case 'display':
@@ -182,13 +182,13 @@ const cssCompletions = (context) => {
           { label: 'var(--custom-property)', type: 'value' }
         );
     }
-    
+
     return {
       from: word.from,
       options: valueOptions
     };
   }
-  
+
   // Property completions
   return {
     from: word.from,
@@ -201,7 +201,7 @@ const cssCompletions = (context) => {
       { label: 'bottom', type: 'property', info: 'Specifies the bottom position of a positioned element' },
       { label: 'left', type: 'property', info: 'Specifies the left position of a positioned element' },
       { label: 'z-index', type: 'property', info: 'Sets the stack order of an element' },
-      
+
       // Flexbox
       { label: 'flex', type: 'property', info: 'Shorthand for flex-grow, flex-shrink and flex-basis' },
       { label: 'flex-direction', type: 'property', info: 'Specifies the direction of the flexible items' },
@@ -209,7 +209,7 @@ const cssCompletions = (context) => {
       { label: 'justify-content', type: 'property', info: 'Aligns the flexible container\'s items when the items do not use all available space' },
       { label: 'align-items', type: 'property', info: 'Aligns the flexible container\'s items' },
       { label: 'align-content', type: 'property', info: 'Aligns the lines in a flex container when there is extra space' },
-      
+
       // Grid
       { label: 'grid', type: 'property', info: 'Shorthand for grid-template-rows, grid-template-columns, and grid-areas' },
       { label: 'grid-template-columns', type: 'property', info: 'Specifies the size of the columns in a grid layout' },
@@ -217,7 +217,7 @@ const cssCompletions = (context) => {
       { label: 'grid-gap', type: 'property', info: 'Shorthand for grid-row-gap and grid-column-gap' },
       { label: 'grid-column', type: 'property', info: 'Shorthand for grid-column-start and grid-column-end' },
       { label: 'grid-row', type: 'property', info: 'Shorthand for grid-row-start and grid-row-end' },
-      
+
       // Box Model
       { label: 'width', type: 'property', info: 'Sets the width of an element' },
       { label: 'height', type: 'property', info: 'Sets the height of an element' },
@@ -228,7 +228,7 @@ const cssCompletions = (context) => {
       { label: 'margin', type: 'property', info: 'Shorthand for margin-top, margin-right, margin-bottom, and margin-left' },
       { label: 'padding', type: 'property', info: 'Shorthand for padding-top, padding-right, padding-bottom, and padding-left' },
       { label: 'box-sizing', type: 'property', info: 'Defines how the width and height of an element are calculated' },
-      
+
       // Typography
       { label: 'color', type: 'property', info: 'Sets the color of text' },
       { label: 'font-family', type: 'property', info: 'Specifies the font family for text' },
@@ -237,7 +237,7 @@ const cssCompletions = (context) => {
       { label: 'line-height', type: 'property', info: 'Specifies the height of a line' },
       { label: 'text-align', type: 'property', info: 'Specifies the horizontal alignment of text' },
       { label: 'text-decoration', type: 'property', info: 'Specifies the decoration added to text' },
-      
+
       // Background
       { label: 'background', type: 'property', info: 'Shorthand for background properties' },
       { label: 'background-color', type: 'property', info: 'Sets the background color of an element' },
@@ -245,12 +245,12 @@ const cssCompletions = (context) => {
       { label: 'background-position', type: 'property', info: 'Specifies the position of a background image' },
       { label: 'background-size', type: 'property', info: 'Specifies the size of the background images' },
       { label: 'background-repeat', type: 'property', info: 'Sets if/how a background image will be repeated' },
-      
+
       // Border
       { label: 'border', type: 'property', info: 'Shorthand for border-width, border-style, and border-color' },
       { label: 'border-radius', type: 'property', info: 'Defines the radius of the element\'s corners' },
       { label: 'box-shadow', type: 'property', info: 'Attaches one or more shadows to an element' },
-      
+
       // Effects
       { label: 'opacity', type: 'property', info: 'Sets the opacity level for an element' },
       { label: 'transform', type: 'property', info: 'Applies a 2D or 3D transformation to an element' },
@@ -260,14 +260,15 @@ const cssCompletions = (context) => {
   };
 };
 
-const CodeEditor = ({ 
-  value, 
-  onChange, 
+const CodeEditor = ({
+  value,
+  onChange,
   language = 'html',
   placeholder = '',
   className = '',
   height = '100%',
-  readOnly = false
+  readOnly = false,
+  onCursorTagIndexChange
 }) => {
   // Configure extensions based on language
   const extensions = useMemo(() => {
@@ -286,26 +287,37 @@ const CodeEditor = ({
       darkTheme
     ];
 
-    // Add language-specific extensions
     if (language === 'html') {
-      return [
-        ...baseExtensions,
-        html({ autoCloseTags: true, matchClosingTags: true }),
-      ];
+      return [...baseExtensions, html({ autoCloseTags: true, matchClosingTags: true })];
     } else if (language === 'css') {
-      return [
-        ...baseExtensions,
-        css(),
-      ];
+      return [...baseExtensions, css()];
     } else if (language === 'javascript' || language === 'js') {
-      return [
-        ...baseExtensions,
-        javascript({ jsx: true, typescript: false }),
-      ];
+      return [...baseExtensions, javascript({ jsx: true, typescript: false })];
     }
-    
     return baseExtensions;
   }, [language]);
+
+  const handleEditorUpdate = useCallback((update) => {
+    if (update.selectionSet) {
+      const state = update.state;
+      const pos = state.selection.main.head;
+      const doc = state.doc.toString();
+      const line = state.doc.lineAt(pos);
+      const lineNumber = line.number;
+      const column = pos - line.from + 1;
+
+      console.log(`Cursor at line ${lineNumber}, column ${column}`);
+      console.log('Context:', doc.slice(Math.max(0, pos - 50), Math.min(doc.length, pos + 50)));
+
+      if (language === 'html' && onCursorTagIndexChange) {
+        const textUntilPos = doc.slice(0, pos);
+        const tags = textUntilPos.match(/<([a-zA-Z][\w-]*)(\s|>)/g) || [];
+        const tagIndex = Math.max(tags.length - 1, 0);
+        console.log('Current tag index:', tagIndex, 'Tag:', tags[tagIndex - 1] || 'none');
+        onCursorTagIndexChange(tagIndex);
+      }
+    }
+  }, [language, onCursorTagIndexChange]);
 
   return (
     <div className={`code-editor ${className}`} style={{ height }}>
@@ -314,6 +326,7 @@ const CodeEditor = ({
         height="100%"
         extensions={extensions}
         onChange={onChange}
+        onUpdate={handleEditorUpdate}
         placeholder={placeholder}
         readOnly={readOnly}
         indentWithTab={true}

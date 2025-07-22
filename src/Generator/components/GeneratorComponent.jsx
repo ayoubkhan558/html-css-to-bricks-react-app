@@ -18,6 +18,7 @@ import * as parserBabel from 'prettier/parser-babel';
 import './GeneratorComponent.scss';
 
 const GeneratorComponent = () => {
+  const [activeTagIndex, setActiveTagIndex] = useState(0);
   const [html, setHtml] = useState('');
   const [css, setCss] = useState('');
   const [js, setJs] = useState('');
@@ -133,6 +134,7 @@ const GeneratorComponent = () => {
     document.documentElement.setAttribute('data-theme', 'dark');
     localStorage.setItem('theme', 'dark');
   }, []);
+  
 
   useEffect(() => {
     try {
@@ -288,6 +290,7 @@ const GeneratorComponent = () => {
                         }
                         height="100%"
                         className="code-editor__content"
+                        onCursorTagIndexChange={setActiveTagIndex}
                       />
                     </div>
                   </div>
@@ -309,7 +312,7 @@ const GeneratorComponent = () => {
               </div>
               <div className="preview-content">
                 {html || css || js ? (
-                  <Preview html={html} css={css} />
+                  <Preview html={html} css={css} activeTagIndex={activeTagIndex} highlight={activeTab === 'html'} />
                 ) : (
                   <div className="preview-placeholder">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
