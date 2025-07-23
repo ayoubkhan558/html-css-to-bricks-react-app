@@ -508,18 +508,24 @@ const convertHtmlToBricks = (html, css, options) => {
     });
 
     if (rootStyles) {
+      // Split the combined root styles back into individual root blocks
+      const rootBlocks = rootStyles.split(';').filter(block => block.trim() !== '');
+      
+      // Create a single root block with all variables
+      const combinedRootStyles = `:root {\n  ${rootBlocks.join(';\n  ')};\n}`;
+      
       if (globalClasses.length > 0) {
         const firstClass = globalClasses[0];
         if (!firstClass.settings._cssCustom) {
           firstClass.settings._cssCustom = '';
         }
-        firstClass.settings._cssCustom = `:root {\n  ${rootStyles}\n}\n${firstClass.settings._cssCustom}`;
+        firstClass.settings._cssCustom = `${combinedRootStyles}\n${firstClass.settings._cssCustom}`;
       } else {
         globalClasses.push({
           id: getUniqueId(),
           name: 'custom-css',
           settings: {
-            _cssCustom: `:root {\n  ${rootStyles}\n}`,
+            _cssCustom: combinedRootStyles,
           },
         });
       }

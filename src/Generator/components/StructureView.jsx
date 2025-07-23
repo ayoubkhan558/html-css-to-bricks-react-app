@@ -3,11 +3,15 @@ import {
   BsSquare, BsCardHeading, BsTextParagraph, BsLayoutSplit,
   BsLayoutThreeColumns, BsCodeSlash, BsBricks, BsLayoutTextSidebarReverse,
   BsListUl, BsInputCursorText, BsInputCursor,
-  BsMenuButtonWide, BsTextareaT, BsTag, BsImage, BsVectorPen,
+  BsMenuButtonWide, BsTextareaT, BsTag, BsImage,
   BsTable, BsLink45Deg
 } from 'react-icons/bs';
+import { CiBoxList } from "react-icons/ci";
+import { FaWpforms } from "react-icons/fa6";
 import { TbSvg } from "react-icons/tb";
 import { IoLogoJavascript } from "react-icons/io";
+import { IoText } from "react-icons/io5";
+import { DiMarkdown } from "react-icons/di";
 
 import { RxButton } from "react-icons/rx";
 import { BsTypeH1, BsTypeH2, BsTypeH3, BsTypeH4, BsTypeH5, BsTypeH6 } from "react-icons/bs";
@@ -32,20 +36,25 @@ const ICONS = {
   h6: <BsTypeH6 />,
   p: <BsTextParagraph />,
   span: <BsTextParagraph />,
-  'text-basic': <BsTextParagraph />,
+  'text': <BsTextareaT />,
+  'text-basic': <IoText />,
+  'mark': <DiMarkdown />,
 
   // Navigation
   nav: <BsLayoutTextSidebarReverse />,
   menu: <BsListUl />,
 
   // Forms
-  form: <BsInputCursorText />,
+  form: <FaWpforms />,
 
   // Media
   img: <BsImage />,
+  image: <BsImage />,
   picture: <BsImage />,
   figure: <BsImage />,
-  svg: <BsVectorPen />,
+
+  list: <CiBoxList />,
+  li: <CiBoxList />,
 
   // Tables
   table: <BsTable />,
@@ -90,8 +99,8 @@ const StructureView = ({ data, globalClasses, activeIndex, showNodeClass }) => {
 
   const getElementInfo = (element) => {
     const info = {
-      // icon: ICONS[element.name] || ICONS.default,
-      icon: ICONS[element.settings.tag] || ICONS.default,
+      icon: ICONS[element.name] || ICONS.default,
+      // icon: ICONS[element.settings.tag] || ICONS.default,
       label: element.name || 'div',
       // label: element.settings.tag || 'div',
       className: '',

@@ -483,7 +483,7 @@ const getSelectorType = (selector) => {
 export function buildCssMap(cssText) {
   const map = {};
   const variables = {};
-  let rootStyles = '';
+  let rootStyles = [];
 
   // Remove comments and normalize whitespace
   const cleanCSS = cssText
@@ -526,7 +526,10 @@ export function buildCssMap(cssText) {
         map[trimmed] = properties;
 
         if (trimmed === ':root') {
-          rootStyles = properties;
+          // Add to root styles array
+          rootStyles.push(properties);
+          
+          // Process variables from all root blocks
           properties.split(';').forEach(prop => {
             const [key, value] = prop.split(':').map(s => s.trim());
             if (key && key.startsWith('--')) {
@@ -538,5 +541,7 @@ export function buildCssMap(cssText) {
     });
   });
 
-  return { cssMap: map, variables, rootStyles };
+  // Join all root styles with semicolons to maintain valid CSS
+  const combinedRootStyles = rootStyles.join(';');
+  return { cssMap: map, variables, rootStyles: combinedRootStyles };
 }
