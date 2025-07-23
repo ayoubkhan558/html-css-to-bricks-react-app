@@ -7,13 +7,15 @@ This tool is designed to help Bricks Builder users quickly convert their existin
 ### HTML to Bricks Conversion
 - Converts raw HTML into Bricks Builder's JSON structure
 - Preserves HTML structure and hierarchy
-- Handles various HTML elements including section, div, container,forms, buttons, images, and more
+- Handles various HTML elements including section, div, container, forms, buttons, images, and more
+- Processes inline styles with flexible handling options
 
 ### CSS Processing
 - Converts CSS styles into Bricks-compatible format
-- Handles class-based styling
+- Handles class-based styling with proper specificity
 - Supports pseudo-classes (:hover, :active, :focus, :visited)
 - Preserves class names even without styles
+- Advanced typography property handling (font-weight, font-size, color, etc.)
 
 ### JavaScript Integration
 - Processes and includes JavaScript functionality
@@ -21,9 +23,12 @@ This tool is designed to help Bricks Builder users quickly convert their existin
 - Maintains global elements and their references
 
 ### Style Handling Options
-- **Skip**: Ignores inline styles
-- **Inline**: Converts styles to inline styles
-- **Class**: Converts inline styles to CSS classes
+- **Skip**: Ignores inline styles completely
+- **Inline**: Preserves styles as inline attributes
+- **Class**: Converts inline styles to CSS classes with proper merging
+  - Maintains existing class styles
+  - Merges inline styles with class definitions
+  - Preserves typography and layout properties
 
 ### Preview Functionality
 - Live preview of the generated structure
@@ -37,19 +42,23 @@ This tool is designed to help Bricks Builder users quickly convert their existin
 
 ### Advanced Features
 - Handles form elements with proper field types
-- Processes custom attributes
-- Maintains parent-child relationships
+- Processes custom attributes and data-* attributes
+- Maintains parent-child relationships in the element tree
 - Supports dynamic class name generation
+- Properly merges inline styles with existing class definitions
+- Handles complex CSS properties and values
+- Preserves media queries and responsive styles
 
 ---
 
 ## Roadmap
-- [ ] Add support for more HTML elements
-- [ ] Add support for more CSS properties
-- [ ] Add support for more JS features  
-- [ ] Add support for CSS Variables
-- [ ] Add support for CSS Media Queries
-- [ ] Add support for inline styles to classes and inline embed
+- [x] Add support for inline styles to classes
+- [ ] Add support for more HTML elements (tables, lists, etc.)
+- [ ] Add support for CSS Grid and Flexbox properties
+- [ ] Add support for CSS Custom Properties (Variables)
+- [x] Improve typography property handling
+- [ ] Add support for CSS animations and transitions
+- [ ] Add support for more complex CSS selectors
 
 ## Known Bugs
 - [ ] SVG Code is not signed by default
