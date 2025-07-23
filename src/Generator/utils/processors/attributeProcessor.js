@@ -1,10 +1,11 @@
 import { getUniqueId } from '../utils';
 
+
 /**
  * Processes element attributes into Bricks settings
  */
-export const processAttributes = (node, element, tag) => {
-  const elementSpecificAttrs = ['id', 'class', 'style', 'href', 'src', 'alt', 'title', 'type', 'name', 'value', 'placeholder', 'required', 'disabled', 'checked', 'selected', 'multiple', 'rows', 'cols'];
+export const processAttributes = (node, element, tag, options = {}) => {
+  const elementSpecificAttrs = ['id', 'class', 'href', 'src', 'alt', 'title', 'type', 'name', 'value', 'placeholder', 'required', 'disabled', 'checked', 'selected', 'multiple', 'rows', 'cols'];
   const customAttributes = [];
 
   if (tag === 'a' && node.hasAttribute('href')) {
@@ -21,7 +22,34 @@ export const processAttributes = (node, element, tag) => {
     element.settings._cssId = node.getAttribute('id');
   }
 
+  // Process style attribute based on inlineStyleHandling
+  if (node.hasAttribute('style')) {
+    const style = node.getAttribute('style').trim();
+    if (!style) return; // Skip if style is empty
+
+    const inlineStyleHandling = options.inlineStyleHandling || options.context?.inlineStyleHandling || 'inline';
+
+    // Only process as attribute if inlineStyleHandling is 'inline'
+    if (inlineStyleHandling === 'inline') {
+      // For 'inline' mode, we'll keep the styles as inline styles
+      element.settings._attributes = element.settings._attributes || [];
+      element.settings._attributes.push({
+        id: getUniqueId(),
+        name: 'style',
+        value: style
+      });
+      console.log('Set inline styles as attribute');
+
+      // Remove the style attribute since we've processed it
+      node.removeAttribute('style');
+    }
+    // For 'class' and 'skip' modes, don't add to attributes - let handleInlineStyles deal with it
+  }
+
+  // Process other attributes
   Array.from(node.attributes).forEach(attr => {
+    if (attr.name === 'style') return; // Skip style as it's already processed above
+
     if (!elementSpecificAttrs.includes(attr.name) &&
       !attr.name.startsWith('data-bricks-') &&
       attr.name !== 'href' &&

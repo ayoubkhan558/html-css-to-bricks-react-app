@@ -454,8 +454,8 @@ export function matchCSSSelectors(element, cssMap) {
         const parsedProperties = parseProperties(properties);
         Object.assign(combinedProperties, parsedProperties);
 
-        console.log(`Element matched by: ${selector}`);
-        console.log('Properties:', parsedProperties);
+        // console.log(`Element matched by: ${selector}`);
+        // console.log('Properties:', parsedProperties);
       }
     } catch (error) {
       console.warn(`Error processing selector: ${selector}`, error);

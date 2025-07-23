@@ -17,6 +17,33 @@ import { processAttributes } from './processors/attributeProcessor';
 import { processAlertElement } from './elementProcessors/alertProcessor';
 import { processNavElement } from './elementProcessors/navProcessor';
 
+// Context values will be passed as parameters to the functions
+/**
+ * Converts inline styles to a CSS class
+ * @param {string} styleString - The inline style string (e.g., 'color: red; font-size: 16px;')
+ * @returns {Object} - Object containing className and CSS rules
+ */
+const convertStylesToClass = (styleString) => {
+  if (!styleString) return { className: '', css: '' };
+
+  // Generate a unique class name
+  const className = `bricks-style-${Math.random().toString(36).substr(2, 8)}`;
+
+  // Convert style string to CSS rules
+  const rules = styleString
+    .split(';')
+    .filter(rule => rule.trim() !== '')
+    .map(rule => {
+      const [property, value] = rule.split(':').map(part => part.trim());
+      return property && value ? `${property}: ${value};` : '';
+    })
+    .filter(Boolean)
+    .join('\n  ');
+
+  const css = `.${className} {\n  ${rules}\n}`;
+
+  return { className, css };
+};
 
 // Alert/message class patterns to check
 const ALERT_CLASS_PATTERNS = [
@@ -51,13 +78,88 @@ const hasContainerClasses = (node) => {
   return containerClasses.some(cls => node.classList.contains(cls));
 };
 
+const handleInlineStyles = (node, element, globalClasses, variables = {}, options = {}) => {
+
+  const styleAttr = node.getAttribute('style');
+  console.log('111 Inline styles for element:', options?.context?.inlineStyleHandling);
+  if (!styleAttr || !styleAttr.trim()) return;
+
+  switch (options?.context?.inlineStyleHandling) {
+    case 'skip':
+      // Do nothing - skip the inline styles completely
+      console.log('Skipping inline styles for element:', element.id);
+      // Remove the style attribute
+      node.removeAttribute('style');
+      break;
+
+    case 'inline':
+      // This case is now handled in processAttributes
+      console.log('Inline styles handled in processAttributes for element:', element.id);
+      break;
+
+    case 'class':
+      // Find the first global class for this element
+      let targetClass = null;
+      if (element.settings._cssGlobalClasses && element.settings._cssGlobalClasses.length > 0) {
+        const firstClassId = element.settings._cssGlobalClasses[0];
+        targetClass = globalClasses.find(c => c.id === firstClassId);
+      }
+      
+      // Convert inline styles to a class and merge with existing settings
+      console.log('Converting inline styles to class for element:', element.id, styleAttr, targetClass?.name, variables);
+
+      if (targetClass) {
+        // Parse the inline styles
+        const parsedInlineStyles = parseCssDeclarations(styleAttr, targetClass.name, variables);
+        
+        // Ensure _typography exists in the target class
+        if (!targetClass.settings._typography) {
+          targetClass.settings._typography = {};
+        }
+        
+        // Deep merge the inline styles with existing styles
+        if (parsedInlineStyles._typography) {
+          targetClass.settings._typography = {
+            ...targetClass.settings._typography, // Keep existing typography
+            ...parsedInlineStyles._typography,   // Apply inline styles on top
+          };
+        }
+        
+        // Merge any other settings (like _cssCustom, etc.)
+        Object.entries(parsedInlineStyles).forEach(([key, value]) => {
+          if (key !== '_typography') {
+            if (targetClass.settings[key] && typeof targetClass.settings[key] === 'object' && !Array.isArray(targetClass.settings[key])) {
+              // Merge objects
+              targetClass.settings[key] = {
+                ...targetClass.settings[key],
+                ...value
+              };
+            } else {
+              // Overwrite primitives and arrays
+              targetClass.settings[key] = value;
+            }
+          }
+        });
+      } else {
+        console.warn('No target class found for inline styles conversion');
+      }
+
+      // Remove the style attribute since we've processed it
+      node.removeAttribute('style');
+      break;
+
+    default:
+      console.warn('Unknown inlineStyleHandling value:', options?.context?.inlineStyleHandling);
+      break;
+  }
+};
+
 /**
  * Processes a DOM node and converts it to a Bricks element
  */
 const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses = [], allElements = [], variables = {}, options = {}) => {
-  // Get context values from options 
+  // Get context values from options with defaults
   const {
-    activeTab = 'html',
     inlineStyleHandling = 'inline',
     cssTarget = 'class',
     showNodeClass = false
@@ -280,7 +382,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     }
     // Handle pseudo-classes for ID
     Object.keys(cssRulesMap).forEach(selector => {
-      const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\\w+)`)); // This might need adjustment based on how you identify elements for pseudo-styling
+      const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\\w+)`));
       if (pseudoMatch) {
         const pseudoClass = pseudoMatch[1];
         const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], `#brx-${element.id}`, variables);
@@ -289,7 +391,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         });
       }
     });
-
   } else {
     // Apply styles via global classes (existing logic)
     const existingClasses = node.classList && node.classList.length > 0 ? Array.from(node.classList) : [];
@@ -331,8 +432,12 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     }
   }
 
-  // Process attributes
-  processAttributes(node, element, tag);
+  // Process element attributes with options before handling inline styles
+  processAttributes(node, element, tag, options);
+
+  // Pass the options to handleInlineStyles
+  handleInlineStyles(node, element, globalClasses, variables, options);
+
 
   allElements.push(element);
   return element;
@@ -372,9 +477,11 @@ const convertHtmlToBricks = (html, css, options) => {
           {
             ...options,
             context: {
+              ...options.context, // Spread existing context first
               showNodeClass: options.context?.showNodeClass || false,
               inlineStyleHandling: options.context?.inlineStyleHandling || 'inline',
-              cssTarget: options.context?.cssTarget || 'class'
+              cssTarget: options.context?.cssTarget || 'class',
+              activeTab: options.context?.activeTab || 'html'
             }
           }
         );
