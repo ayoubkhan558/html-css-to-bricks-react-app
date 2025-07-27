@@ -42,7 +42,7 @@ export const processStructureLayoutElement = (node, element, tag, context = {}) 
 
   if (layoutTags.includes(tag) || node.classList.contains('section')) {
     element.name = 'section';
-    element.label =
+    const defaultLabel = 
       tag === 'article' ? 'Article' :
         tag === 'aside' ? 'Aside' :
           tag === 'main' ? 'Main' :
@@ -50,6 +50,7 @@ export const processStructureLayoutElement = (node, element, tag, context = {}) 
               tag === 'figure' ? 'Figure' :
                 tag === 'section' ? 'Section' :
                   tag === 'footer' ? 'Footer' : 'Header';
+    element.label = getElementLabel(node, defaultLabel, context);
 
     // Use custom tag if not in defaultTags
     element.settings.tag = defaultTags.includes(tag) ? tag : 'custom';
