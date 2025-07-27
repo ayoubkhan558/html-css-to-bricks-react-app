@@ -59,15 +59,9 @@ const hasAlertClasses = (node) => {
 
   const classes = Array.from(node.classList);
 
-  // Check for exact matches or classes that start with alert patterns
-  return ALERT_CLASS_PATTERNS.some(pattern =>
-    classes.some(cls =>
-      cls === pattern ||
-      cls.startsWith(pattern + '-') ||
-      cls.startsWith(pattern + '_') ||
-      cls.endsWith('-' + pattern) ||
-      cls.endsWith('_' + pattern)
-    )
+  // Check for exact matches only
+  return ALERT_CLASS_PATTERNS.some(pattern => 
+    classes.includes(pattern)
   );
 };
 
