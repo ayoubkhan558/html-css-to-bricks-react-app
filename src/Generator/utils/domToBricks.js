@@ -12,6 +12,7 @@ import { processLinkElement } from './elementProcessors/linkProcessor';
 import { processButtonElement } from './elementProcessors/buttonProcessor';
 import { processMiscElement } from './elementProcessors/miscProcessor';
 import { processStructureLayoutElement } from './elementProcessors/structureLayoutProcessor';
+import { getElementLabel } from './elementProcessors/labelUtils';
 import { processTextElement } from './elementProcessors/textElementProcessor';
 import { processAttributes } from './processors/attributeProcessor';
 import { processAlertElement } from './elementProcessors/alertProcessor';
@@ -279,7 +280,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   else if (tag === 'div') {
     // Process as generic div if no special classes are present
     element.name = 'div';
-    element.label = 'Div';
+    element.label = getElementLabel(node, 'Div', options.context || {});
     element.settings.tag = 'div';
   }
   else if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
