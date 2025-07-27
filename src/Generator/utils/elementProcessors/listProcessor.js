@@ -40,7 +40,8 @@ export const processListElement = (node, element, tag, context = {}) => {
       // Don't return here - let the main function handle the return
     } else {
       // Complex lists - use div structure
-      element.name = tag === 'ul' ? 'ul' : 'ol';
+      // element.name = tag === 'ul' ? 'ul' : 'ol';
+      element.name = 'div';
       element.label = getElementLabel(node, tag.toUpperCase() + ' List', context);
       element.settings.tag = tag;
       element.settings.items = [];
