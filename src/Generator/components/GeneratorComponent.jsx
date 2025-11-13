@@ -2,8 +2,9 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 import { RiJavascriptLine, RiHtml5Line } from "react-icons/ri";
-import { FaCss3, FaCode, FaCopy, FaPlay, FaCheck, FaDownload } from "react-icons/fa6";
+import { FaCss3, FaCode, FaCopy, FaPlay, FaCheck, FaDownload, FaChevronDown } from "react-icons/fa6";
 import { FaInfoCircle } from "react-icons/fa";
+import { VscCopy } from "react-icons/vsc";
 import AboutModal from './AboutModal';
 import Tooltip from '../../components/Tooltip';
 
@@ -48,6 +49,7 @@ const GeneratorComponent = () => {
   } = useGenerator();
   const [activeTagIndex, setActiveTagIndex] = useState(0);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const formatCurrent = async () => {
     const formatCode = async (code, parser) => {
@@ -167,6 +169,20 @@ const GeneratorComponent = () => {
     localStorage.setItem('theme', 'dark');
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isDropdownOpen && !event.target.closest('.split-dropdown')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
 
   useEffect(() => {
     try {
@@ -256,25 +272,49 @@ const GeneratorComponent = () => {
             onClose={() => setIsAboutOpen(false)}
           />
           <div className="app-header__actions">
-            <button
-              className="app-header__button"
-              onClick={handleExportJson}
-              disabled={typeof html !== 'string' || !html.trim()}
-              data-tooltip-id="export-tooltip"
-              data-tooltip-content="Download JSON file"
-            >
-              <FaDownload size={14} style={{ marginRight: 6 }} />
-              Export JSON
-            </button>
-            <Tooltip id="export-tooltip" place="top" effect="solid" />
-            <button
-              className="app-header__button primary"
-              style={{ minWidth: '223px' }}
-              onClick={handleGenerateAndCopy}
-              disabled={typeof html !== 'string' || !html.trim()}
-            >
-              {isCopied ? 'Copied to Clipboard!' : 'Copy Bricks Builder Structure'}
-            </button>
+            <div className="split-dropdown">
+              <button
+                className="app-header__button primary split-dropdown__main"
+                onClick={handleGenerateAndCopy}
+                disabled={typeof html !== 'string' || !html.trim()}
+              >
+                <VscCopy />
+                {/* {isCopied ? 'Copied to Clipboard!' : 'Copy Bricks Builder Structure'} */}
+                {isCopied ? 'Copied to Clipboard!' : 'Copy Bricks Structure'}
+              </button>
+              <button
+                className="app-header__button primary split-dropdown__toggle"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                disabled={typeof html !== 'string' || !html.trim()}
+                aria-expanded={isDropdownOpen}
+              >
+                <FaChevronDown size={12} />
+              </button>
+              {isDropdownOpen && (
+                <div className="split-dropdown__menu">
+                  <button
+                    className="split-dropdown__item"
+                    onClick={() => {
+                      handleExportJson();
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    <FaDownload size={14} />
+                    <span>Export as JSON</span>
+                  </button>
+                  <button
+                    className="split-dropdown__item"
+                    onClick={() => {
+                      handleGenerateAndCopy();
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    <FaCopy size={14} />
+                    <span>Copy to Clipboard</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>

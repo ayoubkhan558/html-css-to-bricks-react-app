@@ -228,6 +228,7 @@
     transition: all 0.2s;
     width: 100%;
     margin-top: 0.5rem;
+    display: flex;
 
     &:hover:not(:disabled) {
       background: #e6b700;

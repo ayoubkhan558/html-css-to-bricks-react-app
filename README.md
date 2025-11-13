@@ -48,6 +48,8 @@ This tool is designed to help Bricks Builder users quickly convert their existin
 - Properly merges inline styles with existing class definitions
 - Handles complex CSS properties and values
 - Preserves media queries and responsive styles
+- Support for CSS Custom Properties (Variables)
+- Typography property handling support
 
 ---
 
@@ -55,8 +57,6 @@ This tool is designed to help Bricks Builder users quickly convert their existin
 - [x] Add support for inline styles to classes
 - [ ] Add support for more HTML elements (tables, lists, etc.)
 - [ ] Add support for CSS Grid and Flexbox properties
-- [ ] Add support for CSS Custom Properties (Variables)
-- [x] Improve typography property handling
 - [ ] Add support for CSS animations and transitions
 - [ ] Add support for more complex CSS selectors
 

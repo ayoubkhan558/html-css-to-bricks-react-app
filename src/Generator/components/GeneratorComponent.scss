@@ -95,6 +95,7 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     display: inline-flex;
+    gap: 8px;
     align-items: center;
     justify-content: center;
     font-size: 0.9rem;
@@ -102,7 +103,6 @@ body {
     height: 36px;
     white-space: nowrap;
     width: auto;
-
 
     svg {
       width: 16px;
@@ -142,6 +142,91 @@ body {
   &__actions {
     display: flex;
     gap: 0.75rem;
+  }
+}
+
+// Split Dropdown styles
+.split-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+
+  &__main {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-right: none !important;
+    min-width: 200px;
+  }
+
+  &__toggle {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    padding: 0 0.5rem !important;
+    min-width: auto !important;
+    border-left: 1px solid rgba(0, 0, 0, 0.2) !important;
+
+    &:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--color-primary), black 15%) !important;
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+    z-index: 1000;
+    overflow: hidden;
+    animation: dropdownFadeIn 0.15s ease-out;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: var(--color-surface-2);
+    }
+
+    &:active {
+      background-color: var(--color-surface-3);
+    }
+
+    svg {
+      flex-shrink: 0;
+      opacity: 0.8;
+    }
+
+    span {
+      flex: 1;
+    }
+  }
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
