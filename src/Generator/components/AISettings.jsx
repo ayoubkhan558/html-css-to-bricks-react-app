@@ -4,7 +4,11 @@ import { testApiKey } from '../utils/openaiService';
 import './AISettings.scss';
 
 const AISettings = ({ isOpen, onClose }) => {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKeys, setApiKeys] = useState({
+    gemini: '',
+    openrouter: '',
+    openai: ''
+  });
   const [provider, setProvider] = useState('gemini');
   const [model, setModel] = useState('gemini-2.5-flash');
   const [isSaved, setIsSaved] = useState(false);
@@ -12,22 +16,26 @@ const AISettings = ({ isOpen, onClose }) => {
   const [testResult, setTestResult] = useState(null);
 
   useEffect(() => {
-    // Load saved API key from localStorage
-    const savedKey = localStorage.getItem('ai_api_key');
-    const savedProvider = localStorage.getItem('ai_provider');
+    // Load saved API keys from localStorage
+    const savedKeys = {
+      gemini: localStorage.getItem('ai_api_key_gemini') || '',
+      openrouter: localStorage.getItem('ai_api_key_openrouter') || '',
+      openai: localStorage.getItem('ai_api_key_openai') || ''
+    };
+    
+    setApiKeys(savedKeys);
+    
+    const savedProvider = localStorage.getItem('ai_provider') || 'gemini';
     const savedModel = localStorage.getItem('ai_model');
     
-    if (savedKey) {
-      setApiKey(savedKey);
-      setIsSaved(true);
-    }
-    if (savedProvider) {
-      setProvider(savedProvider);
-    }
+    setProvider(savedProvider);
+    
     if (savedModel) {
       // Validate that the saved model matches the provider
       if (savedProvider === 'gemini') {
         setModel('gemini-2.5-flash');
+      } else if (savedProvider === 'openrouter') {
+        setModel('google/gemini-2.0-flash-exp:free');
       } else if (savedProvider === 'openai' && !savedModel.startsWith('gpt')) {
         setModel('gpt-4o-mini');
       } else {
@@ -37,12 +45,13 @@ const AISettings = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   const handleSave = async () => {
-    if (apiKey.trim()) {
+    const currentApiKey = apiKeys[provider];
+    if (currentApiKey.trim()) {
       // Test the API key first
       setIsTesting(true);
       setTestResult(null);
       
-      const isValid = await testApiKey(apiKey.trim(), provider);
+      const isValid = await testApiKey(currentApiKey.trim(), provider);
       setIsTesting(false);
       
       if (!isValid) {
@@ -50,7 +59,7 @@ const AISettings = ({ isOpen, onClose }) => {
         return;
       }
       
-      localStorage.setItem('ai_api_key', apiKey.trim());
+      localStorage.setItem(`ai_api_key_${provider}`, currentApiKey.trim());
       localStorage.setItem('ai_provider', provider);
       localStorage.setItem('ai_model', model);
       setIsSaved(true);
@@ -63,8 +72,9 @@ const AISettings = ({ isOpen, onClose }) => {
   };
 
   const handleSaveWithoutTest = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('ai_api_key', apiKey.trim());
+    const currentApiKey = apiKeys[provider];
+    if (currentApiKey.trim()) {
+      localStorage.setItem(`ai_api_key_${provider}`, currentApiKey.trim());
       localStorage.setItem('ai_provider', provider);
       localStorage.setItem('ai_model', model);
       setIsSaved(true);
@@ -77,10 +87,13 @@ const AISettings = ({ isOpen, onClose }) => {
   };
 
   const handleClear = () => {
-    localStorage.removeItem('ai_api_key');
+    localStorage.removeItem(`ai_api_key_${provider}`);
     localStorage.removeItem('ai_provider');
     localStorage.removeItem('ai_model');
-    setApiKey('');
+    setApiKeys(prev => ({
+      ...prev,
+      [provider]: ''
+    }));
     setIsSaved(false);
     setTestResult(null);
   };
@@ -147,16 +160,19 @@ const AISettings = ({ isOpen, onClose }) => {
               <input
                 id="api-key"
                 type={isSaved ? 'text' : 'password'}
-                value={isSaved && apiKey ? maskApiKey(apiKey) : apiKey}
+                value={isSaved && apiKeys[provider] ? maskApiKey(apiKeys[provider]) : apiKeys[provider] || ''}
                 onChange={(e) => {
-                  setApiKey(e.target.value);
+                  setApiKeys(prev => ({
+                    ...prev,
+                    [provider]: e.target.value
+                  }));
                   setIsSaved(false);
                 }}
                 placeholder={provider === 'gemini' ? 'AIza...' : provider === 'openrouter' ? 'sk-or-v1-...' : 'sk-...'}
                 className="api-key-input"
                 disabled={isSaved}
               />
-              {isSaved && (
+              {isSaved && apiKeys[provider] && (
                 <button className="clear-btn" onClick={handleClear} title="Clear API Key">
                   <FaTrash />
                 </button>
@@ -231,7 +247,7 @@ const AISettings = ({ isOpen, onClose }) => {
               <button 
                 className="skip-test-btn" 
                 onClick={handleSaveWithoutTest}
-                disabled={!apiKey.trim() || isSaved}
+                disabled={!apiKeys[provider]?.trim() || isSaved}
               >
                 Save Without Testing
               </button>
@@ -239,7 +255,7 @@ const AISettings = ({ isOpen, onClose }) => {
             <button 
               className="save-btn" 
               onClick={handleSave}
-              disabled={!apiKey.trim() || isSaved || isTesting}
+              disabled={!apiKeys[provider]?.trim() || isSaved || isTesting}
             >
               {isTesting ? (
                 <><FaSpinner className="spinning" /> Testing...</>

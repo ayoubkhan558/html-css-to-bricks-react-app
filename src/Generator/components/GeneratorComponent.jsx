@@ -20,6 +20,7 @@ import * as parserHtml from 'prettier/parser-html';
 import * as parserCss from 'prettier/parser-postcss';
 import * as parserBabel from 'prettier/parser-babel';
 import './GeneratorComponent.scss';
+import aiModels from '../config/aiModels.json';
 
 const GeneratorComponent = () => {
   const {
@@ -57,19 +58,47 @@ const GeneratorComponent = () => {
   const [isQuickGenerating, setIsQuickGenerating] = useState(false);
   const [quickError, setQuickError] = useState(null);
   const [hasApiKey, setHasApiKey] = useState(false);
+  const [apiKeys, setApiKeys] = useState({
+    gemini: '',
+    openrouter: '',
+    openai: ''
+  });
+  const [currentProvider, setCurrentProvider] = useState('gemini');
+  const [selectedQuickModel, setSelectedQuickModel] = useState('');
 
   // Check for API key on mount and when settings close
   useEffect(() => {
-    const checkApiKey = () => {
-      const apiKey = localStorage.getItem('ai_api_key');
-      setHasApiKey(!!apiKey);
+    const checkApiKeys = () => {
+      const keys = {
+        gemini: localStorage.getItem('ai_api_key_gemini') || '',
+        openrouter: localStorage.getItem('ai_api_key_openrouter') || '',
+        openai: localStorage.getItem('ai_api_key_openai') || ''
+      };
+      
+      setApiKeys(keys);
+      
+      const provider = localStorage.getItem('ai_provider') || 'gemini';
+      const model = localStorage.getItem('ai_model');
+      
+      setCurrentProvider(provider);
+      setHasApiKey(!!keys[provider]);
+      
+      // Set selected model from localStorage or default
+      if (model) {
+        setSelectedQuickModel(model);
+      } else {
+        const defaultModel = provider === 'gemini' ? 'gemini-2.5-flash' : 
+                           provider === 'openrouter' ? 'google/gemini-2.0-flash-exp:free' : 
+                           'gpt-4o-mini';
+        setSelectedQuickModel(defaultModel);
+      }
     };
 
-    checkApiKey();
+    checkApiKeys();
 
     // Re-check when component mounts or settings modal state changes
     if (!isAISettingsOpen) {
-      checkApiKey();
+      checkApiKeys();
     }
   }, [isAISettingsOpen]);
 
@@ -186,8 +215,9 @@ const GeneratorComponent = () => {
   const handleQuickGenerate = async () => {
     if (!quickPrompt.trim() || isQuickGenerating) return;
 
-    const apiKey = localStorage.getItem('ai_api_key');
-    if (!apiKey) {
+    // Get the API key for the current provider
+    const currentApiKey = apiKeys[currentProvider];
+    if (!currentApiKey) {
       setQuickError('Please set your AI API key in settings first.');
       setTimeout(() => setQuickError(null), 3000);
       return;
@@ -197,6 +227,10 @@ const GeneratorComponent = () => {
     setQuickError(null);
 
     try {
+      // Temporarily save the selected model to localStorage for this request
+      const originalModel = localStorage.getItem('ai_model');
+      localStorage.setItem('ai_model', selectedQuickModel);
+      
       const { callOpenAI } = await import('../utils/openaiService');
 
       // Build context based on active tab and existing code
@@ -227,7 +261,14 @@ ${currentCode}
         userPrompt: quickPrompt.trim()
       };
 
-      const response = await callOpenAI(context, apiKey);
+      const response = await callOpenAI(context, currentApiKey);
+      
+      // Restore original model
+      if (originalModel) {
+        localStorage.setItem('ai_model', originalModel);
+      } else {
+        localStorage.removeItem('ai_model');
+      }
 
       // Extract code based on active tab
       let generatedCode = '';
@@ -239,7 +280,7 @@ ${currentCode}
         generatedCode = response.js;
       } else {
         // Fallback: try to extract from message
-        const codeBlockRegex = new RegExp(`\`\`\`${activeTab}\\n([\\s\\S]*?)\`\`\``, 'i');
+        const codeBlockRegex = new RegExp(`\`\`\`${activeTab}\n([\s\S]*?)\`\`\``, 'i');
         const match = response.message.match(codeBlockRegex);
         if (match) {
           generatedCode = match[1].trim();
@@ -515,40 +556,69 @@ ${currentCode}
                     </div>
                   </div>
 
-                  {/* Quick AI Prompt - Only show if API key exists */}
-                  {hasApiKey && (
-                    <div className="quick-ai-prompt">
-                      {quickError && (
-                        <div className="quick-ai-error">
-                          ⚠️ {quickError}
-                        </div>
-                      )}
-                      <div className="quick-ai-input">
-                        <textarea
-                          type="text"
-                          value={quickPrompt}
-                          onChange={(e) => setQuickPrompt(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleQuickGenerate();
-                            }
-                          }}
-                          placeholder={`Ask AI to modify ${activeTab.toUpperCase()} code... (e.g., "add a button" or "change color to blue")`}
-                          disabled={isQuickGenerating}
-                          className="quick-ai-input-field"
-                        />
-                        <button
-                          onClick={handleQuickGenerate}
-                          disabled={!quickPrompt.trim() || isQuickGenerating}
-                          className="quick-ai-send"
-                          title="Generate/Modify Code"
-                        >
-                          {isQuickGenerating ? <FaSpinner className="spinning" /> : <FaPaperPlane />}
-                        </button>
+                  {/* Quick AI Prompt - Show always to allow key setup */}
+                  <div className="quick-ai-prompt">
+                    {quickError && (
+                      <div className="quick-ai-error">
+                        ⚠️ {quickError}
                       </div>
+                    )}
+                    
+                    {/* Provider and Key Status */}
+                    <div className="quick-ai-status">
+                      <span className="provider-info">
+                        Provider: <strong>{currentProvider.charAt(0).toUpperCase() + currentProvider.slice(1)}</strong>
+                      </span>
+                      <span className={`key-status ${hasApiKey ? 'valid' : 'invalid'}`}>
+                        {hasApiKey ? '✓ Key Set' : '✗ No Key'}
+                      </span>
                     </div>
-                  )}
+                    
+                    {/* Model Selector - Show for all providers */}
+                    <div className="quick-ai-model-selector">
+                      <label htmlFor="quick-model">Model:</label>
+                      <select
+                        id="quick-model"
+                        value={selectedQuickModel}
+                        onChange={(e) => setSelectedQuickModel(e.target.value)}
+                        className="quick-model-select"
+                        disabled={isQuickGenerating}
+                      >
+                        {aiModels[currentProvider]?.map((model) => (
+                          <option key={model.value} value={model.value}>
+                            {model.label}{model.description ? ` (${model.description})` : ''}
+                          </option>
+                        )) || (
+                          <option value="">No models available</option>
+                        )}
+                      </select>
+                    </div>
+                    
+                    <div className="quick-ai-input">
+                      <textarea
+                        type="text"
+                        value={quickPrompt}
+                        onChange={(e) => setQuickPrompt(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleQuickGenerate();
+                          }
+                        }}
+                        placeholder={`Ask AI to modify ${activeTab.toUpperCase()} code... (e.g., "add a button" or "change color to blue")`}
+                        disabled={isQuickGenerating}
+                        className="quick-ai-input-field"
+                      />
+                      <button
+                        onClick={handleQuickGenerate}
+                        disabled={!quickPrompt.trim() || isQuickGenerating}
+                        className="quick-ai-send"
+                        title="Generate/Modify Code"
+                      >
+                        {isQuickGenerating ? <FaSpinner className="spinning" /> : <FaPaperPlane />}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </Panel>
 
