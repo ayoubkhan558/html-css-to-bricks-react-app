@@ -5,6 +5,7 @@
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 /**
  * Extract code blocks from AI response
@@ -48,6 +49,8 @@ export const callOpenAI = async (context, apiKey) => {
   
   if (provider === 'gemini') {
     return callGemini(context, apiKey);
+  } else if (provider === 'openrouter') {
+    return callOpenRouter(context, apiKey);
   } else {
     return callOpenAIProvider(context, apiKey);
   }
@@ -134,6 +137,103 @@ const callGemini = async (context, apiKey) => {
 
   } catch (error) {
     console.error('Gemini API Error:', error);
+    
+    if (error.message.includes('fetch')) {
+      throw new Error('Network error. Please check your internet connection.');
+    }
+    
+    throw error;
+  }
+};
+
+/**
+ * Call OpenRouter API (provides access to free models)
+ */
+const callOpenRouter = async (context, apiKey) => {
+  const model = localStorage.getItem('ai_model') || 'google/gemini-2.0-flash-exp:free';
+
+  if (!apiKey) {
+    throw new Error('OpenRouter API key is required');
+  }
+
+  const messages = [
+    {
+      role: 'system',
+      content: context.systemPrompt
+    },
+    {
+      role: 'user',
+      content: context.userPrompt
+    }
+  ];
+
+  try {
+    console.log('Calling OpenRouter API with model:', model);
+    
+    const response = await fetch(OPENROUTER_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Brickify Code Generator'
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: 4000
+      })
+    });
+
+    if (!response.ok) {
+      let errorMessage = 'Failed to generate code';
+      let errorDetails = null;
+      
+      console.log('OpenRouter API Error - Status:', response.status, 'Status Text:', response.statusText);
+      
+      try {
+        errorDetails = await response.json();
+        console.log('Error details:', errorDetails);
+        errorMessage = errorDetails.error?.message || errorMessage;
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError);
+      }
+      
+      if (response.status === 401) {
+        throw new Error('Invalid API key. Please check your OpenRouter API key in settings.');
+      } else if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+      } else if (response.status === 402) {
+        throw new Error('Insufficient credits. Please add credits to your OpenRouter account.');
+      } else if (response.status === 500 || response.status === 503) {
+        throw new Error('OpenRouter server error. Please try again later.');
+      } else if (response.status === 400) {
+        throw new Error(`Bad request: ${errorMessage}`);
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json();
+    console.log('OpenRouter API Success - Response received');
+    
+    if (!data.choices || !data.choices[0]?.message?.content) {
+      throw new Error('Invalid response from OpenRouter API');
+    }
+    
+    const aiMessage = data.choices[0].message.content;
+
+    // Extract code blocks from the response
+    const codeBlocks = extractCodeBlocks(aiMessage);
+
+    return {
+      message: aiMessage,
+      ...codeBlocks
+    };
+
+  } catch (error) {
+    console.error('OpenRouter API Error:', error);
     
     if (error.message.includes('fetch')) {
       throw new Error('Network error. Please check your internet connection.');
@@ -294,6 +394,23 @@ export const testApiKey = async (apiKey, provider = 'gemini') => {
       // Any other successful response is ok
       return response.ok;
       
+    } else if (provider === 'openrouter') {
+      const response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'Brickify Code Generator'
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.0-flash-exp:free',
+          messages: [{ role: 'user', content: 'Hello' }],
+          max_tokens: 10
+        })
+      });
+      console.log('OpenRouter test response status:', response.status);
+      return response.ok;
     } else {
       const response = await fetch('https://api.openai.com/v1/models', {
         method: 'GET',

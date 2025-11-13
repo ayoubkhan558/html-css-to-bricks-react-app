@@ -93,6 +93,8 @@ const AISettings = ({ isOpen, onClose }) => {
     // Set default model for provider
     if (newProvider === 'gemini') {
       setModel('gemini-2.5-flash');
+    } else if (newProvider === 'openrouter') {
+      setModel('google/gemini-2.0-flash-exp:free');
     } else {
       setModel('gpt-4o-mini');
     }
@@ -125,11 +127,14 @@ const AISettings = ({ isOpen, onClose }) => {
               className="model-select"
             >
               <option value="gemini">Google Gemini (Free Tier Available)</option>
+              <option value="openrouter">OpenRouter (Free Models)</option>
               <option value="openai">OpenAI (Paid)</option>
             </select>
             <small className="help-text">
               {provider === 'gemini' ? (
                 <>Get a free API key from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a></>
+              ) : provider === 'openrouter' ? (
+                <>Get a free API key from <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">OpenRouter</a> - Access to free models!</>
               ) : (
                 <>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI Platform</a></>
               )}
@@ -147,7 +152,7 @@ const AISettings = ({ isOpen, onClose }) => {
                   setApiKey(e.target.value);
                   setIsSaved(false);
                 }}
-                placeholder={provider === 'gemini' ? 'AIza...' : 'sk-...'}
+                placeholder={provider === 'gemini' ? 'AIza...' : provider === 'openrouter' ? 'sk-or-v1-...' : 'sk-...'}
                 className="api-key-input"
                 disabled={isSaved}
               />
@@ -177,6 +182,21 @@ const AISettings = ({ isOpen, onClose }) => {
             >
               {provider === 'gemini' ? (
                 <option value="gemini-2.5-flash">Gemini 2.5 Flash (Latest - Fast & Free)</option>
+              ) : provider === 'openrouter' ? (
+                <>
+                  <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash (Free)</option>
+                  <option value="deepseek/deepseek-r1:free">DeepSeek R1 (Free)</option>
+                  <option value="deepseek/deepseek-r1-distill-llama-70b:free">DeepSeek R1 Distill Llama 70B (Free)</option>
+                  <option value="qwen/qwen-2.5-coder-32b-instruct:free">Qwen 2.5 Coder 32B (Free)</option>
+                  <option value="qwen/qwen-2.5-72b-instruct:free">Qwen 2.5 72B (Free)</option>
+                  <option value="google/gemma-3-27b-it:free">Gemma 3 27B (Free)</option>
+                  <option value="google/gemma-3-12b-it:free">Gemma 3 12B (Free)</option>
+                  <option value="google/gemma-3-4b-it:free">Gemma 3 4B (Free)</option>
+                  <option value="mistralai/mistral-7b-instruct:free">Mistral 7B (Free)</option>
+                  <option value="mistralai/mistral-small-24b-instruct-2501:free">Mistral Small 24B (Free)</option>
+                  <option value="kwaipilot/kat-coder-pro:free">Kat Coder Pro (Free)</option>
+                  <option value="agentica-org/deepcoder-14b-preview:free">DeepCoder 14B (Free)</option>
+                </>
               ) : (
                 <>
                   <option value="gpt-4o">GPT-4o (Most Capable)</option>
@@ -189,6 +209,8 @@ const AISettings = ({ isOpen, onClose }) => {
             <small className="help-text">
               {provider === 'gemini' ? (
                 'Gemini 2.5 Flash - Latest model with enhanced reasoning and advanced coding'
+              ) : provider === 'openrouter' ? (
+                'All models are 100% FREE! No credit card required.'
               ) : (
                 'Choose based on your needs and budget'
               )}
