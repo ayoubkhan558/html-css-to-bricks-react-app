@@ -13,6 +13,7 @@ import { borderBoxShadowMappers } from './propertyMappers/boder-box-shadow';
 import { parseBoxShadow } from './propertyMappers/mapperUtils';
 import { filterMappers, effectsMappers, transitionsMappers } from './propertyMappers/filters-transitions';
 import { scrollSnapMappers } from './propertyMappers/layout-scroll-snap';
+import { transformsMappers } from './propertyMappers/transforms';
 
 // Convert basic color names to hex; pass through hex values
 export function toHex(val) {
@@ -181,6 +182,10 @@ export const getCssPropMappers = (settings) => {
     'border-bottom-width': borderBoxShadowMappers['border-bottom-width'],
     'border-left-width': borderBoxShadowMappers['border-left-width'],
     'border-radius': borderBoxShadowMappers['border-radius'],
+    'border-top-color': borderBoxShadowMappers['border-top-color'],
+    'border-right-color': borderBoxShadowMappers['border-right-color'],
+    'border-bottom-color': borderBoxShadowMappers['border-bottom-color'],
+    'border-left-color': borderBoxShadowMappers['border-left-color'],
     // Does not supported in bricks 
     // 'border-top-left-radius': borderBoxShadowMappers['border-top-left-radius'],
     // 'border-top-right-radius': borderBoxShadowMappers['border-top-right-radius'],
@@ -188,20 +193,12 @@ export const getCssPropMappers = (settings) => {
     // 'border-bottom-left-radius': borderBoxShadowMappers['border-bottom-left-radius'],
 
     // Transform
-    '_transform': (value, settings) => {
-      settings._transform = settings._transform || {};
-
-      // Handle pseudo-class states
-      if (typeof value === 'object') {
-        Object.assign(settings._transform, value);
-      }
-      // Handle regular transform values
-      else if (value.includes('scale')) {
-        const scaleValue = value.match(/scale\(([^)]+)\)/)[1];
-        settings._transform.scaleX = `scaleX(${scaleValue})`;
-        settings._transform.scaleY = `scaleY(${scaleValue})`;
-      }
-    },
+    'transform': transformsMappers['transform'],
+    'transform-origin': transformsMappers['transform-origin'],
+    'transform-style': transformsMappers['transform-style'],
+    'perspective': transformsMappers['perspective'],
+    'perspective-origin': transformsMappers['perspective-origin'],
+    'backface-visibility': transformsMappers['backface-visibility'],
 
     // CSS Filters - Transition
     'filter': effectsMappers['filter'],
@@ -211,7 +208,7 @@ export const getCssPropMappers = (settings) => {
     'contrast': filterMappers['contrast'],
     'hue-rotate': filterMappers['hue-rotate'],
     'invert': filterMappers['invert'],
-    'opacity': filterMappers['opacity'],
+    // Note: 'opacity' is handled by layoutMiscMappers, not filterMappers
     'saturate': filterMappers['saturate'],
     'sepia': filterMappers['sepia'],
     // Transition
@@ -392,7 +389,8 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
   // Handle custom rules
   const nativeProperties = [
     'padding', 'margin', 'background', 'color', 'font-size', 'border',
-    'width', 'height', 'display', 'position', 'top', 'right', 'bottom', 'left', 'box-shadow'
+    'width', 'height', 'display', 'position', 'top', 'right', 'bottom', 'left', 'box-shadow',
+    'opacity', 'overflow', 'transform', 'transition', 'filter', 'backdrop-filter'
   ];
 
   Object.keys(customRules).forEach(property => {
@@ -421,6 +419,7 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
 export function matchCSSSelectors(element, cssMap) {
   const combinedProperties = {};
   const doc = element.ownerDocument;
+  const unmatchedSelectors = []; // Store selectors that need to be added as custom CSS
 
   // Helper to parse CSS properties string into object
   const parseProperties = (propertiesString) => {
@@ -441,10 +440,48 @@ export function matchCSSSelectors(element, cssMap) {
   Object.entries(cssMap).forEach(([selector, properties]) => {
     try {
       let matches = false;
+      let isPseudoElement = false;
+
+      // Check if selector contains pseudo-elements (::before, ::after, etc.)
+      if (selector.includes('::')) {
+        isPseudoElement = true;
+        // Extract base selector (without pseudo-element)
+        const baseSelector = selector.split('::')[0].trim();
+        
+        // Check if base selector matches the element
+        try {
+          matches = element.matches(baseSelector);
+          if (matches) {
+            // Store this selector for custom CSS
+            unmatchedSelectors.push({ selector, properties });
+          }
+        } catch (e) {
+          // Fallback for complex base selectors
+          try {
+            const matchingElements = doc.querySelectorAll(baseSelector);
+            matches = Array.from(matchingElements).includes(element);
+            if (matches) {
+              unmatchedSelectors.push({ selector, properties });
+            }
+          } catch (err) {
+            // Skip this selector
+          }
+        }
+        return; // Skip further processing for pseudo-elements
+      }
 
       // Try to match the selector
       try {
         matches = element.matches(selector);
+        
+        // If selector is a descendant/complex selector, treat it as custom CSS
+        // to preserve the relationship (e.g., ".hero-content p" should not apply to <p> directly)
+        const selectorType = getSelectorType(selector);
+        if (matches && selectorType === 'complex') {
+          // This is a complex selector that matches - add to custom CSS instead
+          unmatchedSelectors.push({ selector, properties });
+          return; // Don't add to combinedProperties
+        }
       } catch (e) {
         // If selector is invalid for matches(), try alternative methods
         const selectorType = getSelectorType(selector);
@@ -456,14 +493,17 @@ export function matchCSSSelectors(element, cssMap) {
         } else if (selectorType === 'id' && element.id === selector.substring(1)) {
           matches = true;
         } else if (selectorType === 'complex') {
-          // For complex selectors, try querySelectorAll on document
+          // For complex selectors, add to custom CSS instead of trying to apply directly
           try {
             const matchingElements = doc.querySelectorAll(selector);
-            matches = Array.from(matchingElements).includes(element);
+            const doesMatch = Array.from(matchingElements).includes(element);
+            if (doesMatch) {
+              unmatchedSelectors.push({ selector, properties });
+            }
           } catch (err) {
             // If still fails, skip this selector
-            matches = false;
           }
+          return; // Don't add to combinedProperties
         }
       }
 
@@ -479,7 +519,7 @@ export function matchCSSSelectors(element, cssMap) {
     }
   });
 
-  return combinedProperties;
+  return { properties: combinedProperties, pseudoSelectors: unmatchedSelectors };
 }
 
 // Helper to determine selector type
@@ -501,6 +541,8 @@ export function buildCssMap(cssText) {
   const map = {};
   const variables = {};
   let rootStyles = [];
+  const keyframes = []; // Store @keyframes rules
+  const mediaQueries = []; // Store @media rules for future use
 
   // Remove comments and normalize whitespace
   const cleanCSS = cssText
@@ -508,13 +550,56 @@ export function buildCssMap(cssText) {
     .replace(/\s+/g, ' ')
     .trim();
 
+  // Extract @keyframes rules before processing other rules
+  const keyframeRegex = /@keyframes\s+([\w-]+)\s*\{/g;
+  let keyframeMatch;
+  let cssWithoutKeyframes = cleanCSS;
+  const extractedKeyframes = [];
+  
+  while ((keyframeMatch = keyframeRegex.exec(cleanCSS)) !== null) {
+    const startIndex = keyframeMatch.index;
+    const animationName = keyframeMatch[1];
+    
+    // Find the matching closing brace for this @keyframes block
+    let braceCount = 0;
+    let endIndex = startIndex + keyframeMatch[0].length;
+    let foundStart = false;
+    
+    for (let i = startIndex; i < cleanCSS.length; i++) {
+      if (cleanCSS[i] === '{') {
+        braceCount++;
+        foundStart = true;
+      } else if (cleanCSS[i] === '}') {
+        braceCount--;
+        if (foundStart && braceCount === 0) {
+          endIndex = i + 1;
+          break;
+        }
+      }
+    }
+    
+    const fullRule = cleanCSS.substring(startIndex, endIndex);
+    extractedKeyframes.push({
+      name: animationName,
+      rule: fullRule
+    });
+  }
+  
+  // Remove all extracted keyframes from CSS
+  extractedKeyframes.forEach(kf => {
+    cssWithoutKeyframes = cssWithoutKeyframes.replace(kf.rule, '');
+  });
+  
+  // Store in keyframes array
+  keyframes.push(...extractedKeyframes);
+
   // Split into rules
   const rules = [];
   let current = '';
   let inBrackets = 0;
 
-  for (let i = 0; i < cleanCSS.length; i++) {
-    const char = cleanCSS[i];
+  for (let i = 0; i < cssWithoutKeyframes.length; i++) {
+    const char = cssWithoutKeyframes[i];
     if (char === '{') {
       inBrackets++;
     } else if (char === '}') {
@@ -560,5 +645,5 @@ export function buildCssMap(cssText) {
 
   // Join all root styles with semicolons to maintain valid CSS
   const combinedRootStyles = rootStyles.join(';');
-  return { cssMap: map, variables, rootStyles: combinedRootStyles };
+  return { cssMap: map, variables, rootStyles: combinedRootStyles, keyframes };
 }

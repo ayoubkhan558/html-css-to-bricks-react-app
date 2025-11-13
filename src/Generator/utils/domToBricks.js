@@ -90,6 +90,8 @@ const handleInlineStyles = (node, element, globalClasses, variables = {}, option
     case 'inline':
       // This case is now handled in processAttributes
       console.log('Inline styles handled in processAttributes for element:', element.id);
+      // Remove the style attribute since processAttributes already added it
+      node.removeAttribute('style');
       break;
 
     case 'class':
@@ -136,7 +138,21 @@ const handleInlineStyles = (node, element, globalClasses, variables = {}, option
           }
         });
       } else {
-        console.warn('No target class found for inline styles conversion');
+        // No class exists - add inline styles as custom CSS
+        console.log('No target class found, adding inline styles as custom CSS');
+        
+        // Parse inline styles and convert to custom CSS
+        const styleDeclarations = styleAttr.split(';').filter(s => s.trim());
+        const formattedStyles = styleDeclarations.map(s => s.trim()).join(';\n  ');
+        
+        // Add to element's custom CSS or settings
+        if (!element.settings._cssCustom) {
+          element.settings._cssCustom = '';
+        }
+        
+        // Use element ID or tag as selector
+        const selector = element.settings._cssId ? `#${element.settings._cssId}` : `%element%`;
+        element.settings._cssCustom += `\n${selector} {\n  ${formattedStyles};\n}`;
       }
 
       // Remove the style attribute since we've processed it
@@ -305,21 +321,11 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   }
   else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
     const processedElement = processTableElement(node, element, tag, options.context || {});
-    if (['td', 'th'].includes(tag)) {
-      // For cells, return early to avoid duplicate processing
-      allElements.push(processedElement);
-      return processedElement;
-    }
-    // For other table elements, continue with normal processing
+    // Note: Don't return early for td/th here - let CSS processing happen first
   }
   else if (['ul', 'ol', 'li'].includes(tag)) {
     const processedElement = processListElement(node, element, tag, options.context || {});
-    if (processedElement && processedElement.name === 'text') {
-      // For simple lists, return early (like tables do)
-      allElements.push(processedElement);
-      return processedElement;
-    }
-    // For complex lists, continue with normal processing (just like tables)
+    // Note: Don't return early here - let CSS processing happen first
   }
   else if (tag === 'audio') {
     processAudioElement(node, element, tag, options.context || {});
@@ -366,7 +372,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // CSS CLASS / STYLE AGGREGATION
   // ------------------------------------------------------------------
   // Get all matching CSS properties for this element
-  const combinedProperties = matchCSSSelectors(node, cssRulesMap);
+  const matchResult = matchCSSSelectors(node, cssRulesMap);
+  const combinedProperties = matchResult.properties || matchResult; // Handle both old and new format
+  const pseudoSelectors = matchResult.pseudoSelectors || [];
   const { cssSelectorTarget = 'class' } = options;
 
   if (cssSelectorTarget === 'id') {
@@ -375,6 +383,19 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       const parsedSettings = parseCssDeclarations(combinedProperties, `#brx-${element.id}`, variables);
       Object.assign(element.settings, parsedSettings);
     }
+    
+    // Handle pseudo-elements for ID
+    if (pseudoSelectors.length > 0) {
+      let customCss = '';
+      pseudoSelectors.forEach(({ selector, properties }) => {
+        const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
+        customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+      });
+      if (customCss) {
+        element.settings._cssCustom = (element.settings._cssCustom || '') + customCss;
+      }
+    }
+    
     // Handle pseudo-classes for ID
     Object.keys(cssRulesMap).forEach(selector => {
       const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\\w+)`));
@@ -405,6 +426,18 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         const parsedSettings = parseCssDeclarations(combinedProperties, cls, variables);
         Object.assign(targetClass.settings, parsedSettings);
       }
+      
+      // Handle pseudo-elements for this class
+      if (index === 0 && pseudoSelectors.length > 0) {
+        let customCss = '';
+        pseudoSelectors.forEach(({ selector, properties }) => {
+          const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
+          customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+        });
+        if (customCss) {
+          targetClass.settings._cssCustom = (targetClass.settings._cssCustom || '') + customCss;
+        }
+      }
 
       Object.keys(cssRulesMap).forEach(selector => {
         const pseudoMatch = selector.match(new RegExp(`^\\.${cls}:(\\w+)`));
@@ -433,6 +466,18 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Pass the options to handleInlineStyles
   handleInlineStyles(node, element, globalClasses, variables, options);
 
+  // Special handling for simple lists that were converted to text elements
+  // They need to return early AFTER CSS processing
+  if (['ul', 'ol'].includes(tag) && element.name === 'text') {
+    allElements.push(element);
+    return element;
+  }
+  
+  // Special handling for table cells (td, th) - return AFTER CSS processing
+  if (['td', 'th'].includes(tag)) {
+    allElements.push(element);
+    return element;
+  }
 
   allElements.push(element);
   return element;
@@ -454,7 +499,7 @@ const convertHtmlToBricks = (html, css, options) => {
       if (typeof global.Node === 'undefined') global.Node = dom.window.Node;
     }
 
-    const { cssMap, variables, rootStyles } = buildCssMap(css);
+    const { cssMap, variables, rootStyles, keyframes } = buildCssMap(css);
 
     const content = [];
     const globalClasses = [];
@@ -535,6 +580,41 @@ const convertHtmlToBricks = (html, css, options) => {
           name: 'custom-css',
           settings: {
             _cssCustom: combinedRootStyles,
+          },
+        });
+      }
+    }
+
+    // Handle @keyframes rules
+    if (keyframes && keyframes.length > 0) {
+      const keyframesCSS = keyframes.map(kf => kf.rule).join('\n\n');
+      
+      // Find the first top-level element's class to add keyframes
+      let targetClass = null;
+      if (content.length > 0 && content[0].settings._cssGlobalClasses) {
+        const firstElementClassId = content[0].settings._cssGlobalClasses[0];
+        targetClass = globalClasses.find(c => c.id === firstElementClassId);
+      }
+      
+      // Add keyframes to the target class or first global class
+      if (targetClass) {
+        if (!targetClass.settings._cssCustom) {
+          targetClass.settings._cssCustom = '';
+        }
+        targetClass.settings._cssCustom = `${targetClass.settings._cssCustom}\n\n${keyframesCSS}`;
+      } else if (globalClasses.length > 0) {
+        const firstClass = globalClasses[0];
+        if (!firstClass.settings._cssCustom) {
+          firstClass.settings._cssCustom = '';
+        }
+        firstClass.settings._cssCustom = `${firstClass.settings._cssCustom}\n\n${keyframesCSS}`;
+      } else {
+        // Create a new global class for keyframes if none exists
+        globalClasses.push({
+          id: getUniqueId(),
+          name: 'animations',
+          settings: {
+            _cssCustom: keyframesCSS,
           },
         });
       }

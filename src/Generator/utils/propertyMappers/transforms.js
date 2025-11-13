@@ -1,4 +1,4 @@
-import { parseValue } from '../cssParserUtils';
+import { parseValue } from '../cssParser';
 
 export const transformsMappers = {
   'transform': (val, settings) => {

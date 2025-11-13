@@ -2,6 +2,7 @@
 
 This tool is designed to help Bricks Builder users quickly convert their existing HTML/CSS/JS into the proper JSON structure that Bricks Builder can import, saving significant development time when migrating or creating new templates.
 
+
 ## Core Features
 
 ### HTML to Bricks Conversion
@@ -35,10 +36,12 @@ This tool is designed to help Bricks Builder users quickly convert their existin
 - Toggle between HTML preview and JSON output
 - Real-time updates as you type
 
+
 ### Output Options
 - Toggle minified/pretty-printed JSON
 - Copy to clipboard functionality
 - Option to include/exclude JavaScript
+
 
 ### Advanced Features
 - Handles form elements with proper field types
@@ -49,29 +52,25 @@ This tool is designed to help Bricks Builder users quickly convert their existin
 - Handles complex CSS properties and values
 - Preserves media queries and responsive styles
 - Support for CSS Custom Properties (Variables)
+- Support for CSS Grid and Flexbox properties
 - Typography property handling support
+- Support for more HTML elements (tables, lists, etc.)
 
 ---
 
 ## Roadmap
 - [x] Add support for inline styles to classes
-- [ ] Add support for more HTML elements (tables, lists, etc.)
-- [ ] Add support for CSS Grid and Flexbox properties
-- [ ] Add support for CSS animations and transitions
-- [ ] Add support for more complex CSS selectors
+- [x] Add support for bricks inner selector
+- [x] Add support for CSS animations and transitions
+- [x] Add support for more complex CSS selectors
+
 
 ## Known Bugs
 - [ ] SVG Code is not signed by default
 
 
-
 ## Technical Implementation
 
-### Modular Architecture
-- Separates concerns into different utility files
-- Core conversion logic in [domToBricks.js]
-- CSS parsing in [cssParser.js]
-- JavaScript processing in [jsProcessor.js]
 
 ### Browser Compatibility
 - Works in modern browsers

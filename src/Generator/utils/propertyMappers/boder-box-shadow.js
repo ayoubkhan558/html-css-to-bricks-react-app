@@ -232,6 +232,55 @@ export const borderBoxShadowMappers = {
     settings._border = settings._border || { width: {} };
     if (!settings._border.width) settings._border.width = { top: '0', right: '0', bottom: '0', left: '0' };
     settings._border.width.left = parseValue(val);
+  },
+  'border-top-color': (val, settings) => {
+    const hex = toHex(val);
+    if (hex) {
+      settings._border = settings._border || {};
+      if (!settings._border.color) {
+        settings._border.color = { hex };
+      }
+      // Store individual side colors in custom CSS if different from main border color
+      if (!settings._cssCustom) settings._cssCustom = '';
+      const selector = settings._cssClass || '%element%';
+      settings._cssCustom += `\n${selector} { border-top-color: ${val}; }`;
+    }
+  },
+  'border-right-color': (val, settings) => {
+    const hex = toHex(val);
+    if (hex) {
+      settings._border = settings._border || {};
+      if (!settings._border.color) {
+        settings._border.color = { hex };
+      }
+      if (!settings._cssCustom) settings._cssCustom = '';
+      const selector = settings._cssClass || '%element%';
+      settings._cssCustom += `\n${selector} { border-right-color: ${val}; }`;
+    }
+  },
+  'border-bottom-color': (val, settings) => {
+    const hex = toHex(val);
+    if (hex) {
+      settings._border = settings._border || {};
+      if (!settings._border.color) {
+        settings._border.color = { hex };
+      }
+      if (!settings._cssCustom) settings._cssCustom = '';
+      const selector = settings._cssClass || '%element%';
+      settings._cssCustom += `\n${selector} { border-bottom-color: ${val}; }`;
+    }
+  },
+  'border-left-color': (val, settings) => {
+    const hex = toHex(val);
+    if (hex) {
+      settings._border = settings._border || {};
+      if (!settings._border.color) {
+        settings._border.color = { hex };
+      }
+      if (!settings._cssCustom) settings._cssCustom = '';
+      const selector = settings._cssClass || '%element%';
+      settings._cssCustom += `\n${selector} { border-left-color: ${val}; }`;
+    }
   }
 };
 
@@ -246,3 +295,7 @@ export const borderTopWidthMapper = borderBoxShadowMappers['border-top-width'];
 export const borderRightWidthMapper = borderBoxShadowMappers['border-right-width'];
 export const borderBottomWidthMapper = borderBoxShadowMappers['border-bottom-width'];
 export const borderLeftWidthMapper = borderBoxShadowMappers['border-left-width'];
+export const borderTopColorMapper = borderBoxShadowMappers['border-top-color'];
+export const borderRightColorMapper = borderBoxShadowMappers['border-right-color'];
+export const borderBottomColorMapper = borderBoxShadowMappers['border-bottom-color'];
+export const borderLeftColorMapper = borderBoxShadowMappers['border-left-color'];

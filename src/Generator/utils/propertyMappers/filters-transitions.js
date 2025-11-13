@@ -8,7 +8,7 @@ const parseFilterNumber = (val) => {
   return isNaN(num) ? val : num.toString();
 };
 
-// Individual filter property mappers
+// Individual filter property mappers - removed standalone opacity
 export const filterMappers = {
   'blur': (val, settings) => {
     settings._cssFilters = settings._cssFilters || {};
@@ -22,6 +22,10 @@ export const filterMappers = {
     settings._cssFilters = settings._cssFilters || {};
     settings._cssFilters.contrast = parseFilterNumber(val);
   },
+  'grayscale': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    settings._cssFilters.grayscale = parseFilterNumber(val);
+  },
   'hue-rotate': (val, settings) => {
     settings._cssFilters = settings._cssFilters || {};
     settings._cssFilters['hue-rotate'] = parseFilterNumber(val);
@@ -30,10 +34,6 @@ export const filterMappers = {
     settings._cssFilters = settings._cssFilters || {};
     settings._cssFilters.invert = parseFilterNumber(val);
   },
-  'opacity': (val, settings) => {
-    settings._cssFilters = settings._cssFilters || {};
-    settings._cssFilters.opacity = parseFilterNumber(val);
-  },
   'saturate': (val, settings) => {
     settings._cssFilters = settings._cssFilters || {};
     settings._cssFilters.saturate = parseFilterNumber(val);
@@ -41,6 +41,11 @@ export const filterMappers = {
   'sepia': (val, settings) => {
     settings._cssFilters = settings._cssFilters || {};
     settings._cssFilters.sepia = parseFilterNumber(val);
+  },
+  'drop-shadow': (val, settings) => {
+    settings._cssFilters = settings._cssFilters || {};
+    // Store drop-shadow value as-is since it has complex syntax
+    settings._cssFilters['drop-shadow'] = val;
   }
 };
 
@@ -50,10 +55,11 @@ export const effectsMappers = {
     settings._cssFilters = settings._cssFilters || {};
     
     // Extract individual filters from combined string
-    const filters = val.match(/(blur|brightness|contrast|hue-rotate|invert|opacity|saturate|sepia)\(([^)]+)\)/g) || [];
+    // Updated regex to handle drop-shadow with its complex value
+    const filters = val.match(/(blur|brightness|contrast|grayscale|hue-rotate|invert|saturate|sepia|drop-shadow)\(([^)]+)\)/g) || [];
     
     filters.forEach(filter => {
-      const match = filter.match(/(\w+)\(([^)]+)\)/);
+      const match = filter.match(/([\w-]+)\(([^)]+)\)/);
       if (match) {
         const [_, fn, value] = match;
         const mapper = filterMappers[fn];
