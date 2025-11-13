@@ -509,7 +509,21 @@ const convertHtmlToBricks = (html, css, options) => {
       // Create a single root block with all variables
       const combinedRootStyles = `:root {\n  ${rootBlocks.join(';\n  ')};\n}`;
       
-      if (globalClasses.length > 0) {
+      // Find the first top-level element's class (parent element)
+      let targetClass = null;
+      if (content.length > 0 && content[0].settings._cssGlobalClasses) {
+        const firstElementClassId = content[0].settings._cssGlobalClasses[0];
+        targetClass = globalClasses.find(c => c.id === firstElementClassId);
+      }
+      
+      // If we found the first element's class, add root styles there
+      // Otherwise fallback to first global class or create new one
+      if (targetClass) {
+        if (!targetClass.settings._cssCustom) {
+          targetClass.settings._cssCustom = '';
+        }
+        targetClass.settings._cssCustom = `${combinedRootStyles}\n${targetClass.settings._cssCustom}`;
+      } else if (globalClasses.length > 0) {
         const firstClass = globalClasses[0];
         if (!firstClass.settings._cssCustom) {
           firstClass.settings._cssCustom = '';

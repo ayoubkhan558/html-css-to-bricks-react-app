@@ -309,9 +309,26 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
     if (typeof value !== 'string' || !value.includes('var(')) {
       return value;
     }
-    return value.replace(/var\((--[\w-]+)\)/g, (match, varName) => {
-      return variables[varName] || match;
-    });
+    
+    // Recursively resolve CSS variables (handle nested var() calls)
+    let resolved = value;
+    let maxIterations = 10; // Prevent infinite loops
+    let iteration = 0;
+    
+    while (resolved.includes('var(') && iteration < maxIterations) {
+      const previousResolved = resolved;
+      resolved = resolved.replace(/var\((--[\w-]+)\)/g, (match, varName) => {
+        return variables[varName] || match;
+      });
+      
+      // If nothing changed, break to avoid infinite loop
+      if (previousResolved === resolved) {
+        break;
+      }
+      iteration++;
+    }
+    
+    return resolved;
   };
 
   // Handle combined properties object
