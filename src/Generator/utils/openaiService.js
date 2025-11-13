@@ -20,16 +20,48 @@ const extractCodeBlocks = (text) => {
   // Extract HTML
   const htmlMatch = text.match(/```html\n([\s\S]*?)```/i);
   if (htmlMatch) {
-    codeBlocks.html = htmlMatch[1].trim();
+    let htmlContent = htmlMatch[1].trim();
+    
+    // Extract and remove <style> tags from HTML
+    const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+    let styleMatch;
+    let extractedStyles = [];
+    
+    while ((styleMatch = styleRegex.exec(htmlContent)) !== null) {
+      extractedStyles.push(styleMatch[1].trim());
+    }
+    
+    if (extractedStyles.length > 0) {
+      codeBlocks.css = extractedStyles.join('\n\n');
+      // Remove style tags from HTML
+      htmlContent = htmlContent.replace(styleRegex, '');
+    }
+    
+    // Extract and remove <script> tags from HTML
+    const scriptRegex = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+    let scriptMatch;
+    let extractedScripts = [];
+    
+    while ((scriptMatch = scriptRegex.exec(htmlContent)) !== null) {
+      extractedScripts.push(scriptMatch[1].trim());
+    }
+    
+    if (extractedScripts.length > 0) {
+      codeBlocks.js = extractedScripts.join('\n\n');
+      // Remove script tags from HTML
+      htmlContent = htmlContent.replace(scriptRegex, '');
+    }
+    
+    codeBlocks.html = htmlContent.trim();
   }
 
-  // Extract CSS
+  // Extract CSS from dedicated CSS code block (will override if found)
   const cssMatch = text.match(/```css\n([\s\S]*?)```/i);
   if (cssMatch) {
     codeBlocks.css = cssMatch[1].trim();
   }
 
-  // Extract JavaScript
+  // Extract JavaScript from dedicated JS code block (will override if found)
   const jsMatch = text.match(/```(?:javascript|js)\n([\s\S]*?)```/i);
   if (jsMatch) {
     codeBlocks.js = jsMatch[1].trim();

@@ -208,7 +208,10 @@ const GeneratorComponent = () => {
 IMPORTANT:
 - Return ONLY the ${activeTab.toUpperCase()} code, no explanations
 - Use proper formatting and indentation
-- For updates, return the COMPLETE updated code`;
+- For updates, return the COMPLETE updated code
+- Do NOT wrap CSS in <style> tags - provide raw CSS only
+- Do NOT wrap JavaScript in <script> tags - provide raw JavaScript only
+- Keep HTML, CSS, and JavaScript separate`;
 
       if (hasExistingCode) {
         systemPrompt += `
@@ -251,6 +254,12 @@ ${currentCode}
         if (activeTab === 'html') setHtml(generatedCode);
         else if (activeTab === 'css') setCss(generatedCode);
         else setJs(generatedCode);
+        
+        // If HTML was generated and it had embedded CSS/JS, update those tabs too
+        if (activeTab === 'html') {
+          if (response.css) setCss(response.css);
+          if (response.js) setJs(response.js);
+        }
 
         setQuickPrompt('');
       } else {
