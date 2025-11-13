@@ -2,10 +2,12 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 import { RiJavascriptLine, RiHtml5Line } from "react-icons/ri";
-import { FaCss3, FaCode, FaCopy, FaPlay, FaCheck, FaDownload, FaChevronDown } from "react-icons/fa6";
+import { FaCss3, FaCode, FaCopy, FaPlay, FaCheck, FaDownload, FaChevronDown, FaPaperPlane, FaSpinner } from "react-icons/fa6";
+import { MdOutlineSettings } from "react-icons/md";
 import { FaInfoCircle } from "react-icons/fa";
 import { VscCopy } from "react-icons/vsc";
 import AboutModal from './AboutModal';
+import AISettings from './AISettings';
 import Tooltip from '../../components/Tooltip';
 
 import { useGenerator } from '../../contexts/GeneratorContext';
@@ -50,6 +52,26 @@ const GeneratorComponent = () => {
   const [activeTagIndex, setActiveTagIndex] = useState(0);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isAISettingsOpen, setIsAISettingsOpen] = useState(false);
+  const [quickPrompt, setQuickPrompt] = useState('');
+  const [isQuickGenerating, setIsQuickGenerating] = useState(false);
+  const [quickError, setQuickError] = useState(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+
+  // Check for API key on mount and when settings close
+  useEffect(() => {
+    const checkApiKey = () => {
+      const apiKey = localStorage.getItem('ai_api_key');
+      setHasApiKey(!!apiKey);
+    };
+
+    checkApiKey();
+
+    // Re-check when component mounts or settings modal state changes
+    if (!isAISettingsOpen) {
+      checkApiKey();
+    }
+  }, [isAISettingsOpen]);
 
   const formatCurrent = async () => {
     const formatCode = async (code, parser) => {
@@ -152,6 +174,96 @@ const GeneratorComponent = () => {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to export JSON:', err);
+    }
+  };
+
+  const handleAICodeGenerated = (generatedCode) => {
+    if (generatedCode.html) setHtml(generatedCode.html);
+    if (generatedCode.css) setCss(generatedCode.css);
+    if (generatedCode.js) setJs(generatedCode.js);
+  };
+
+  const handleQuickGenerate = async () => {
+    if (!quickPrompt.trim() || isQuickGenerating) return;
+
+    const apiKey = localStorage.getItem('ai_api_key');
+    if (!apiKey) {
+      setQuickError('Please set your AI API key in settings first.');
+      setTimeout(() => setQuickError(null), 3000);
+      return;
+    }
+
+    setIsQuickGenerating(true);
+    setQuickError(null);
+
+    try {
+      const { callOpenAI } = await import('../utils/openaiService');
+
+      // Build context based on active tab and existing code
+      const currentCode = activeTab === 'html' ? html : activeTab === 'css' ? css : js;
+      const hasExistingCode = currentCode.trim();
+
+      let systemPrompt = `You are an expert web developer. Generate clean, modern code based on the user's request.
+
+IMPORTANT:
+- Return ONLY the ${activeTab.toUpperCase()} code, no explanations
+- Use proper formatting and indentation
+- For updates, return the COMPLETE updated code`;
+
+      if (hasExistingCode) {
+        systemPrompt += `
+
+CURRENT ${activeTab.toUpperCase()} CODE:
+\`\`\`${activeTab}
+${currentCode}
+\`\`\``;
+      }
+
+      const context = {
+        systemPrompt,
+        userPrompt: quickPrompt.trim()
+      };
+
+      const response = await callOpenAI(context, apiKey);
+
+      // Extract code based on active tab
+      let generatedCode = '';
+      if (activeTab === 'html' && response.html) {
+        generatedCode = response.html;
+      } else if (activeTab === 'css' && response.css) {
+        generatedCode = response.css;
+      } else if (activeTab === 'js' && response.js) {
+        generatedCode = response.js;
+      } else {
+        // Fallback: try to extract from message
+        const codeBlockRegex = new RegExp(`\`\`\`${activeTab}\\n([\\s\\S]*?)\`\`\``, 'i');
+        const match = response.message.match(codeBlockRegex);
+        if (match) {
+          generatedCode = match[1].trim();
+        } else {
+          // Just use the message as-is
+          generatedCode = response.message;
+        }
+      }
+
+      // Update the appropriate code
+      if (generatedCode) {
+        if (activeTab === 'html') setHtml(generatedCode);
+        else if (activeTab === 'css') setCss(generatedCode);
+        else setJs(generatedCode);
+
+        setQuickPrompt('');
+      } else {
+        setQuickError('No code generated. Try rephrasing your prompt.');
+        setTimeout(() => setQuickError(null), 3000);
+      }
+
+    } catch (err) {
+      setQuickError(err.message || 'Failed to generate code');
+      console.error('Quick AI Error:', err);
+      setTimeout(() => setQuickError(null), 5000);
+    } finally {
+      setIsQuickGenerating(false);
     }
   };
 
@@ -355,6 +467,13 @@ const GeneratorComponent = () => {
                     <div className="code-editor__actions">
                       <button
                         className="code-editor__action"
+                        onClick={() => setIsAISettingsOpen(true)}
+                        title="AI Settings"
+                      >
+                        <MdOutlineSettings size={16} /> AI
+                      </button>
+                      <button
+                        className="code-editor__action"
                         onClick={(e) => {
                           e.stopPropagation();
                           formatCurrent();
@@ -386,6 +505,41 @@ const GeneratorComponent = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Quick AI Prompt - Only show if API key exists */}
+                  {hasApiKey && (
+                    <div className="quick-ai-prompt">
+                      {quickError && (
+                        <div className="quick-ai-error">
+                          ⚠️ {quickError}
+                        </div>
+                      )}
+                      <div className="quick-ai-input">
+                        <textarea
+                          type="text"
+                          value={quickPrompt}
+                          onChange={(e) => setQuickPrompt(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleQuickGenerate();
+                            }
+                          }}
+                          placeholder={`Ask AI to modify ${activeTab.toUpperCase()} code... (e.g., "add a button" or "change color to blue")`}
+                          disabled={isQuickGenerating}
+                          className="quick-ai-input-field"
+                        />
+                        <button
+                          onClick={handleQuickGenerate}
+                          disabled={!quickPrompt.trim() || isQuickGenerating}
+                          className="quick-ai-send"
+                          title="Generate/Modify Code"
+                        >
+                          {isQuickGenerating ? <FaSpinner className="spinning" /> : <FaPaperPlane />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Panel>
 
@@ -465,6 +619,12 @@ const GeneratorComponent = () => {
           </Panel>
         </PanelGroup>
       </main>
+
+      {/* AI Components */}
+      <AISettings
+        isOpen={isAISettingsOpen}
+        onClose={() => setIsAISettingsOpen(false)}
+      />
     </div>
   );
 };

@@ -468,10 +468,24 @@ body {
     color: var(--color-text);
     cursor: pointer;
     transition: all 0.2s ease;
+    gap: 4px;
 
     &:hover {
       background-color: rgba(var(--color-primary), 0.05);
       color: var(--color-primary);
+    }
+
+    &.ai-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: transparent;
+      color: white;
+      font-weight: 600;
+
+      &:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
     }
   }
 
@@ -576,6 +590,92 @@ body {
     .token.function,
     .token.class-name {
       color: #dcdcaa;
+    }
+  }
+}
+
+// Quick AI Prompt Styles
+.quick-ai-prompt {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  padding: 8px 12px;
+
+  .quick-ai-error {
+    font-size: 0.8rem;
+    color: #ef4444;
+    padding: 4px 8px;
+    margin-bottom: 6px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #ef4444;
+  }
+
+  .quick-ai-input {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    .quick-ai-input-field {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text);
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: all 0.2s;
+      max-height: 150px;
+      min-height: 25px;
+
+      &:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+      }
+
+      &::placeholder {
+        color: var(--color-text-secondary);
+        opacity: 0.7;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .quick-ai-send {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+
+      &:hover:not(:disabled) {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      svg {
+        font-size: 14px;
+      }
+
+      .spinning {
+        animation: spin 1s linear infinite;
+      }
     }
   }
 }
