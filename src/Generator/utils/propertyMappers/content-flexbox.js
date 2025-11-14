@@ -1,7 +1,7 @@
 // Flexbox Property Mappers
 export const flexboxMappers = {
   'flex-direction': (val, settings) => {
-    settings._flexDirection = val;
+    settings._direction = val;
   },
   'flex-wrap': (val, settings) => {
     settings._flexWrap = val;

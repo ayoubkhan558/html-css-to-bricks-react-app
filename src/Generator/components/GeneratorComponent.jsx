@@ -74,22 +74,22 @@ const GeneratorComponent = () => {
         openrouter: localStorage.getItem('ai_api_key_openrouter') || '',
         openai: localStorage.getItem('ai_api_key_openai') || ''
       };
-      
+
       setApiKeys(keys);
-      
+
       const provider = localStorage.getItem('ai_provider') || 'gemini';
       const model = localStorage.getItem('ai_model');
-      
+
       setCurrentProvider(provider);
       setHasApiKey(!!keys[provider]);
-      
+
       // Set selected model from localStorage or default
       if (model) {
         setSelectedQuickModel(model);
       } else {
-        const defaultModel = provider === 'gemini' ? 'gemini-2.5-flash' : 
-                           provider === 'openrouter' ? 'google/gemini-2.0-flash-exp:free' : 
-                           'gpt-4o-mini';
+        const defaultModel = provider === 'gemini' ? 'gemini-2.5-flash' :
+          provider === 'openrouter' ? 'google/gemini-2.0-flash-exp:free' :
+            'gpt-4o-mini';
         setSelectedQuickModel(defaultModel);
       }
     };
@@ -230,30 +230,32 @@ const GeneratorComponent = () => {
       // Temporarily save the selected model to localStorage for this request
       const originalModel = localStorage.getItem('ai_model');
       localStorage.setItem('ai_model', selectedQuickModel);
-      
+
       const { callOpenAI } = await import('../utils/openaiService');
 
       // Build context based on active tab and existing code
       const currentCode = activeTab === 'html' ? html : activeTab === 'css' ? css : js;
       const hasExistingCode = currentCode.trim();
 
-      let systemPrompt = `You are an expert web developer. Generate clean, modern code based on the user's request.
+      let systemPrompt = `
+        You are an expert web developer. Generate clean, modern code based on the user's request.
 
-IMPORTANT:
-- Return ONLY the ${activeTab.toUpperCase()} code, no explanations
-- Use proper formatting and indentation
-- For updates, return the COMPLETE updated code
-- Do NOT wrap CSS in <style> tags - provide raw CSS only
-- Do NOT wrap JavaScript in <script> tags - provide raw JavaScript only
-- Keep HTML, CSS, and JavaScript separate`;
+          IMPORTANT:
+          - Dont provide html, body, head tag etc
+          - Return ONLY the ${activeTab.toUpperCase()} code, no explanations
+          - Use proper formatting and indentation
+          - For updates, return the COMPLETE updated code
+          - Do NOT wrap CSS in <style> tags - provide raw CSS only
+          - Do NOT wrap JavaScript in <script> tags - provide raw JavaScript only
+          - Keep HTML, CSS, and JavaScript separate`;
 
-      if (hasExistingCode) {
-        systemPrompt += `
+                if (hasExistingCode) {
+                  systemPrompt += `
 
-CURRENT ${activeTab.toUpperCase()} CODE:
-\`\`\`${activeTab}
-${currentCode}
-\`\`\``;
+          CURRENT ${activeTab.toUpperCase()} CODE:
+          \`\`\`${activeTab}
+          ${currentCode}
+          \`\`\``;
       }
 
       const context = {
@@ -262,7 +264,7 @@ ${currentCode}
       };
 
       const response = await callOpenAI(context, currentApiKey);
-      
+
       // Restore original model
       if (originalModel) {
         localStorage.setItem('ai_model', originalModel);
@@ -295,7 +297,7 @@ ${currentCode}
         if (activeTab === 'html') setHtml(generatedCode);
         else if (activeTab === 'css') setCss(generatedCode);
         else setJs(generatedCode);
-        
+
         // If HTML was generated and it had embedded CSS/JS, update those tabs too
         if (activeTab === 'html') {
           if (response.css) setCss(response.css);
@@ -563,7 +565,7 @@ ${currentCode}
                         ⚠️ {quickError}
                       </div>
                     )}
-                    
+
                     {/* Provider and Key Status */}
                     <div className="quick-ai-status">
                       <span className="provider-info">
@@ -573,7 +575,7 @@ ${currentCode}
                         {hasApiKey ? '✓ Key Set' : '✗ No Key'}
                       </span>
                     </div>
-                    
+
                     {/* Model Selector - Show for all providers */}
                     <div className="quick-ai-model-selector">
                       <label htmlFor="quick-model">Model:</label>
@@ -589,11 +591,11 @@ ${currentCode}
                             {model.label}{model.description ? ` (${model.description})` : ''}
                           </option>
                         )) || (
-                          <option value="">No models available</option>
-                        )}
+                            <option value="">No models available</option>
+                          )}
                       </select>
                     </div>
-                    
+
                     <div className="quick-ai-input">
                       <textarea
                         type="text"
@@ -605,7 +607,7 @@ ${currentCode}
                             handleQuickGenerate();
                           }
                         }}
-                        placeholder={`Ask AI to modify ${activeTab.toUpperCase()} code... (e.g., "add a button" or "change color to blue")`}
+                        placeholder={`Ask AI to create/modify ${activeTab.toUpperCase()} code... (e.g., "Create FAQs section" or "change color to blue")`}
                         disabled={isQuickGenerating}
                         className="quick-ai-input-field"
                       />
