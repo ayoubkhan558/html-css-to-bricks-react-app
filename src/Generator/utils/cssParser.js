@@ -470,6 +470,34 @@ export function matchCSSSelectors(element, cssMap) {
         return; // Skip further processing for pseudo-elements
       }
 
+      // Check if selector contains pseudo-classes (:hover, :focus, etc.)
+      const pseudoClassMatch = selector.match(/:(\w+)$/);
+      if (pseudoClassMatch) {
+        // Extract base selector (without pseudo-class)
+        const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
+        
+        // Check if base selector matches the element
+        try {
+          matches = element.matches(baseSelector);
+          if (matches) {
+            // Store this selector for custom CSS
+            unmatchedSelectors.push({ selector, properties });
+          }
+        } catch (e) {
+          // Fallback for complex base selectors
+          try {
+            const matchingElements = doc.querySelectorAll(baseSelector);
+            matches = Array.from(matchingElements).includes(element);
+            if (matches) {
+              unmatchedSelectors.push({ selector, properties });
+            }
+          } catch (err) {
+            // Skip this selector
+          }
+        }
+        return; // Skip further processing for pseudo-classes
+      }
+
       // Try to match the selector
       try {
         matches = element.matches(selector);

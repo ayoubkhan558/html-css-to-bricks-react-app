@@ -387,8 +387,31 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     if (pseudoSelectors.length > 0) {
       let customCss = '';
       pseudoSelectors.forEach(({ selector, properties }) => {
-        const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
-        customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+        // Check if this is a pseudo-class selector
+        const pseudoClassMatch = selector.match(/:(\w+)$/);
+        if (pseudoClassMatch) {
+          // Extract pseudo-class and base selector
+          const pseudoClass = pseudoClassMatch[1];
+          const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
+          
+          // Check if the base selector matches our element
+          if (baseSelector === `#${node.id}` || baseSelector === tag || 
+              (baseSelector.startsWith('.') && node.classList.contains(baseSelector.substring(1)))) {
+            // Parse the pseudo-class styles
+            const pseudoStyles = parseCssDeclarations(properties, selector, variables);
+            Object.entries(pseudoStyles).forEach(([prop, value]) => {
+              element.settings[`${prop}:${pseudoClass}`] = value;
+            });
+          } else {
+            // Add as custom CSS if it doesn't match
+            const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
+            customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+          }
+        } else {
+          // Handle as regular custom CSS
+          const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
+          customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+        }
       });
       if (customCss) {
         element.settings._cssCustom = (element.settings._cssCustom || '') + customCss;
@@ -397,10 +420,20 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     
     // Handle pseudo-classes for ID
     Object.keys(cssRulesMap).forEach(selector => {
-      const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\\w+)`));
+      const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\w+)`));
       if (pseudoMatch) {
         const pseudoClass = pseudoMatch[1];
         const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], `#brx-${element.id}`, variables);
+        Object.entries(pseudoStyles).forEach(([prop, value]) => {
+          element.settings[`${prop}:${pseudoClass}`] = value;
+        });
+      }
+          
+      // Handle pseudo-classes for tag selectors
+      const tagPseudoMatch = selector.match(new RegExp(`^${tag}:(\w+)`));
+      if (tagPseudoMatch) {
+        const pseudoClass = tagPseudoMatch[1];
+        const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], tag, variables);
         Object.entries(pseudoStyles).forEach(([prop, value]) => {
           element.settings[`${prop}:${pseudoClass}`] = value;
         });
@@ -430,8 +463,31 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       if (index === 0 && pseudoSelectors.length > 0) {
         let customCss = '';
         pseudoSelectors.forEach(({ selector, properties }) => {
-          const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
-          customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+          // Check if this is a pseudo-class selector
+          const pseudoClassMatch = selector.match(/:(\w+)$/);
+          if (pseudoClassMatch) {
+            // Extract pseudo-class and base selector
+            const pseudoClass = pseudoClassMatch[1];
+            const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
+            
+            // Check if the base selector matches our element
+            if (baseSelector === `#${node.id}` || baseSelector === tag || 
+                (baseSelector.startsWith('.') && node.classList.contains(baseSelector.substring(1)))) {
+              // Parse the pseudo-class styles
+              const pseudoStyles = parseCssDeclarations(properties, selector, variables);
+              Object.entries(pseudoStyles).forEach(([prop, value]) => {
+                targetClass.settings[`${prop}:${pseudoClass}`] = value;
+              });
+            } else {
+              // Add as custom CSS if it doesn't match
+              const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
+              customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+            }
+          } else {
+            // Handle as regular custom CSS
+            const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
+            customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+          }
         });
         if (customCss) {
           targetClass.settings._cssCustom = (targetClass.settings._cssCustom || '') + customCss;
@@ -439,13 +495,25 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       }
 
       Object.keys(cssRulesMap).forEach(selector => {
-        const pseudoMatch = selector.match(new RegExp(`^\\.${cls}:(\\w+)`));
+        const pseudoMatch = selector.match(new RegExp(`^\.${cls}:(\w+)`));
         if (pseudoMatch) {
           const pseudoClass = pseudoMatch[1];
           const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], cls, variables);
           Object.entries(pseudoStyles).forEach(([prop, value]) => {
             targetClass.settings[`${prop}:${pseudoClass}`] = value;
           });
+        }
+              
+        // Handle pseudo-classes for tag selectors when processing the first (generated) class
+        if (index === 0) {
+          const tagPseudoMatch = selector.match(new RegExp(`^${tag}:(\w+)`));
+          if (tagPseudoMatch) {
+            const pseudoClass = tagPseudoMatch[1];
+            const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], tag, variables);
+            Object.entries(pseudoStyles).forEach(([prop, value]) => {
+              targetClass.settings[`${prop}:${pseudoClass}`] = value;
+            });
+          }
         }
       });
 
