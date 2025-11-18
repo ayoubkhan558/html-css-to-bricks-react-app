@@ -6,7 +6,6 @@ export function AppProvider({ children }) {
   const [showNodeClass, setShowNodeClass] = useState(false);
   const [activeTagIndex, setActiveTagIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('html');
-  const [cssTarget, setCssTarget] = useState('class');
   const [inlineStyleHandling, setInlineStyleHandling] = useState('inline');
 
   return (
@@ -20,8 +19,6 @@ export function AppProvider({ children }) {
       setActiveTab,
       
       // Code Generation Settings
-      cssTarget,
-      setCssTarget,
       inlineStyleHandling,
       setInlineStyleHandling
     }}>

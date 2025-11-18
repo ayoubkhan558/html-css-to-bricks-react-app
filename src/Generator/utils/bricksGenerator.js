@@ -16,8 +16,7 @@ const createBricksStructure = (html, css = '', js = '', options = {}) => {
       context: {
         ...(options.context || {}),
         showNodeClass: options.context?.showNodeClass || false,
-        inlineStyleHandling: options.context?.inlineStyleHandling || 'inline',
-        cssTarget: options.context?.cssTarget || 'class'
+        inlineStyleHandling: options.context?.inlineStyleHandling || 'inline'
       }
     });
 

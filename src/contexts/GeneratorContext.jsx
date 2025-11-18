@@ -16,7 +16,6 @@ export function GeneratorProvider({ children }) {
   const [showJsonPreview, setShowJsonPreview] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [inlineStyleHandling, setInlineStyleHandling] = useState('inline'); // 'skip'|'inline'|'class'
-  const [cssTarget, setCssTarget] = useState('class'); // 'class'|'id'
   const [showNodeClass, setShowNodeClass] = useState(false);
 
   // Dark-mode handling (matches Zustand logic)
@@ -57,7 +56,6 @@ export function GeneratorProvider({ children }) {
     showJsonPreview, setShowJsonPreview,
     isCopied, setIsCopied,
     inlineStyleHandling, setInlineStyleHandling,
-    cssTarget, setCssTarget,
     showNodeClass, setShowNodeClass,
     isDarkMode, toggleDarkMode,
   };

@@ -28,8 +28,6 @@ const GeneratorComponent = () => {
     setActiveTab,
     inlineStyleHandling,
     setInlineStyleHandling,
-    cssTarget,
-    setCssTarget,
     showNodeClass,
     setShowNodeClass,
     html,
@@ -352,12 +350,11 @@ const GeneratorComponent = () => {
     try {
       if (html.trim()) {
         const includeJs = activeTab === 'js';
-        // console.log('Creating bricks structure with context:', { showNodeClass, inlineStyleHandling, cssTarget });
+        // console.log('Creating bricks structure with context:', { showNodeClass, inlineStyleHandling });
         const result = createBricksStructure(html, css, includeJs ? js : '', {
           context: {
             showNodeClass,
-            inlineStyleHandling,
-            cssTarget
+            inlineStyleHandling
           }
         });
         const json = isMinified
@@ -371,7 +368,7 @@ const GeneratorComponent = () => {
       console.error('Failed to generate structure:', err);
       // Optionally, you can set an error state here to show in the UI
     }
-  }, [html, css, js, includeJs, inlineStyleHandling, isMinified, cssTarget, showNodeClass]);
+  }, [html, css, js, includeJs, inlineStyleHandling, isMinified, showNodeClass]);
 
   return (
     <div className="generator">
@@ -412,21 +409,6 @@ const GeneratorComponent = () => {
                   <input type="radio" name="inlineStyleHandling" value="class" checked={inlineStyleHandling === 'class'} onChange={() => setInlineStyleHandling('class')} className="inline-styles-handling__radio" />
                   <span className="inline-styles-handling__text">Class</span>
                 </label>
-              </div>
-            </div>
-            <div className="toggle-switch-container">
-              <label className="toggle-switch-label">Apply CSS to:</label>
-              <div className="toggle-switch">
-                <span className={`toggle-option ${cssTarget === 'id' ? 'active' : ''}`}>ID</span>
-                <label className="switch">
-                  <input
-                    type="checkbox"
-                    checked={cssTarget === 'class'}
-                    onChange={(e) => setCssTarget(e.target.checked ? 'class' : 'id')}
-                  />
-                  <span className="slider round"></span>
-                </label>
-                <span className={`toggle-option ${cssTarget === 'class' ? 'active' : ''}`}>Class</span>
               </div>
             </div>
           </div>

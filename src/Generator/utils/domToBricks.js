@@ -172,11 +172,10 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // Get context values from options with defaults
   const {
     inlineStyleHandling = 'inline',
-    cssTarget = 'class',
     showNodeClass = false
   } = options.context || {};
   // Debug logs
-  console.log('Context in domNodeToBricks:', { showNodeClass, inlineStyleHandling, cssTarget });
+  console.log('Context in domNodeToBricks:', { showNodeClass, inlineStyleHandling });
   // Handle text nodes
   if (node.nodeType !== Node.ELEMENT_NODE) {
     // Skip text nodes that are inside a form element (labels, button text, etc.)
@@ -520,7 +519,6 @@ const convertHtmlToBricks = (html, css, options) => {
               ...options.context, // Spread existing context first
               showNodeClass: options.context?.showNodeClass || false,
               inlineStyleHandling: options.context?.inlineStyleHandling || 'inline',
-              cssTarget: options.context?.cssTarget || 'class',
               activeTab: options.context?.activeTab || 'html'
             }
           }

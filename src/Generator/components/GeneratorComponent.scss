@@ -976,41 +976,6 @@ body {
   }
 }
 
-// Toggle Switch
-.toggle-switch-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0.5rem 1rem;
-  background: var(--color-primary-light);
-  border-radius: var(--border-radius);
-}
-
-.toggle-switch {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.toggle-switch-label {
-  font-weight: 600;
-  color: var(--color-primary);
-  font-size: 0.75rem;
-  margin: 0;
-  white-space: nowrap;
-}
-
-.toggle-option {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-  transition: color 0.3s ease;
-  font-weight: 500;
-
-  &.active {
-    color: var(--color-primary);
-    font-weight: 600;
-  }
-}
 
 /* The switch - the box around the slider */
 .switch {
