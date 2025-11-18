@@ -42,16 +42,25 @@ export const filterMappers = {
     settings._cssFilters = settings._cssFilters || {};
     settings._cssFilters.sepia = parseFilterNumber(val);
   },
-  'drop-shadow': (val, settings) => {
-    settings._cssFilters = settings._cssFilters || {};
-    // Store drop-shadow value as-is since it has complex syntax
-    settings._cssFilters['drop-shadow'] = val;
-  }
+  // 'drop-shadow': (val, settings) => {
+  //   settings._cssFilters = settings._cssFilters || {};
+  //   // Store drop-shadow value as-is since it has complex syntax
+  //   settings._cssFilters['drop-shadow'] = val;
+  // }
 };
 
 // Combined filter property mapper
 export const effectsMappers = {
   'filter': (val, settings) => {
+    // Check if drop-shadow is present in the filter string
+    if (val.includes('drop-shadow')) {
+      // Move all filter values to custom CSS when drop-shadow is provided
+      if (!settings._cssCustom) settings._cssCustom = '';
+      const selector = settings._cssClass || '%element%';
+      settings._cssCustom += `\n${selector} { filter: ${val}; }`;
+      return;
+    }
+    
     settings._cssFilters = settings._cssFilters || {};
     
     // Extract individual filters from combined string
