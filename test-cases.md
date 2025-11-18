@@ -1,4 +1,4 @@
-# Code2Bricks Test Cases & Improvements
+# Brickify Test Cases & Improvements
 
 ## Test Cases - HTML/CSS Examples
 
@@ -6,7 +6,7 @@
 
 #### Test Case 1.1: Simple Text Content
 ```html
-<h1>Welcome to Code2Bricks</h1>
+<h1>Welcome to Brickify</h1>
 <p>This is a simple paragraph with <strong>bold</strong> and <em>italic</em> text.</p>
 <a href="https://example.com">Click here</a>
 ```

@@ -1,6 +1,6 @@
 Hi all 👋
 I made a simple web app that converts HTML, CSS, and js to Bricks structure that can be directly pasted to bricks.
-Introducing... <Code2Bricks>
+Introducing... <Brickify>
 p/s: Once finished, this tool will be completely free for the bricks community.
 
 Here are some current features I've included;

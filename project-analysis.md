@@ -1,4 +1,4 @@
-# Code2Bricks Project Analysis
+# Brickify Project Analysis
 
 ## Project Requirements Analysis
 
@@ -73,7 +73,7 @@ Convert raw HTML/CSS/JS into Bricks Builder–compatible JSON for rapid template
 ├── yarn.lock              # Yarn dependency lock
 ├── index.html             # App HTML shell
 ├── README.md              # Project overview
-└── code2Bricks.md         # Additional documentation
+└── Brickify.md         # Additional documentation
 ```
 
 ### Source Directory (`src/`)
