@@ -19,9 +19,11 @@ export const transformsMappers = {
         case 'translate3d':
           settings._transform.translate = settings._transform.translate || {};
           if (func === 'translate') {
-            const [x, y] = cleanArgs.split(' ');
+            // FIX: Handle comma-separated values properly
+            const argsArray = cleanArgs.split(/[,\s]+/).filter(arg => arg.trim() !== '');
+            const [x = '0', y = '0'] = argsArray;
             settings._transform.translate.x = parseValue(x);
-            settings._transform.translate.y = parseValue(y || '0');
+            settings._transform.translate.y = parseValue(y);
           } else if (func === 'translateX') {
             settings._transform.translate.x = parseValue(cleanArgs);
           } else if (func === 'translateY') {
@@ -29,7 +31,9 @@ export const transformsMappers = {
           } else if (func === 'translateZ') {
             settings._transform.translate.z = parseValue(cleanArgs);
           } else if (func === 'translate3d') {
-            const [x, y, z] = cleanArgs.split(' ');
+            // FIX: Handle comma-separated values properly
+            const argsArray = cleanArgs.split(/[,\s]+/).filter(arg => arg.trim() !== '');
+            const [x = '0', y = '0', z = '0'] = argsArray;
             settings._transform.translate.x = parseValue(x);
             settings._transform.translate.y = parseValue(y);
             settings._transform.translate.z = parseValue(z);
@@ -43,9 +47,11 @@ export const transformsMappers = {
         case 'scale3d':
           settings._transform.scale = settings._transform.scale || {};
           if (func === 'scale') {
-            const [x, y] = cleanArgs.split(' ');
+            // FIX: Handle comma-separated values properly
+            const argsArray = cleanArgs.split(/[,\s]+/).filter(arg => arg.trim() !== '');
+            const [x = '1', y = x] = argsArray;
             settings._transform.scale.x = parseFloat(x);
-            settings._transform.scale.y = parseFloat(y || x);
+            settings._transform.scale.y = parseFloat(y);
           } else if (func === 'scaleX') {
             settings._transform.scale.x = parseFloat(cleanArgs);
           } else if (func === 'scaleY') {
@@ -53,7 +59,9 @@ export const transformsMappers = {
           } else if (func === 'scaleZ') {
             settings._transform.scale.z = parseFloat(cleanArgs);
           } else if (func === 'scale3d') {
-            const [x, y, z] = cleanArgs.split(' ');
+            // FIX: Handle comma-separated values properly
+            const argsArray = cleanArgs.split(/[,\s]+/).filter(arg => arg.trim() !== '');
+            const [x = '1', y = '1', z = '1'] = argsArray;
             settings._transform.scale.x = parseFloat(x);
             settings._transform.scale.y = parseFloat(y);
             settings._transform.scale.z = parseFloat(z);
@@ -75,7 +83,9 @@ export const transformsMappers = {
           } else if (func === 'rotateZ') {
             settings._transform.rotate.z = cleanArgs;
           } else if (func === 'rotate3d') {
-            const [x, y, z, angle] = cleanArgs.split(' ');
+            // FIX: Handle comma-separated values properly
+            const argsArray = cleanArgs.split(/[,\s]+/).filter(arg => arg.trim() !== '');
+            const [x = '0', y = '0', z = '0', angle = '0'] = argsArray;
             settings._transform.rotate.x = x;
             settings._transform.rotate.y = y;
             settings._transform.rotate.z = z;
@@ -88,9 +98,11 @@ export const transformsMappers = {
         case 'skewY':
           settings._transform.skew = settings._transform.skew || {};
           if (func === 'skew') {
-            const [x, y] = cleanArgs.split(' ');
+            // FIX: Handle comma-separated values properly
+            const argsArray = cleanArgs.split(/[,\s]+/).filter(arg => arg.trim() !== '');
+            const [x = '0deg', y = '0deg'] = argsArray;
             settings._transform.skew.x = x;
-            settings._transform.skew.y = y || '0deg';
+            settings._transform.skew.y = y;
           } else if (func === 'skewX') {
             settings._transform.skew.x = cleanArgs;
           } else if (func === 'skewY') {

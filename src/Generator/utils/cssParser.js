@@ -402,11 +402,19 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
   if (Object.keys(customRules).length > 0) {
     const fallbackClassName = className || '%root%';
     const cssRules = Object.keys(customRules).map(prop => {
-      const values = Object.keys(customRules[prop]).join(', ');
-      return `${prop}: ${values}`;
-    }).join('; ');
+      const values = Object.keys(customRules[prop]);
+      // Handle border property with rgba values properly
+      if (prop === 'border' && values.some(v => v.startsWith('rgba('))) {
+        // Use the first rgba value directly
+        const rgbaValue = values.find(v => v.startsWith('rgba('));
+        return `${prop}: ${rgbaValue}`;
+      }
+      const joinedValues = values.join(', ');
+      return `${prop}: ${joinedValues}`;
+    }).join(';\n  ');
+
     if (!settings._skipTransitionCustom) {
-      const selector = fallbackClassName === ':root' ? ':root' : `.${fallbackClassName}`;
+      const selector = fallbackClassName === ':root' ? ':root' : `.${fallbackClassName.replace(/\./g, '\\.')}`;
       settings._cssCustom = `${selector} {\n  ${cssRules};\n}`;
     }
     settings._skipTransitionCustom = false;
@@ -672,6 +680,6 @@ export function buildCssMap(cssText) {
   });
 
   // Join all root styles with semicolons to maintain valid CSS
-  const combinedRootStyles = rootStyles.join(';');
+  const combinedRootStyles = rootStyles.length > 0 ? `:root {\n  ${rootStyles.join(';\n  ')};\n}` : '';
   return { cssMap: map, variables, rootStyles: combinedRootStyles, keyframes };
 }

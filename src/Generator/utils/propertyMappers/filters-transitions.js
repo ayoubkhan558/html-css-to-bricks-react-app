@@ -57,7 +57,9 @@ export const effectsMappers = {
       // Move all filter values to custom CSS when drop-shadow is provided
       if (!settings._cssCustom) settings._cssCustom = '';
       const selector = settings._cssClass || '%element%';
-      settings._cssCustom += `\n${selector} { filter: ${val}; }`;
+      // Escape dots in selectors to prevent malformed CSS
+      const escapedSelector = selector.replace(/\./g, '\\.');
+      settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { filter: ${val}; }`;
       return;
     }
     
