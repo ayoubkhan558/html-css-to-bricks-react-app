@@ -31,12 +31,33 @@ export const borderBoxShadowMappers = {
       return;
     }
     
-    const parts = val.split(/\s+/);
-    if (parts.length >= 3) {
+    // FIX: Better parsing that handles rgba() properly
+    const parts = [];
+    let current = '';
+    let inParens = 0;
+    
+    for (let i = 0; i < val.length; i++) {
+      const char = val[i];
+      if (char === '(') inParens++;
+      if (char === ')') inParens--;
+      
+      if (char === ' ' && inParens === 0) {
+        if (current.trim()) {
+          parts.push(current.trim());
+          current = '';
+        }
+      } else {
+        current += char;
+      }
+    }
+    if (current.trim()) parts.push(current.trim());
+    
+    if (parts.length >= 1) {
       settings._border = settings._border || {};
       
       // Handle width (can be in format like '2px', 'thin', 'medium', 'thick')
-      const width = parts[0];
+      let width = parts[0];
+      
       if (['thin', 'medium', 'thick'].includes(width)) {
         const widthMap = { thin: '1px', medium: '3px', thick: '5px' };
         settings._border.width = {
@@ -55,29 +76,45 @@ export const borderBoxShadowMappers = {
         };
       }
       
-      // Handle style
-      settings._border.style = parts[1];
+      // Handle style and color
+      const validStyles = ['solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'inset', 'outset', 'none', 'hidden'];
+      let styleFound = false;
+      let colorPart = null;
       
-      // Handle color (could be the third part or later if style is not specified)
-      let colorPart = parts[2];
-      if (['solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'inset', 'outset', 'none', 'hidden'].includes(colorPart)) {
-        // If the third part is a style, then color might be the fourth part or not present
-        colorPart = parts[3] || 'currentColor';
+      // Look for style in parts
+      for (let i = 1; i < parts.length; i++) {
+        if (validStyles.includes(parts[i])) {
+          settings._border.style = parts[i];
+          styleFound = true;
+        } else if (parts[i].startsWith('#') || parts[i].startsWith('rgb') || /^[a-zA-Z]+$/.test(parts[i])) {
+          colorPart = parts[i];
+        }
       }
       
-      const hex = toHex(colorPart);
-      if (hex) {
-        settings._border.color = { hex };
+      // Default to solid if no style found
+      if (!styleFound) {
+        settings._border.style = 'solid';
+      }
+      
+      // Handle color
+      if (colorPart) {
+        if (colorPart.startsWith('rgba(') || colorPart.startsWith('rgb(')) {
+          settings._border.color = { rgb: colorPart };
+        } else {
+          const hex = toHex(colorPart);
+          if (hex) {
+            settings._border.color = { hex };
+          }
+        }
       }
     }
   },
   'border-width': (val, settings) => {
     settings._border = settings._border || {};
-    const values = val.split(/\s+/).map(v => parseValue(v));
+    const values = val.split(/\s+/).map(v => parseValue(v)).filter(v => v !== undefined && v !== null);
     
     // Handle different number of values (1-4 values)
     if (values.length === 1) {
-      // All sides same value
       settings._border.width = {
         top: values[0],
         right: values[0],
@@ -85,7 +122,6 @@ export const borderBoxShadowMappers = {
         left: values[0]
       };
     } else if (values.length === 2) {
-      // vertical | horizontal
       settings._border.width = {
         top: values[0],
         right: values[1],
@@ -93,15 +129,13 @@ export const borderBoxShadowMappers = {
         left: values[1]
       };
     } else if (values.length === 3) {
-      // top | horizontal | bottom
       settings._border.width = {
         top: values[0],
         right: values[1],
         bottom: values[2],
         left: values[1]
       };
-    } else if (values.length === 4) {
-      // top | right | bottom | left
+    } else if (values.length >= 4) {
       settings._border.width = {
         top: values[0],
         right: values[1],
@@ -115,10 +149,18 @@ export const borderBoxShadowMappers = {
     settings._border.style = val;
   },
   'border-color': (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
-      settings._border = settings._border || {};
-      settings._border.color = { hex };
+    settings._border = settings._border || {};
+    // Handle rgba colors properly
+    if (val.startsWith('rgba(')) {
+      settings._border.color = { rgb: val };
+    } else {
+      const hex = toHex(val);
+      if (hex) {
+        settings._border.color = { hex };
+      } else if (val.startsWith('rgb(')) {
+        // Handle rgb colors
+        settings._border.color = { rgb: val };
+      }
     }
   },
   'border-radius': (val, settings) => {
@@ -127,8 +169,8 @@ export const borderBoxShadowMappers = {
     // Handle elliptical corners (e.g., '10px 20px / 5px 15px')
     if (val.includes('/')) {
       const [horizontal, vertical] = val.split('/').map(part => part.trim());
-      const hValues = horizontal.split(/\s+/).map(v => parseValue(v));
-      const vValues = vertical.split(/\s+/).map(v => parseValue(v));
+      const hValues = horizontal.split(/\s+/).map(v => parseValue(v)).filter(v => v !== undefined && v !== null);
+      const vValues = vertical.split(/\s+/).map(v => parseValue(v)).filter(v => v !== undefined && v !== null);
       
       // Handle horizontal values (top-left, top-right, bottom-right, bottom-left)
       const hRadius = {
@@ -154,7 +196,7 @@ export const borderBoxShadowMappers = {
       };
     } else {
       // Standard border-radius without elliptical corners
-      const values = val.split(/\s+/).map(v => parseValue(v));
+      const values = val.split(/\s+/).map(v => parseValue(v)).filter(v => v !== undefined && v !== null);
       
       // Handle different number of values (1-4 values)
       if (values.length === 1) {
@@ -181,7 +223,7 @@ export const borderBoxShadowMappers = {
           bottom: values[2],
           left: values[1]
         };
-      } else if (values.length === 4) {
+      } else if (values.length >= 4) {
         // top | right | bottom | left
         settings._border.radius = {
           top: values[0],
@@ -234,52 +276,111 @@ export const borderBoxShadowMappers = {
     settings._border.width.left = parseValue(val);
   },
   'border-top-color': (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
-      settings._border = settings._border || {};
-      if (!settings._border.color) {
-        settings._border.color = { hex };
-      }
-      // Store individual side colors in custom CSS if different from main border color
+    settings._border = settings._border || {};
+    // Handle rgba colors properly
+    if (val.startsWith('rgba(')) {
       if (!settings._cssCustom) settings._cssCustom = '';
       const selector = settings._cssClass || '%element%';
-      settings._cssCustom += `\n${selector} { border-top-color: ${val}; }`;
+      // Escape dots in class names to prevent malformed selectors
+      const escapedSelector = selector.replace(/\./g, '\\.');
+      settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-top-color: ${val}; }`;
+    } else {
+      const hex = toHex(val);
+      if (hex) {
+        if (!settings._cssCustom) settings._cssCustom = '';
+        const selector = settings._cssClass || '%element%';
+        // Escape dots in class names to prevent malformed selectors
+        const escapedSelector = selector.replace(/\./g, '\\.');
+        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-top-color: ${hex}; }`;
+      } else if (val.startsWith('rgb(')) {
+        // Handle rgb colors
+        if (!settings._cssCustom) settings._cssCustom = '';
+        const selector = settings._cssClass || '%element%';
+        // Escape dots in class names to prevent malformed selectors
+        const escapedSelector = selector.replace(/\./g, '\\.');
+        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-top-color: ${val}; }`;
+      }
     }
   },
   'border-right-color': (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
-      settings._border = settings._border || {};
-      if (!settings._border.color) {
-        settings._border.color = { hex };
-      }
+    settings._border = settings._border || {};
+    // Handle rgba colors properly
+    if (val.startsWith('rgba(')) {
       if (!settings._cssCustom) settings._cssCustom = '';
       const selector = settings._cssClass || '%element%';
-      settings._cssCustom += `\n${selector} { border-right-color: ${val}; }`;
+      // Escape dots in class names to prevent malformed selectors
+      const escapedSelector = selector.replace(/\./g, '\\.');
+      settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-right-color: ${val}; }`;
+    } else {
+      const hex = toHex(val);
+      if (hex) {
+        if (!settings._cssCustom) settings._cssCustom = '';
+        const selector = settings._cssClass || '%element%';
+        // Escape dots in class names to prevent malformed selectors
+        const escapedSelector = selector.replace(/\./g, '\\.');
+        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-right-color: ${hex}; }`;
+      } else if (val.startsWith('rgb(')) {
+        // Handle rgb colors
+        if (!settings._cssCustom) settings._cssCustom = '';
+        const selector = settings._cssClass || '%element%';
+        // Escape dots in class names to prevent malformed selectors
+        const escapedSelector = selector.replace(/\./g, '\\.');
+        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-right-color: ${val}; }`;
+      }
     }
   },
   'border-bottom-color': (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
-      settings._border = settings._border || {};
-      if (!settings._border.color) {
-        settings._border.color = { hex };
-      }
+    settings._border = settings._border || {};
+    // Handle rgba colors properly
+    if (val.startsWith('rgba(')) {
       if (!settings._cssCustom) settings._cssCustom = '';
       const selector = settings._cssClass || '%element%';
-      settings._cssCustom += `\n${selector} { border-bottom-color: ${val}; }`;
+      // Escape dots in class names to prevent malformed selectors
+      const escapedSelector = selector.replace(/\./g, '\\.');
+      settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-bottom-color: ${val}; }`;
+    } else {
+      const hex = toHex(val);
+      if (hex) {
+        if (!settings._cssCustom) settings._cssCustom = '';
+        const selector = settings._cssClass || '%element%';
+        // Escape dots in class names to prevent malformed selectors
+        const escapedSelector = selector.replace(/\./g, '\\.');
+        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-bottom-color: ${hex}; }`;
+      } else if (val.startsWith('rgb(')) {
+        // Handle rgb colors
+        if (!settings._cssCustom) settings._cssCustom = '';
+        const selector = settings._cssClass || '%element%';
+        // Escape dots in class names to prevent malformed selectors
+        const escapedSelector = selector.replace(/\./g, '\\.');
+        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-bottom-color: ${val}; }`;
+      }
     }
   },
   'border-left-color': (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
-      settings._border = settings._border || {};
-      if (!settings._border.color) {
-        settings._border.color = { hex };
-      }
+    settings._border = settings._border || {};
+    // Handle rgba colors properly
+    if (val.startsWith('rgba(')) {
       if (!settings._cssCustom) settings._cssCustom = '';
       const selector = settings._cssClass || '%element%';
-      settings._cssCustom += `\n${selector} { border-left-color: ${val}; }`;
+      // Escape dots in class names to prevent malformed selectors
+      const escapedSelector = selector.replace(/\./g, '\\.');
+      settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-left-color: ${val}; }`;
+    } else {
+      const hex = toHex(val);
+      if (hex) {
+        if (!settings._cssCustom) settings._cssCustom = '';
+        const selector = settings._cssClass || '%element%';
+        // Escape dots in class names to prevent malformed selectors
+        const escapedSelector = selector.replace(/\./g, '\\.');
+        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-left-color: ${hex}; }`;
+      } else if (val.startsWith('rgb(')) {
+        // Handle rgb colors
+        if (!settings._cssCustom) settings._cssCustom = '';
+        const selector = settings._cssClass || '%element%';
+        // Escape dots in class names to prevent malformed selectors
+        const escapedSelector = selector.replace(/\./g, '\\.');
+        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-left-color: ${val}; }`;
+      }
     }
   }
 };

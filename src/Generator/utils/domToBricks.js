@@ -152,7 +152,9 @@ const handleInlineStyles = (node, element, globalClasses, variables = {}, option
         
         // Use element ID or tag as selector
         const selector = element.settings._cssId ? `#${element.settings._cssId}` : `%element%`;
-        element.settings._cssCustom += `\n${selector} {\n  ${formattedStyles};\n}`;
+        // Escape dots in selectors to prevent malformed CSS
+        const escapedSelector = selector.replace(/\./g, '\\.');
+        element.settings._cssCustom += `\n${escapedSelector} {\n  ${formattedStyles};\n}`;
       }
 
       // Remove the style attribute since we've processed it
@@ -405,12 +407,16 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
           } else {
             // Add as custom CSS if it doesn't match
             const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
-            customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+            // Escape dots in selectors to prevent malformed CSS
+            const escapedSelector = selector.replace(/\./g, '\\.');
+            customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
           }
         } else {
           // Handle as regular custom CSS
           const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
-          customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+          // Escape dots in selectors to prevent malformed CSS
+          const escapedSelector = selector.replace(/\./g, '\\.');
+          customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
         }
       });
       if (customCss) {
@@ -481,12 +487,16 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
             } else {
               // Add as custom CSS if it doesn't match
               const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
-              customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+              // Escape dots in selectors to prevent malformed CSS
+              const escapedSelector = selector.replace(/\./g, '\\.');
+              customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
             }
           } else {
             // Handle as regular custom CSS
             const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
-            customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
+            // Escape dots in selectors to prevent malformed CSS
+            const escapedSelector = selector.replace(/\./g, '\\.');
+            customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
           }
         });
         if (customCss) {
@@ -614,12 +624,6 @@ const convertHtmlToBricks = (html, css, options) => {
     });
 
     if (rootStyles) {
-      // Split the combined root styles back into individual root blocks
-      const rootBlocks = rootStyles.split(';').filter(block => block.trim() !== '');
-      
-      // Create a single root block with all variables
-      const combinedRootStyles = `:root {\n  ${rootBlocks.join(';\n  ')};\n}`;
-      
       // Find the first top-level element's class (parent element)
       let targetClass = null;
       if (content.length > 0 && content[0].settings._cssGlobalClasses) {
@@ -633,19 +637,19 @@ const convertHtmlToBricks = (html, css, options) => {
         if (!targetClass.settings._cssCustom) {
           targetClass.settings._cssCustom = '';
         }
-        targetClass.settings._cssCustom = `${combinedRootStyles}\n${targetClass.settings._cssCustom}`;
+        targetClass.settings._cssCustom = `${rootStyles}\n${targetClass.settings._cssCustom}`.trim();
       } else if (globalClasses.length > 0) {
         const firstClass = globalClasses[0];
         if (!firstClass.settings._cssCustom) {
           firstClass.settings._cssCustom = '';
         }
-        firstClass.settings._cssCustom = `${combinedRootStyles}\n${firstClass.settings._cssCustom}`;
+        firstClass.settings._cssCustom = `${rootStyles}\n${firstClass.settings._cssCustom}`.trim();
       } else {
         globalClasses.push({
           id: getUniqueId(),
           name: 'custom-css',
           settings: {
-            _cssCustom: combinedRootStyles,
+            _cssCustom: rootStyles,
           },
         });
       }
@@ -667,13 +671,13 @@ const convertHtmlToBricks = (html, css, options) => {
         if (!targetClass.settings._cssCustom) {
           targetClass.settings._cssCustom = '';
         }
-        targetClass.settings._cssCustom = `${targetClass.settings._cssCustom}\n\n${keyframesCSS}`;
+        targetClass.settings._cssCustom = `${targetClass.settings._cssCustom}\n\n${keyframesCSS}`.trim();
       } else if (globalClasses.length > 0) {
         const firstClass = globalClasses[0];
         if (!firstClass.settings._cssCustom) {
           firstClass.settings._cssCustom = '';
         }
-        firstClass.settings._cssCustom = `${firstClass.settings._cssCustom}\n\n${keyframesCSS}`;
+        firstClass.settings._cssCustom = `${firstClass.settings._cssCustom}\n\n${keyframesCSS}`.trim();
       } else {
         // Create a new global class for keyframes if none exists
         globalClasses.push({
