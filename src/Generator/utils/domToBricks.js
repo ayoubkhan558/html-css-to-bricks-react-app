@@ -60,7 +60,7 @@ const hasAlertClasses = (node) => {
   const classes = Array.from(node.classList);
 
   // Check for exact matches only
-  return ALERT_CLASS_PATTERNS.some(pattern => 
+  return ALERT_CLASS_PATTERNS.some(pattern =>
     classes.includes(pattern)
   );
 };
@@ -101,19 +101,19 @@ const handleInlineStyles = (node, element, globalClasses, variables = {}, option
         const firstClassId = element.settings._cssGlobalClasses[0];
         targetClass = globalClasses.find(c => c.id === firstClassId);
       }
-      
+
       // Convert inline styles to a class and merge with existing settings
       console.log('Converting inline styles to class for element:', element.id, styleAttr, targetClass?.name, variables);
 
       if (targetClass) {
         // Parse the inline styles
         const parsedInlineStyles = parseCssDeclarations(styleAttr, targetClass.name, variables);
-        
+
         // Ensure _typography exists in the target class
         if (!targetClass.settings._typography) {
           targetClass.settings._typography = {};
         }
-        
+
         // Deep merge the inline styles with existing styles
         if (parsedInlineStyles._typography) {
           targetClass.settings._typography = {
@@ -121,7 +121,7 @@ const handleInlineStyles = (node, element, globalClasses, variables = {}, option
             ...parsedInlineStyles._typography,   // Apply inline styles on top
           };
         }
-        
+
         // Merge any other settings (like _cssCustom, etc.)
         Object.entries(parsedInlineStyles).forEach(([key, value]) => {
           if (key !== '_typography') {
@@ -140,16 +140,16 @@ const handleInlineStyles = (node, element, globalClasses, variables = {}, option
       } else {
         // No class exists - add inline styles as custom CSS
         console.log('No target class found, adding inline styles as custom CSS');
-        
+
         // Parse inline styles and convert to custom CSS
         const styleDeclarations = styleAttr.split(';').filter(s => s.trim());
         const formattedStyles = styleDeclarations.map(s => s.trim()).join(';\n  ');
-        
+
         // Add to element's custom CSS or settings
         if (!element.settings._cssCustom) {
           element.settings._cssCustom = '';
         }
-        
+
         // Use element ID or tag as selector
         const selector = element.settings._cssId ? `#${element.settings._cssId}` : `%element%`;
         // Escape dots in selectors to prevent malformed CSS
@@ -301,7 +301,38 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     processTextElement(node, element, tag, allElements, options.context || {});
   }
   else if (['a'].includes(tag)) {
-    processLinkElement(node, element, tag, options.context || {});
+    // Check if anchor contains only text nodes
+    const hasOnlyText = Array.from(node.childNodes).every(n => n.nodeType === Node.TEXT_NODE);
+    if (hasOnlyText) {
+      processLinkElement(node, element, tag, options.context || {});
+    } else {
+      // Use div brick with link settings
+      element.name = 'div';
+      element.settings.tag = 'a';
+      // Set link settings (external or internal)
+      element.settings.link = {
+        type: node.getAttribute('href') && node.getAttribute('href').startsWith('/') ? 'external' : 'internal',
+        url: node.getAttribute('href') || ''
+      };
+      // Process and nest children
+      Array.from(node.childNodes).forEach(childNode => {
+        const childElement = domNodeToBricks(childNode, cssRulesMap, elementId, globalClasses, allElements, variables, options);
+        if (childElement) {
+          if (Array.isArray(childElement)) {
+            childElement.forEach(c => {
+              element.children.push(c.id);
+              if (!allElements.some(e => e.id === c.id)) allElements.push(c);
+            });
+          } else {
+            element.children.push(childElement.id);
+            if (!allElements.some(e => e.id === childElement.id)) allElements.push(childElement);
+          }
+        }
+      });
+
+      // Mark that children have been processed to avoid double processing
+      element._skipChildren = true;
+    }
   }
   else if (tag === 'img') {
     processImageElement(node, element, tag, options.context || {});
@@ -384,7 +415,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       const parsedSettings = parseCssDeclarations(combinedProperties, `#brx-${element.id}`, variables);
       Object.assign(element.settings, parsedSettings);
     }
-    
+
     // Handle pseudo-elements for ID
     if (pseudoSelectors.length > 0) {
       let customCss = '';
@@ -395,10 +426,10 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
           // Extract pseudo-class and base selector
           const pseudoClass = pseudoClassMatch[1];
           const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
-          
+
           // Check if the base selector matches our element
-          if (baseSelector === `#${node.id}` || baseSelector === tag || 
-              (baseSelector.startsWith('.') && node.classList.contains(baseSelector.substring(1)))) {
+          if (baseSelector === `#${node.id}` || baseSelector === tag ||
+            (baseSelector.startsWith('.') && node.classList.contains(baseSelector.substring(1)))) {
             // Parse the pseudo-class styles
             const pseudoStyles = parseCssDeclarations(properties, selector, variables);
             Object.entries(pseudoStyles).forEach(([prop, value]) => {
@@ -423,7 +454,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         element.settings._cssCustom = (element.settings._cssCustom || '') + customCss;
       }
     }
-    
+
     // Handle pseudo-classes for ID
     Object.keys(cssRulesMap).forEach(selector => {
       const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\w+)`));
@@ -434,7 +465,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
           element.settings[`${prop}:${pseudoClass}`] = value;
         });
       }
-          
+
       // Handle pseudo-classes for tag selectors
       const tagPseudoMatch = selector.match(new RegExp(`^${tag}:(\w+)`));
       if (tagPseudoMatch) {
@@ -464,7 +495,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         const parsedSettings = parseCssDeclarations(combinedProperties, cls, variables);
         Object.assign(targetClass.settings, parsedSettings);
       }
-      
+
       // Handle pseudo-elements for this class
       if (index === 0 && pseudoSelectors.length > 0) {
         let customCss = '';
@@ -475,10 +506,10 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
             // Extract pseudo-class and base selector
             const pseudoClass = pseudoClassMatch[1];
             const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
-            
+
             // Check if the base selector matches our element
-            if (baseSelector === `#${node.id}` || baseSelector === tag || 
-                (baseSelector.startsWith('.') && node.classList.contains(baseSelector.substring(1)))) {
+            if (baseSelector === `#${node.id}` || baseSelector === tag ||
+              (baseSelector.startsWith('.') && node.classList.contains(baseSelector.substring(1)))) {
               // Parse the pseudo-class styles
               const pseudoStyles = parseCssDeclarations(properties, selector, variables);
               Object.entries(pseudoStyles).forEach(([prop, value]) => {
@@ -513,7 +544,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
             targetClass.settings[`${prop}:${pseudoClass}`] = value;
           });
         }
-              
+
         // Handle pseudo-classes for tag selectors when processing the first (generated) class
         if (index === 0) {
           const tagPseudoMatch = selector.match(new RegExp(`^${tag}:(\w+)`));
@@ -549,7 +580,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     allElements.push(element);
     return element;
   }
-  
+
   // Special handling for table cells (td, th) - return AFTER CSS processing
   if (['td', 'th'].includes(tag)) {
     allElements.push(element);
@@ -630,7 +661,7 @@ const convertHtmlToBricks = (html, css, options) => {
         const firstElementClassId = content[0].settings._cssGlobalClasses[0];
         targetClass = globalClasses.find(c => c.id === firstElementClassId);
       }
-      
+
       // If we found the first element's class, add root styles there
       // Otherwise fallback to first global class or create new one
       if (targetClass) {
@@ -658,14 +689,14 @@ const convertHtmlToBricks = (html, css, options) => {
     // Handle @keyframes rules
     if (keyframes && keyframes.length > 0) {
       const keyframesCSS = keyframes.map(kf => kf.rule).join('\n\n');
-      
+
       // Find the first top-level element's class to add keyframes
       let targetClass = null;
       if (content.length > 0 && content[0].settings._cssGlobalClasses) {
         const firstElementClassId = content[0].settings._cssGlobalClasses[0];
         targetClass = globalClasses.find(c => c.id === firstElementClassId);
       }
-      
+
       // Add keyframes to the target class or first global class
       if (targetClass) {
         if (!targetClass.settings._cssCustom) {
