@@ -26,7 +26,7 @@ export const getBricksFieldType = (node) => {
   }
 };
 
-export const processFormField = (form, node) => {
+export const processFormField = (form, node, context = {}) => {
   const tagName = node.tagName.toLowerCase();
   if (!['input', 'select', 'textarea', 'button'].includes(tagName)) return null;
 
@@ -67,7 +67,7 @@ export const processFormField = (form, node) => {
     const name = node.getAttribute('name') || '';
     const placeholder = node.getAttribute('placeholder') || '';
     const defaultLabel = name || placeholder || fieldType.charAt(0).toUpperCase() + fieldType.slice(1);
-    field.label = getElementLabel(node, defaultLabel, options?.context || {});
+    field.label = getElementLabel(node, defaultLabel, context);
   }
 
   // Clean up label
@@ -179,13 +179,13 @@ const findSubmitButtons = (formNode) => {
   return submitButtons;
 };
 
-export const processFormElement = (formNode) => {
+export const processFormElement = (formNode, context = {}) => {
   // Find submit button text dynamically
   const submitButtons = findSubmitButtons(formNode);
   const dynamicSubmitText = submitButtons.length > 0 ? submitButtons[0] : 'Submit';
 
   const formElement = {
-    id: getUniqueId().substring(0, 6),
+    id: getUniqueId(),
     name: 'form',
     parent: 0,
     children: [],
@@ -222,7 +222,7 @@ export const processFormElement = (formNode) => {
     });
 
   fieldElements.forEach(fieldEl => {
-    const field = processFormField(formNode, fieldEl);
+    const field = processFormField(formNode, fieldEl, context);
     if (field) {
       formElement.settings.fields.push(field);
     }

@@ -346,10 +346,12 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     return svgElement;
   }
   else if (tag === 'form') {
-    return processFormElement(node, { context: options.context || {} });
+    const formElement = processFormElement(node, options.context || {});
     formElement.id = elementId;
     formElement.parent = parentId;
     Object.assign(element, formElement);
+    // Mark that children have been processed to avoid double processing
+    element._skipChildren = true;
   }
   else if (['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(tag)) {
     const processedElement = processTableElement(node, element, tag, options.context || {});
