@@ -96,6 +96,47 @@ export const parseValue = (value) => {
   return value;
 };
 
+
+/**
+ * Helper function to split CSS values while preserving functions like clamp(), calc(), etc.
+ * @param {string} value - The CSS value to split
+ * @returns {Array} - Array of individual values
+ */
+export const splitCSSValue = (value) => {
+  if (!value || typeof value !== 'string') return [];
+
+  const values = [];
+  let current = '';
+  let depth = 0;
+
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i];
+
+    if (char === '(') {
+      depth++;
+      current += char;
+    } else if (char === ')') {
+      depth--;
+      current += char;
+    } else if (char === ' ' && depth === 0) {
+      // Only split on spaces outside of functions
+      if (current.trim()) {
+        values.push(current.trim());
+        current = '';
+      }
+    } else {
+      current += char;
+    }
+  }
+
+  // Add the last value
+  if (current.trim()) {
+    values.push(current.trim());
+  }
+
+  return values;
+};
+
 // CSS properties Bricks has native controls for and how to map them
 export const getCssPropMappers = (settings) => {
   const mappers = {
@@ -263,14 +304,7 @@ export const getCssPropMappers = (settings) => {
       'grid-row': gridMappers['grid-row'],
       'grid-area': gridMappers['grid-area'],
       'justify-items': gridMappers['justify-items'],
-      'gap': (value, settings) => {
-        const values = value.split(' ').map(v => v.replace('px', '').trim()).filter(Boolean);
-        if (values.length === 1) {
-          settings._gridGap = `${values[0]} ${values[0]}`;
-        } else if (values.length >= 2) {
-          settings._gridGap = `${values[0]} ${values[1]}`;
-        }
-      }
+      'gap': gridMappers['gap'] // Use the mapper from gridMappers instead of inline
     });
   } else {
     Object.assign(mappers, {
@@ -284,11 +318,7 @@ export const getCssPropMappers = (settings) => {
       'flex-basis': flexboxMappers['flex-basis'],
       'align-self': flexboxMappers['align-self'],
       'order': flexboxMappers['order'],
-      'gap': (value, settings) => {
-        const [columnGap, rowGap = columnGap] = value.split(' ').map(v => v.replace('px', ''));
-        settings._columnGap = columnGap;
-        settings._rowGap = rowGap;
-      },
+      'gap': flexboxMappers['gap'], // Use the mapper from flexboxMappers instead of inline
       'row-gap': flexboxMappers['row-gap'],
       'column-gap': flexboxMappers['column-gap']
     });
@@ -306,25 +336,25 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
     if (typeof value !== 'string' || !value.includes('var(')) {
       return value;
     }
-    
+
     // Recursively resolve CSS variables (handle nested var() calls)
     let resolved = value;
     let maxIterations = 10; // Prevent infinite loops
     let iteration = 0;
-    
+
     while (resolved.includes('var(') && iteration < maxIterations) {
       const previousResolved = resolved;
       resolved = resolved.replace(/var\((--[\w-]+)\)/g, (match, varName) => {
         return variables[varName] || match;
       });
-      
+
       // If nothing changed, break to avoid infinite loop
       if (previousResolved === resolved) {
         break;
       }
       iteration++;
     }
-    
+
     return resolved;
   };
 
@@ -455,7 +485,7 @@ export function matchCSSSelectors(element, cssMap) {
         isPseudoElement = true;
         // Extract base selector (without pseudo-element)
         const baseSelector = selector.split('::')[0].trim();
-        
+
         // Check if base selector matches the element
         try {
           matches = element.matches(baseSelector);
@@ -483,7 +513,7 @@ export function matchCSSSelectors(element, cssMap) {
       if (pseudoClassMatch) {
         // Extract base selector (without pseudo-class)
         const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
-        
+
         // Check if base selector matches the element
         try {
           matches = element.matches(baseSelector);
@@ -509,7 +539,7 @@ export function matchCSSSelectors(element, cssMap) {
       // Try to match the selector
       try {
         matches = element.matches(selector);
-        
+
         // If selector is a descendant/complex selector, treat it as custom CSS
         // to preserve the relationship (e.g., ".hero-content p" should not apply to <p> directly)
         const selectorType = getSelectorType(selector);
@@ -591,16 +621,16 @@ export function buildCssMap(cssText) {
   let keyframeMatch;
   let cssWithoutKeyframes = cleanCSS;
   const extractedKeyframes = [];
-  
+
   while ((keyframeMatch = keyframeRegex.exec(cleanCSS)) !== null) {
     const startIndex = keyframeMatch.index;
     const animationName = keyframeMatch[1];
-    
+
     // Find the matching closing brace for this @keyframes block
     let braceCount = 0;
     let endIndex = startIndex + keyframeMatch[0].length;
     let foundStart = false;
-    
+
     for (let i = startIndex; i < cleanCSS.length; i++) {
       if (cleanCSS[i] === '{') {
         braceCount++;
@@ -613,19 +643,19 @@ export function buildCssMap(cssText) {
         }
       }
     }
-    
+
     const fullRule = cleanCSS.substring(startIndex, endIndex);
     extractedKeyframes.push({
       name: animationName,
       rule: fullRule
     });
   }
-  
+
   // Remove all extracted keyframes from CSS
   extractedKeyframes.forEach(kf => {
     cssWithoutKeyframes = cssWithoutKeyframes.replace(kf.rule, '');
   });
-  
+
   // Store in keyframes array
   keyframes.push(...extractedKeyframes);
 
@@ -666,7 +696,7 @@ export function buildCssMap(cssText) {
         if (trimmed === ':root') {
           // Add to root styles array
           rootStyles.push(properties);
-          
+
           // Process variables from all root blocks
           properties.split(';').forEach(prop => {
             const [key, value] = prop.split(':').map(s => s.trim());
