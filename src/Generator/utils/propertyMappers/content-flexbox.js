@@ -1,4 +1,7 @@
 // Flexbox Property Mappers
+import { parseValue, splitCSSValue } from '../cssParser';
+
+// Flexbox Property Mappers
 export const flexboxMappers = {
   'flex-direction': (val, settings) => {
     settings._direction = val;
@@ -22,7 +25,7 @@ export const flexboxMappers = {
     settings._flexShrink = parseFloat(val);
   },
   'flex-basis': (val, settings) => {
-    settings._flexBasis = val;
+    settings._flexBasis = parseValue(val);
   },
   'align-self': (val, settings) => {
     settings._alignSelf = val;
@@ -31,19 +34,19 @@ export const flexboxMappers = {
     settings._order = parseInt(val);
   },
   'gap': (val, settings) => {
-    const values = val.split(' ').map(v => v.replace('px', '').trim()).filter(Boolean);
+    const values = splitCSSValue(val).map(v => parseValue(v)).filter(Boolean);
     if (values.length === 1) {
       settings._columnGap = values[0];
       settings._rowGap = values[0];
     } else if (values.length >= 2) {
-      settings._columnGap = values[1]; // Second value is column gap
       settings._rowGap = values[0];    // First value is row gap
+      settings._columnGap = values[1]; // Second value is column gap
     }
   },
   'row-gap': (val, settings) => {
-    settings._rowGap = val.replace('px', '');
+    settings._rowGap = parseValue(val);
   },
   'column-gap': (val, settings) => {
-    settings._columnGap = val.replace('px', '');
+    settings._columnGap = parseValue(val);
   }
 };

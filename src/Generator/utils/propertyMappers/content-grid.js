@@ -1,17 +1,18 @@
-// grid.js 
-import { parseValue } from '../cssParser';
+import { parseValue, splitCSSValue } from '../cssParser';
 
 export const gridMappers = {
   // Grid container properties
   'grid-gap': (val, settings) => {
-    const [rowGap, columnGap] = val.split(/\s+/);
+    const values = splitCSSValue(val);
+    const rowGap = parseValue(values[0]);
+    const columnGap = values[1] ? parseValue(values[1]) : rowGap;
     settings._gridGap = columnGap
-      ? `${parseValue(rowGap)} ${parseValue(columnGap)}`
-      : parseValue(rowGap);
+      ? `${rowGap} ${columnGap}`
+      : rowGap;
     settings._skipGapCustom = true;
   },
   'gap': (val, settings) => {
-    const values = val.split(' ').map(v => v.replace('px', '').trim()).filter(Boolean);
+    const values = splitCSSValue(val).map(v => parseValue(v)).filter(Boolean);
     if (values.length === 1) {
       settings._gridGap = `${values[0]} ${values[0]}`;
     } else if (values.length >= 2) {
@@ -19,12 +20,12 @@ export const gridMappers = {
     }
   },
   'row-gap': (val, settings) => {
-    const currentGap = (settings._gridGap || '0 0').split(' ');
-    settings._gridGap = `${val.replace('px', '')} ${currentGap[1] || '0'}`;
+    const currentGap = settings._gridGap ? splitCSSValue(settings._gridGap) : ['0', '0'];
+    settings._gridGap = `${parseValue(val)} ${currentGap[1] || '0'}`;
   },
   'column-gap': (val, settings) => {
-    const currentGap = (settings._gridGap || '0 0').split(' ');
-    settings._gridGap = `${currentGap[0] || '0'} ${val.replace('px', '')}`;
+    const currentGap = settings._gridGap ? splitCSSValue(settings._gridGap) : ['0', '0'];
+    settings._gridGap = `${currentGap[0] || '0'} ${parseValue(val)}`;
   },
   'grid-row-gap': (val, settings) => {
     settings._gridRowGap = parseValue(val);
