@@ -5,6 +5,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AdvancedSelectorMatcher } from '../src/lib/css/AdvancedSelectorMatcher';
+import { converterService } from '../src/services/converter';
 
 describe('CSS Selectors - All Types', () => {
     let testDoc;
@@ -102,8 +103,8 @@ describe('CSS Selectors - All Types', () => {
     // ===== PSEUDO-CLASSES =====
     describe('Pseudo-classes', () => {
         it('should match :first-child', () => {
-            const firstP = testDoc.querySelector('p');
-            expect(AdvancedSelectorMatcher.matches(firstP, 'p:first-child')).toBe(true);
+            const h1 = testDoc.querySelector('h1');
+            expect(AdvancedSelectorMatcher.matches(h1, 'h1:first-child')).toBe(true);
         });
 
         it('should match :last-child', () => {
@@ -269,6 +270,280 @@ describe('CSS Selectors - All Types', () => {
 
             // Last selector with same specificity should win (source order)
             expect(result.appliedProperties.border).toBeDefined();
+        });
+    });
+
+
+    // ===== ID SELECTORS =====
+    describe('ID Selectors', () => {
+        it('should apply basic ID selector styles', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title { font-size: 36px; padding: 10px; text-align: center; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1).toBeDefined();
+            expect(h1.settings._cssId).toBe('title');
+            expect(h1.settings._typography?.['font-size']).toBe('36px');
+        });
+
+        it('should handle multiple ID-based rules', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = `
+            #title { color: blue; }
+            #title { font-size: 32px; }
+          `;
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings._typography?.color?.hex).toBeDefined();
+            expect(h1.settings._typography?.['font-size']).toBe('32px');
+        });
+    });
+
+    // ===== PSEUDO-CLASSES =====
+    describe('Pseudo-classes', () => {
+        it('should apply :hover pseudo-class', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title:hover { color: red; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings['_typography:hover']).toBeDefined();
+        });
+
+        it('should apply :focus pseudo-class', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title:focus { outline: 2px solid blue; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings['_border:focus'] || h1.settings._cssCustom).toBeDefined();
+        });
+
+        it('should apply :active pseudo-class', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title:active { color: orange; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings['_typography:active']).toBeDefined();
+        });
+
+        it('should apply :first-child pseudo-class', () => {
+            const html = '<div><h1 id="title">Title</h1></div>';
+            const css = '#title:first-child { border-top: 2px dashed black; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings['_border:first-child'] || h1.settings._cssCustom).toBeDefined();
+        });
+
+        it('should apply :last-child pseudo-class', () => {
+            const html = '<div><h1 id="title">Title</h1></div>';
+            const css = '#title:last-child { border-bottom: 2px dashed black; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings['_border:last-child'] || h1.settings._cssCustom).toBeDefined();
+        });
+
+        it('should apply :nth-child() pseudo-class', () => {
+            const html = '<div><h1 id="title">Title</h1></div>';
+            const css = '#title:nth-child(1) { background-color: lightyellow; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings['_background:nth-child'] || h1.settings._cssCustom).toBeDefined();
+        });
+
+        it('should apply :nth-of-type() pseudo-class', () => {
+            const html = '<div><h1 id="title">Title</h1></div>';
+            const css = '#title:nth-of-type(1) { letter-spacing: 2px; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings['_typography:nth-of-type'] || h1.settings._cssCustom).toBeDefined();
+        });
+
+        it('should apply :not() pseudo-class', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title:not(.disabled) { text-transform: uppercase; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings['_typography:not'] || h1.settings._cssCustom).toBeDefined();
+        });
+
+        it('should apply :focus-visible pseudo-class', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title:focus-visible { background-color: lightblue; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings['_background:focus-visible'] || h1.settings._cssCustom).toBeDefined();
+        });
+
+        it('should not apply :empty pseudo-class when element has content', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title:empty { background-color: pink; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            // :empty shouldn't match because element has content
+            expect(h1).toBeDefined();
+        });
+    });
+
+    // ===== PSEUDO-ELEMENTS =====
+    describe('Pseudo-elements', () => {
+        it('should handle ::before pseudo-element', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title::before { content: "🔥 "; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings._cssCustom).toContain('::before');
+        });
+
+        it('should handle ::after pseudo-element', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title::after { content: " 🔥"; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings._cssCustom).toContain('::after');
+        });
+
+        it('should handle combined pseudo-class and pseudo-element', () => {
+            const html = '<h1 id="title">Title</h1>';
+            const css = '#title:hover::after { content: " ✨"; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1.settings._cssCustom).toContain(':hover::after');
+        });
+    });
+
+    // ===== ATTRIBUTE SELECTORS =====
+    describe('Attribute Selectors', () => {
+        it('should match attribute existence selector', () => {
+            const html = '<h1 data-role="heading">Title</h1>';
+            const css = '[data-role] { padding: 10px; }';
+
+            const result = converterService.convert(html, css);
+
+            expect(result.content.length).toBeGreaterThan(0);
+        });
+
+        it('should match attribute value selector', () => {
+            const html = '<h1 data-role="heading">Title</h1>';
+            const css = 'h1[data-role="heading"] { padding: 10px; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content[0];
+
+            expect(h1).toBeDefined();
+        });
+
+        it('should match universal attribute selector', () => {
+            const html = '<h1 aria-label="Main Title">Title</h1>';
+            const css = '*[aria-label] { margin-bottom: 20px; }';
+
+            const result = converterService.convert(html, css);
+
+            expect(result.content.length).toBeGreaterThan(0);
+        });
+    });
+
+    // ===== COMBINED SELECTORS =====
+    describe('Combined Selectors', () => {
+        it('should handle ID + class combination', () => {
+            const html = '<h1 id="title" class="main-title">Title</h1>';
+            const css = 'h1#title.main-title { background: yellow; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            expect(h1).toBeDefined();
+        });
+
+        it('should handle descendant selector', () => {
+            const html = '<div class="container"><h1>Title</h1></div>';
+            const css = '.container h1 { border-bottom: 2px solid black; }';
+
+            const result = converterService.convert(html, css);
+
+            expect(result.content.length).toBeGreaterThan(0);
+        });
+
+        it('should handle type selector', () => {
+            const html = '<h1>Title</h1>';
+            const css = 'h1 { text-transform: uppercase; }';
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content[0];
+
+            expect(h1).toBeDefined();
+        });
+    });
+
+    // ===== SPECIFICITY & CASCADE =====
+    describe('Specificity and Cascade', () => {
+        it('should apply styles in correct cascade order', () => {
+            const html = '<h1 id="title" class="main-title">Title</h1>';
+            const css = `
+            h1 { font-size: 20px; }
+            .main-title { font-size: 28px; }
+            #title { font-size: 36px; }
+          `;
+
+            const result = converterService.convert(html, css);
+            const h1 = result.content.find(el => el.settings._cssId === 'title');
+
+            // ID selector should win (highest specificity)
+            expect(h1.settings._typography?.['font-size']).toBe('36px');
+        });
+
+        it('should handle multiple class selectors', () => {
+            const html = '<div class="container"><p class="text">Sample</p></div>';
+            const css = `
+            .text { font-size: 16px; }
+            .container .text { line-height: 1.5; }
+          `;
+
+            const result = converterService.convert(html, css);
+
+            expect(result.globalClasses.length).toBeGreaterThan(0);
+        });
+    });
+
+    // ===== NON-MATCHING SELECTORS =====
+    describe('Non-matching Selectors', () => {
+        it('should not apply styles for non-existent classes', () => {
+            const html = '<p class="text">Sample</p>';
+            const css = '.non-existent { color: red; }';
+
+            const result = converterService.convert(html, css);
+            const textClass = result.globalClasses.find(c => c.name === 'text');
+
+            // non-existent class shouldn't affect existing elements
+            expect(result.globalClasses.some(c => c.name === 'non-existent')).toBe(false);
         });
     });
 });

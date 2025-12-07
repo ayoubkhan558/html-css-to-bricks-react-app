@@ -59,7 +59,18 @@ export const processAttributes = (node, element, tag, options = {}) => {
     }
   });
 
+  // Merge custom attributes with existing ones (don't overwrite)
   if (customAttributes.length > 0) {
-    element.settings._attributes = customAttributes;
+    if (!element.settings._attributes) {
+      element.settings._attributes = customAttributes;
+    } else {
+      // Only add attributes that don't already exist
+      customAttributes.forEach(newAttr => {
+        const exists = element.settings._attributes.some(existing => existing.name === newAttr.name);
+        if (!exists) {
+          element.settings._attributes.push(newAttr);
+        }
+      });
+    }
   }
 };

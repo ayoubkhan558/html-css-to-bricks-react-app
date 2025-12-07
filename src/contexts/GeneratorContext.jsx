@@ -17,6 +17,7 @@ export function GeneratorProvider({ children }) {
   const [isCopied, setIsCopied] = useState(false);
   const [inlineStyleHandling, setInlineStyleHandling] = useState('inline'); // 'skip'|'inline'|'class'
   const [showNodeClass, setShowNodeClass] = useState(true);
+  const [mergeNonClassSelectors, setMergeNonClassSelectors] = useState(false);
 
   // Dark-mode handling (matches Zustand logic)
   const prefersDark = () => {
@@ -57,6 +58,7 @@ export function GeneratorProvider({ children }) {
     isCopied, setIsCopied,
     inlineStyleHandling, setInlineStyleHandling,
     showNodeClass, setShowNodeClass,
+    mergeNonClassSelectors, setMergeNonClassSelectors,
     isDarkMode, toggleDarkMode,
   };
 

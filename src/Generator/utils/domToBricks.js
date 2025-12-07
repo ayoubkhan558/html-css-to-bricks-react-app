@@ -1,22 +1,22 @@
 import { getUniqueId } from './utils';
-import { getBricksFieldType, processFormField, processFormElement } from "./elementProcessors/formProcessor"
+import { getBricksFieldType, processFormField, processFormElement } from "./processors/formProcessor"
 import { buildCssMap, parseCssDeclarations, matchCSSSelectors } from './cssParser';
-import { processAudioElement } from './elementProcessors/audioProcessor';
-import { processVideoElement } from './elementProcessors/videoProcessor';
-import { processTableElement } from './elementProcessors/tableProcessor';
-import { processImageElement } from './elementProcessors/imageProcessor';
-import { processSvgElement } from './elementProcessors/svgProcessor';
-import { processHeadingElement } from './elementProcessors/headingProcessor';
-import { processListElement } from './elementProcessors/listProcessor';
-import { processLinkElement } from './elementProcessors/linkProcessor';
-import { processButtonElement } from './elementProcessors/buttonProcessor';
-import { processMiscElement } from './elementProcessors/miscProcessor';
-import { processStructureLayoutElement } from './elementProcessors/structureLayoutProcessor';
-import { getElementLabel } from './elementProcessors/labelUtils';
-import { processTextElement } from './elementProcessors/textElementProcessor';
+import { processAudioElement } from './processors/audioProcessor';
+import { processVideoElement } from './processors/videoProcessor';
+import { processTableElement } from './processors/tableProcessor';
+import { processImageElement } from './processors/imageProcessor';
+import { processSvgElement } from './processors/svgProcessor';
+import { processHeadingElement } from './processors/headingProcessor';
+import { processListElement } from './processors/listProcessor';
+import { processLinkElement } from './processors/linkProcessor';
+import { processButtonElement } from './processors/buttonProcessor';
+import { processMiscElement } from './processors/miscProcessor';
+import { processStructureLayoutElement } from './processors/structureLayoutProcessor';
+import { getElementLabel } from './processors/labelUtils';
+import { processTextElement } from './processors/textElementProcessor';
 import { processAttributes } from './processors/attributeProcessor';
-import { processAlertElement } from './elementProcessors/alertProcessor';
-import { processNavElement } from './elementProcessors/navProcessor';
+import { processAlertElement } from './processors/alertProcessor';
+import { processNavElement } from './processors/navProcessor';
 
 
 // Alert/message class patterns to check
@@ -377,7 +377,10 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   const matchResult = matchCSSSelectors(node, cssRulesMap);
   const combinedProperties = matchResult.properties || matchResult; // Handle both old and new format
   const pseudoSelectors = matchResult.pseudoSelectors || [];
-  const { cssSelectorTarget = 'class' } = options;
+
+  // Automatically use ID-based targeting if element has an ID
+  const hasId = element.settings._cssId;
+  const cssSelectorTarget = hasId ? 'id' : (options.cssSelectorTarget || 'class');
 
   if (cssSelectorTarget === 'id') {
     // Apply styles directly to the element's ID
@@ -466,12 +469,15 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         Object.assign(targetClass.settings, parsedSettings);
       }
 
-      // Handle pseudo-elements for this class
+      // Handle pseudo-elements and non-class selectors for this class
       if (index === 0 && pseudoSelectors.length > 0) {
         let customCss = '';
         pseudoSelectors.forEach(({ selector, properties }) => {
           // Check if this is a pseudo-class selector
           const pseudoClassMatch = selector.match(/:(\w+)$/);
+
+          const isMergeableSelector = options.context?.mergeNonClassSelectors;
+
           if (pseudoClassMatch) {
             // Extract pseudo-class and base selector
             const pseudoClass = pseudoClassMatch[1];
@@ -485,6 +491,12 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
               Object.entries(pseudoStyles).forEach(([prop, value]) => {
                 targetClass.settings[`${prop}:${pseudoClass}`] = value;
               });
+            } else if (isMergeableSelector && (baseSelector === tag || baseSelector.startsWith('[') || baseSelector === `*[${baseSelector.slice(2, -1)}]`)) {
+              // Merge pseudo-class styles for element/attribute selectors if merging is enabled
+              const pseudoStyles = parseCssDeclarations(properties, selector, variables);
+              Object.entries(pseudoStyles).forEach(([prop, value]) => {
+                targetClass.settings[`${prop}:${pseudoClass}`] = value;
+              });
             } else {
               // Add as custom CSS if it doesn't match
               const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
@@ -493,11 +505,23 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
               customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
             }
           } else {
-            // Handle as regular custom CSS
-            const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
-            // Escape dots in selectors to prevent malformed CSS
-            const escapedSelector = selector.replace(/\./g, '\\.');
-            customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
+            // Handle regular selectors (element, attribute, etc.)
+            // If merging is enabled and it matches tag or is attribute selector, merge it
+            const isTagSelector = selector === tag;
+            const isAttributeSelector = selector.startsWith('[') || (selector.startsWith(tag) && selector.includes('['));
+            const isUniversalAttribute = selector.startsWith('*[');
+
+            if (isMergeableSelector && (isTagSelector || isAttributeSelector || isUniversalAttribute)) {
+              // Merge these styles directly into the class settings
+              const combinedStyles = parseCssDeclarations(properties, selector, variables);
+              Object.assign(targetClass.settings, combinedStyles);
+            } else {
+              // Handle as regular custom CSS
+              const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
+              // Escape dots in selectors to prevent malformed CSS
+              const escapedSelector = selector.replace(/\./g, '\\.');
+              customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
+            }
           }
         });
         if (customCss) {
@@ -538,7 +562,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     }
   }
 
-  // Process element attributes with options before handling inline styles
+  // Process element attributes ONCE before CSS processing
+  // This ensures attributes are added to element.settings and inherited by first class only
   processAttributes(node, element, tag, options);
 
   // Pass the options to handleInlineStyles
@@ -598,6 +623,7 @@ const convertHtmlToBricks = (html, css, options) => {
               ...options.context, // Spread existing context first
               showNodeClass: options.context?.showNodeClass || false,
               inlineStyleHandling: options.context?.inlineStyleHandling || 'inline',
+              mergeNonClassSelectors: options.context?.mergeNonClassSelectors || false,
               activeTab: options.context?.activeTab || 'html'
             }
           }

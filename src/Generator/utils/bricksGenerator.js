@@ -17,6 +17,7 @@ const createBricksStructure = (html, css = '', js = '', options = {}) => {
       // Flatten context into options (new API doesn't need context wrapper)
       inlineStyleHandling: options.context?.inlineStyleHandling || options.inlineStyleHandling || 'class',
       showNodeClass: options.context?.showNodeClass || options.showNodeClass || false,
+      mergeNonClassSelectors: options.context?.mergeNonClassSelectors || options.mergeNonClassSelectors || false,
       includeJs: options.includeJs !== false
     });
 

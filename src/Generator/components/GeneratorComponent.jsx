@@ -30,6 +30,8 @@ const GeneratorComponent = () => {
     setInlineStyleHandling,
     showNodeClass,
     setShowNodeClass,
+    mergeNonClassSelectors,
+    setMergeNonClassSelectors,
     html,
     setHtml,
     css,
@@ -247,8 +249,8 @@ const GeneratorComponent = () => {
           - Do NOT wrap JavaScript in <script> tags - provide raw JavaScript only
           - Keep HTML, CSS, and JavaScript separate`;
 
-                if (hasExistingCode) {
-                  systemPrompt += `
+      if (hasExistingCode) {
+        systemPrompt += `
 
           CURRENT ${activeTab.toUpperCase()} CODE:
           \`\`\`${activeTab}
@@ -408,6 +410,20 @@ const GeneratorComponent = () => {
                 <label className="inline-styles-handling__option">
                   <input type="radio" name="inlineStyleHandling" value="class" checked={inlineStyleHandling === 'class'} onChange={() => setInlineStyleHandling('class')} className="inline-styles-handling__radio" />
                   <span className="inline-styles-handling__text">Class</span>
+                </label>
+              </div>
+            </div>
+            <div className="inline-styles-handling">
+              <label className="inline-styles-handling__label">Options:</label>
+              <div className="inline-styles-handling__options">
+                <label className="inline-styles-handling__option">
+                  <input
+                    type="checkbox"
+                    checked={mergeNonClassSelectors}
+                    onChange={(e) => setMergeNonClassSelectors(e.target.checked)}
+                    className="inline-styles-handling__checkbox"
+                  />
+                  <span className="inline-styles-handling__text">Merge Selectors</span>
                 </label>
               </div>
             </div>
