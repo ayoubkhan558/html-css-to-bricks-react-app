@@ -13,8 +13,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AdvancedSelectorMatcher } from '../../src/lib/css/AdvancedSelectorMatcher';
-import { createDocumentFromHTML } from '../helpers/fixtures';
+import { AdvancedSelectorMatcher } from '../../../src/lib/css/AdvancedSelectorMatcher';
+import { createDocumentFromHTML } from '../../helpers/fixtures';
 
 describe('AdvancedSelectorMatcher', () => {
     // Setup: Create a sample DOM structure before each test
