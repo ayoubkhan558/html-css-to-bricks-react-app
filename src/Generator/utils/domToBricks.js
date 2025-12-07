@@ -18,33 +18,6 @@ import { processAttributes } from './processors/attributeProcessor';
 import { processAlertElement } from './elementProcessors/alertProcessor';
 import { processNavElement } from './elementProcessors/navProcessor';
 
-// Context values will be passed as parameters to the functions
-/**
- * Converts inline styles to a CSS class
- * @param {string} styleString - The inline style string (e.g., 'color: red; font-size: 16px;')
- * @returns {Object} - Object containing className and CSS rules
- */
-const convertStylesToClass = (styleString) => {
-  if (!styleString) return { className: '', css: '' };
-
-  // Generate a unique class name
-  const className = `bricks-style-${Math.random().toString(36).substr(2, 8)}`;
-
-  // Convert style string to CSS rules
-  const rules = styleString
-    .split(';')
-    .filter(rule => rule.trim() !== '')
-    .map(rule => {
-      const [property, value] = rule.split(':').map(part => part.trim());
-      return property && value ? `${property}: ${value};` : '';
-    })
-    .filter(Boolean)
-    .join('\n  ');
-
-  const css = `.${className} {\n  ${rules}\n}`;
-
-  return { className, css };
-};
 
 // Alert/message class patterns to check
 const ALERT_CLASS_PATTERNS = [

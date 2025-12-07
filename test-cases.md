@@ -323,4 +323,66 @@ img {
   font-weight: 600;
   border-top: 2px solid #ccc;
 }
-``
+```
+
+
+
+
+### 6. Inline Styles with other attributes
+
+#### Test Case 6.1: Inline Styles with other attributes
+
+```html
+<div style="background-color: #f4f4f4; padding: 20px;">
+  <h2 style="color: #333; margin-bottom: 10px;">Inline Styled Heading</h2>
+  <p style="font-size: 16px; line-height: 1.5;">
+    This paragraph uses inline styles for font size and spacing.
+  </p>
+  <button style="padding: 10px 20px; background: #3498db; color: white; border: 0;">
+    Inline Button
+  </button>
+</div>
+```
+
+
+
+### 7. Complex Selectors
+
+#### Test Case 7.1: Complex Selectors
+
+```html
+<div class="card-list">
+  <div class="card" data-type="featured">
+    <h3>Featured Card</h3>
+  </div>
+  <div class="card">
+    <h3>Regular Card</h3>
+  </div>
+  <p class="note">Some note here</p>
+  <p class="note">Another note</p>
+</div>
+```
+
+```CSS
+/* Direct child selector */
+.card-list > .card {
+  padding: 20px;
+  border: 1px solid #ddd;
+}
+
+/* Next sibling selector */
+.card + p.note {
+  color: #e74c3c;
+}
+
+/* Attribute selector */
+.card[data-type="featured"] {
+  background: #fcf8e3;
+  border-color: #f1c40f;
+}
+
+/* Multiple selectors */
+.card[data-type="featured"], .card.special {
+  font-weight: bold;
+}
+```
