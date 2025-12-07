@@ -1,134 +1,104 @@
 /**
- * Simple Tests for Processors
+ * Simple Tests for Element Processing
+ * Tests the actual processor functions from the consolidated processors directory
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { ProcessorRegistry } from '../src/processors/ProcessorRegistry';
-import { BaseProcessor } from '../src/processors/BaseProcessor';
-import { HeadingProcessor } from '../src/processors/HeadingProcessor';
-import { TextProcessor } from '../src/processors/TextProcessor';
-import { ButtonProcessor } from '../src/processors/ButtonProcessor';
-import { DivProcessor } from '../src/processors/DivProcessor';
-import { html } from './helpers';
+import { describe, it, expect } from 'vitest';
+import { converterService } from '../src/services/converter';
 
-// BASE PROCESSOR
-describe('BaseProcessor', () => {
-    it('should throw error when created directly', () => {
-        expect(() => new BaseProcessor()).toThrow();
-    });
-});
+// HEADING PROCESSING
+describe('Heading Processing', () => {
+    it('should convert h1 to heading element', () => {
+        const result = converterService.convert('<h1>Title</h1>', '');
+        const h1 = result.content[0];
 
-// PROCESSOR REGISTRY
-describe('ProcessorRegistry', () => {
-    let registry;
-
-    beforeEach(() => {
-        registry = new ProcessorRegistry();
-    });
-
-    it('should register processor', () => {
-        const processor = new HeadingProcessor();
-        registry.register('h1', processor);
-
-        expect(registry.hasProcessor('h1')).toBe(true);
-    });
-
-    it('should register for multiple tags', () => {
-        const processor = new HeadingProcessor();
-        registry.register(['h1', 'h2', 'h3'], processor);
-
-        expect(registry.hasProcessor('h1')).toBe(true);
-        expect(registry.hasProcessor('h2')).toBe(true);
-    });
-
-    it('should use default processor for unknown tags', () => {
-        const defaultProc = new DivProcessor();
-        registry.setDefault(defaultProc);
-
-        expect(registry.getProcessor('unknown')).toBe(defaultProc);
-    });
-});
-
-// HEADING PROCESSOR
-describe('HeadingProcessor', () => {
-    let processor;
-
-    beforeEach(() => {
-        processor = new HeadingProcessor();
-    });
-
-    it('should convert h1 to heading', () => {
-        const h1 = html('<h1>Title</h1>');
-        const result = processor.process(h1);
-
-        expect(result.name).toBe('heading');
-        expect(result.settings.tag).toBe('h1');
-        expect(result.settings.text).toBe('Title');
+        expect(h1.name).toBe('heading');
+        expect(h1.settings.tag).toBe('h1');
+        expect(h1.settings.text).toBe('Title');
     });
 
     it('should handle h1 through h6', () => {
-        const h3 = html('<h3>Subtitle</h3>');
-        const result = processor.process(h3);
+        const result = converterService.convert('<h3>Subtitle</h3>', '');
+        const h3 = result.content[0];
 
-        expect(result.name).toBe('heading');
-        expect(result.settings.tag).toBe('h3');
+        expect(h3.name).toBe('heading');
+        expect(h3.settings.tag).toBe('h3');
     });
 });
 
-// TEXT PROCESSOR
-describe('TextProcessor', () => {
-    let processor;
+// TEXT PROCESSING
+describe('Text Processing', () => {
+    it('should convert paragraph to text-basic', () => {
+        const result = converterService.convert('<p>Text content</p>', '');
+        const p = result.content[0];
 
-    beforeEach(() => {
-        processor = new TextProcessor();
-    });
-
-    it('should convert paragraph', () => {
-        const p = html('<p>Text</p>');
-        const result = processor.process(p);
-
-        expect(result.name).toBe('text-basic');
-        expect(result.settings.tag).toBe('p');
-    });
-
-    it('should convert span', () => {
-        const span = html('<span>Text</span>');
-        const result = processor.process(span);
-
-        expect(result.name).toBe('text-basic');
+        expect(p.name).toBe('text');
+        expect(p.settings.tag).toBe('p');
     });
 });
 
-// BUTTON PROCESSOR
-describe('ButtonProcessor', () => {
-    let processor;
+// BUTTON PROCESSING
+describe('Button Processing', () => {
+    it('should convert button element', () => {
+        const result = converterService.convert('<button>Click Me</button>', '');
+        const btn = result.content[0];
 
-    beforeEach(() => {
-        processor = new ButtonProcessor();
+        expect(btn.name).toBe('button');
+        expect(btn.settings.text).toBeDefined();
     });
 
-    it('should convert button', () => {
-        const btn = html('<button>Click</button>');
-        const result = processor.process(btn);
+    it('should handle disabled button', () => {
+        const result = converterService.convert('<button disabled>Disabled</button>', '');
+        const btn = result.content[0];
 
-        expect(result.name).toBe('button');
-        expect(result.settings.text).toBeDefined();
+        expect(btn.name).toBe('button');
     });
 });
 
-// DIV PROCESSOR
-describe('DivProcessor', () => {
-    let processor;
+// DIV PROCESSING
+describe('Div Processing', () => {
+    it('should convert div element', () => {
+        const result = converterService.convert('<div>Content</div>', '');
+        const div = result.content[0];
 
-    beforeEach(() => {
-        processor = new DivProcessor();
+        expect(div.name).toBe('div');
+        expect(div.parent).toBe('0');
     });
 
-    it('should convert div', () => {
-        const div = html('<div>Content</div>');
-        const result = processor.process(div, { parentId: '0' });
+    it('should preserve div classes', () => {
+        const result = converterService.convert('<div class="container main">Content</div>', '');
 
-        expect(result.name).toBe('div');
-        expect(result.parent).toBe('0');
+        expect(result.globalClasses.length).toBeGreaterThan(0);
+        expect(result.globalClasses.some(c => c.name === 'container')).toBe(true);
+    });
+});
+
+// IMAGE PROCESSING
+describe('Image Processing', () => {
+    it('should convert img element', () => {
+        const result = converterService.convert('<img src="test.jpg" alt="Test">', '');
+        const img = result.content[0];
+
+        expect(img.name).toBe('image');
+    });
+});
+
+// LINK PROCESSING
+describe('Link Processing', () => {
+    it('should convert anchor element', () => {
+        const result = converterService.convert('<a href="https://example.com">Link</a>', '');
+        const link = result.content[0];
+
+        expect(link.settings.link).toBeDefined();
+        expect(link.settings.link.url).toBe('https://example.com');
+    });
+});
+
+// LIST PROCESSING
+describe('List Processing', () => {
+    it('should convert unordered list', () => {
+        const result = converterService.convert('<ul><li>Item 1</li><li>Item 2</li></ul>', '');
+
+        expect(result.content.length).toBeGreaterThan(0);
     });
 });

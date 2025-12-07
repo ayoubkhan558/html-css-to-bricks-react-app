@@ -86,7 +86,8 @@ export class ConverterService {
                     ...options,
                     context: {
                         showNodeClass: options.showNodeClass || false,
-                        inlineStyleHandling: options.inlineStyleHandling || 'class'
+                        inlineStyleHandling: options.inlineStyleHandling || 'class',
+                        mergeNonClassSelectors: options.mergeNonClassSelectors || false
                     }
                 }
             );

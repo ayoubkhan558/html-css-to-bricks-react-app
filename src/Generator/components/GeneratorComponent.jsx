@@ -356,7 +356,8 @@ const GeneratorComponent = () => {
         const result = createBricksStructure(html, css, includeJs ? js : '', {
           context: {
             showNodeClass,
-            inlineStyleHandling
+            inlineStyleHandling,
+            mergeNonClassSelectors
           }
         });
         const json = isMinified
@@ -370,7 +371,7 @@ const GeneratorComponent = () => {
       console.error('Failed to generate structure:', err);
       // Optionally, you can set an error state here to show in the UI
     }
-  }, [html, css, js, includeJs, inlineStyleHandling, isMinified, showNodeClass]);
+  }, [html, css, js, includeJs, inlineStyleHandling, isMinified, showNodeClass, mergeNonClassSelectors]);
 
   return (
     <div className="generator">

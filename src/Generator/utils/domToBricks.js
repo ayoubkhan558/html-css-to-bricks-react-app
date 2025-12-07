@@ -450,6 +450,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       }
     });
   } else {
+    // Process element attributes FIRST so they're available for class transfer
+    processAttributes(node, element, tag, options);
+
     // Apply styles via global classes (existing logic)
     const existingClasses = node.classList && node.classList.length > 0 ? Array.from(node.classList) : [];
     const randomId = Math.random().toString(36).substring(2, 6);
@@ -467,6 +470,12 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       if (index === 0 && Object.keys(combinedProperties).length > 0) {
         const parsedSettings = parseCssDeclarations(combinedProperties, cls, variables);
         Object.assign(targetClass.settings, parsedSettings);
+
+        // Transfer element attributes to the first class only
+        if (element.settings._attributes) {
+          targetClass.settings._attributes = element.settings._attributes;
+          delete element.settings._attributes; // Remove from element to avoid duplication
+        }
       }
 
       // Handle pseudo-elements and non-class selectors for this class
@@ -561,10 +570,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       element.settings._cssGlobalClasses = cssGlobalClasses;
     }
   }
-
-  // Process element attributes ONCE before CSS processing
-  // This ensures attributes are added to element.settings and inherited by first class only
-  processAttributes(node, element, tag, options);
 
   // Pass the options to handleInlineStyles
   handleInlineStyles(node, element, globalClasses, variables, options);
