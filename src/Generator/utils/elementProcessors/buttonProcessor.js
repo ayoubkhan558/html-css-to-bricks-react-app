@@ -20,10 +20,17 @@ export const processButtonElement = (node, element, tag = 'button', context = {}
     text: node.textContent.trim() || 'Button'
   };
 
-  // Handle button attributes
+  // Handle button attributes 
   if (node.hasAttribute('disabled')) {
-    element.settings.disabled = true;
+    element._attributes = element._attributes || [];
+
+    element._attributes.push({
+      id: crypto.randomUUID().slice(0, 6),
+      name: "disabled",
+      value: "true"
+    });
   }
+
 
   // Prevent processing of child text nodes
   element._skipTextNodes = true;
