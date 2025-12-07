@@ -280,3 +280,47 @@ img {
 .data-table {
   width: 100%;
   border-collapse: collapse;
+}
+
+/* Head */
+.data-table thead {
+  color: green;
+  background: #f3f3f3;
+}
+
+.data-table thead th {
+  padding: 12px 10px;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 2px solid #ccc;
+}
+
+/* Body */
+.data-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.data-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.data-table tbody td {
+  padding: 10px;
+}
+
+/* Hover */
+.data-table tbody tr:hover {
+  background: #f0f0f0;
+}
+
+/* Footer */
+.data-table tfoot {
+  background: #f7f7f7;
+}
+
+.data-table tfoot td {
+  padding: 12px 10px;
+  font-weight: 600;
+  border-top: 2px solid #ccc;
+}
+``

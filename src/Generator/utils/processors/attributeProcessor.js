@@ -38,7 +38,6 @@ export const processAttributes = (node, element, tag, options = {}) => {
         name: 'style',
         value: style
       });
-      console.log('Set inline styles as attribute');
     }
     // For 'class' and 'skip' modes, don't add to attributes - let handleInlineStyles deal with it
     // Don't remove the style attribute here - let handleInlineStyles handle removal
