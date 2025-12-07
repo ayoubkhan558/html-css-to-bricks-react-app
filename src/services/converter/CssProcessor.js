@@ -1,9 +1,11 @@
 /**
  * CSS Processor Service
  * Handles CSS parsing, variable resolution, and selector matching
+ * Now with advanced selector support!
  */
 
 import { buildCssMap, matchCSSSelectors } from '../../Generator/utils/cssParser';
+import { AdvancedSelectorMatcher } from '../../lib/css/AdvancedSelectorMatcher';
 
 export class CssProcessor {
     constructor() {
@@ -65,7 +67,7 @@ export class CssProcessor {
     }
 
     /**
-     * Matches CSS selectors for a DOM node
+     * Matches CSS selectors for a DOM node (legacy method)
      * @param {Node} node - DOM node
      * @returns {Object} Match result { properties, pseudoSelectors }
      */
@@ -75,6 +77,41 @@ export class CssProcessor {
         }
 
         return matchCSSSelectors(node, this.cssMap);
+    }
+
+    /**
+     * Matches CSS selectors using advanced matcher with cascade support
+     * @param {Element} element - DOM element
+     * @returns {Object} Match result with specificity
+     */
+    matchSelectorsAdvanced(element) {
+        if (!element || !this.cssMap) {
+            return {
+                matchingSelectors: [],
+                appliedProperties: {},
+                specificity: 0
+            };
+        }
+
+        return AdvancedSelectorMatcher.matchWithCascade(element, this.cssMap);
+    }
+
+    /**
+     * Validates if a selector is supported
+     * @param {string} selector - CSS selector
+     * @returns {boolean} True if valid
+     */
+    isSelectorValid(selector) {
+        return AdvancedSelectorMatcher.isValidSelector(selector);
+    }
+
+    /**
+     * Analyzes selector complexity and features
+     * @param {string} selector - CSS selector
+     * @returns {Object} Feature analysis
+     */
+    analyzeSelector(selector) {
+        return AdvancedSelectorMatcher.analyzeSelector(selector);
     }
 
     /**
