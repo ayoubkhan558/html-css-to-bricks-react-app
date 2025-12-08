@@ -3,20 +3,55 @@ import React, { useState, useEffect } from 'react';
 const CSSHTMLAnalyzer = () => {
   const [htmlInput, setHtmlInput] = useState(`
     <div class="container">
-      <h1 id="title">Title</h1>
+      <h1 id="title" class="main-title special" data-role="heading" aria-label="Main Title">
+        Title
+      </h1>
       <p class="text">Sample text</p>
     </div>
 `);
 
   const [cssInput, setCssInput] = useState(`
+    /* Container styling */
     .container {
       padding: 20px;
     }
 
+    /* 1. ID selector */
     #title {
       color: blue;
     }
 
+    /* 2. Single class selector */
+    .main-title {
+      font-size: 32px;
+    }
+
+    /* 3. ID + class combination */
+    h1#title.main-title {
+      background: yellow;
+    }
+
+    /* 4. Attribute selector */
+    h1[data-role="heading"] {
+      padding: 10px;
+    }
+
+    /* 5. Type selector */
+    h1 {
+      text-transform: uppercase;
+    }
+
+    /* 6. Descendant selector */
+    .container h1 {
+      border-bottom: 2px solid black;
+    }
+
+    /* 7. Attribute existence selector */
+    *[aria-label] {
+      margin-bottom: 20px;
+    }
+
+    /* Original provided selectors for other elements */
     .text {
       font-size: 16px;
     }
@@ -32,6 +67,7 @@ const CSSHTMLAnalyzer = () => {
     .non-existent {
       color: red;
     }
+
 `);
 
   const [analysis, setAnalysis] = useState([]);
@@ -39,7 +75,7 @@ const CSSHTMLAnalyzer = () => {
   const parseCSS = (cssString) => {
     const selectors = [];
     const rules = cssString.split('}').filter(rule => rule.trim());
-    
+
     rules.forEach(rule => {
       const parts = rule.split('{');
       if (parts.length === 2) {
@@ -48,21 +84,21 @@ const CSSHTMLAnalyzer = () => {
         selectors.push({ selector, properties });
       }
     });
-    
+
     return selectors;
   };
 
   const parseProperties = (propertiesString) => {
     const properties = {};
     const declarations = propertiesString.split(';').filter(decl => decl.trim());
-    
+
     declarations.forEach(decl => {
       const [property, value] = decl.split(':').map(part => part.trim());
       if (property && value) {
         properties[property] = value;
       }
     });
-    
+
     return properties;
   };
 
@@ -71,7 +107,7 @@ const CSSHTMLAnalyzer = () => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlInput, 'text/html');
       const selectors = parseCSS(cssInput);
-      
+
       // Get all elements from the HTML
       const allElements = doc.querySelectorAll('*');
       const elementAnalysis = [];
@@ -92,7 +128,7 @@ const CSSHTMLAnalyzer = () => {
             if (element.matches(selector)) {
               elementInfo.matchingSelectors.push(selector);
               const parsedProperties = parseProperties(properties);
-              
+
               // Merge properties (later selectors override earlier ones)
               Object.assign(elementInfo.appliedStyles, parsedProperties);
             }
@@ -119,15 +155,15 @@ const CSSHTMLAnalyzer = () => {
 
   const styles = {
     container: {
-      maxWidth: '1200px',
       margin: '0 auto',
       padding: '20px',
-      fontFamily: 'Arial, sans-serif'
+      backgroundColor: '#f8f9fa',
+      color: '#000'
     },
     title: {
       fontSize: '24px',
       marginBottom: '20px',
-      color: '#333'
+      color: '#000'
     },
     inputContainer: {
       display: 'flex',
@@ -228,7 +264,7 @@ const CSSHTMLAnalyzer = () => {
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>CSS-HTML Analyzer</h1>
-      
+
       <div style={styles.inputContainer}>
         <div style={styles.inputGroup}>
           <label style={styles.label}>HTML:</label>
@@ -239,7 +275,7 @@ const CSSHTMLAnalyzer = () => {
             placeholder="Enter HTML..."
           />
         </div>
-        
+
         <div style={styles.inputGroup}>
           <label style={styles.label}>CSS:</label>
           <textarea

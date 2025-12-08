@@ -73,7 +73,8 @@ Convert raw HTML/CSS/JS into Bricks Builder–compatible JSON for rapid template
 ├── yarn.lock              # Yarn dependency lock
 ├── index.html             # App HTML shell
 ├── README.md              # Project overview
-└── Brickify.md         # Additional documentation
+├── code2Bricks.md         # User-facing feature documentation
+└── project-analysis.md    # This file - technical analysis
 ```
 
 ### Source Directory (`src/`)
@@ -136,13 +137,14 @@ src/Generator/utils/
 ├── domToBricks.js         # Core HTML → Bricks conversion pipeline
 ├── cssParser.js           # CSS parsing to internal representation
 ├── jsProcessor.js         # JS inclusion/processing logic
+├── openaiService.js       # AI integration (OpenAI, Gemini, OpenRouter)
 └── utils.js               # Shared utility functions
 ```
 
 ##### Processors
 ```
 src/Generator/utils/processors/
-└── attributeProcessor.js  # General attribute handling (data-* etc.)
+└── attributeProcessor.js  # General attribute handling (data-*, href, style, etc.)
 ```
 
 ##### Element Processors
@@ -151,14 +153,14 @@ src/Generator/utils/elementProcessors/
 ├── alertProcessor.js              # Alert/notification elements
 ├── audioProcessor.js              # Audio elements
 ├── buttonProcessor.js             # Button elements
-├── formProcessor.js               # Form elements
+├── formProcessor.js               # Form elements (inputs, selects, labels)
 ├── headingProcessor.js            # Heading elements (h1-h6)
 ├── imageProcessor.js              # Image elements
-├── labelUtils.js                  # Label utilities
+├── labelUtils.js                  # Label generation utilities
 ├── linkProcessor.js               # Link/anchor elements
 ├── listProcessor.js               # List elements (ul, ol, li)
-├── miscProcessor.js               # Miscellaneous elements
-├── navProcessor.js                # Navigation elements
+├── miscProcessor.js               # Miscellaneous elements (canvas, dialog, etc.)
+├── navProcessor.js                # Navigation elements (nav-nested)
 ├── structureLayoutProcessor.js    # Structural/layout elements (div, section, etc.)
 ├── svgProcessor.js                # SVG elements
 ├── tableProcessor.js              # Table elements
@@ -169,21 +171,22 @@ src/Generator/utils/elementProcessors/
 ##### Property Mappers (CSS → Bricks Style)
 ```
 src/Generator/utils/propertyMappers/
-├── index.js                   # Main mapper export
-├── mapperUtils.js             # Shared mapper utilities
+├── index.js                   # Main mapper export (CSS_PROP_MAPPERS)
+├── mapperUtils.js             # Shared mapper utilities (parseBoxShadow, etc.)
 ├── background.js              # Background properties
 ├── boder-box-shadow.js        # Border and box-shadow properties
 ├── content-flexbox.js         # Flexbox properties
 ├── content-grid.js            # Grid properties
 ├── display.js                 # Display properties
-├── filters-transitions.js     # Filters and transitions
-├── layout-misc.js             # Miscellaneous layout
+├── filters-transitions.js     # Filters, backdrop-filter, and transitions
+├── layout-misc.js             # Miscellaneous layout (opacity, cursor, etc.)
 ├── layout-position.js         # Position properties
 ├── layout-scroll-snap.js      # Scroll snap properties
 ├── layout-sizing.js           # Sizing properties (width, height)
 ├── layout-spacing.js          # Spacing properties (margin, padding)
 ├── scroll.js                  # Scroll properties
 ├── transforms.js              # Transform properties
+├── transitions.js             # (Legacy file - may be empty)
 └── typography.js              # Typography properties
 ```
 
@@ -195,32 +198,18 @@ src/__tests__/
 
 ---
 
-## Suggested Directory Additions
-
-For future scalability (no files created unless requested):
-
-```
-src/hooks/                 # Custom hooks (e.g., useGeneratorOptions, useClipboard)
-src/constants/             # Constants/enums (CSS modes, default options)
-src/types/                 # JSDoc or TS type definitions/interfaces
-src/fixtures/              # Sample HTML/CSS/JS inputs for testing/demo
-src/lib/                   # Shared pure functions (parsers/mappers)
-tests/                     # Broader unit/integration tests
-e2e/                       # End-to-end tests (Playwright/Cypress)
-```
-
----
-
 ## Quick Workflow Overview
 
 1. **User inputs HTML/CSS/JS** in `GeneratorComponent`
-2. **CSS parsing**: `cssParser.js` parses CSS
-3. **Style mapping**: `propertyMappers/*` map styles into Bricks format
-4. **DOM traversal**: `domToBricks.js` walks the DOM
-5. **Element processing**: `elementProcessors/*` build Bricks JSON nodes
-6. **JS handling**: `jsProcessor.js` optionally injects or attaches JS
-7. **Assembly**: `bricksGenerator.js` coordinates pipeline and produces final JSON
-8. **Display**: `StructureView` shows tree; `Preview` renders HTML; options control output formatting
+2. **CSS parsing**: `cssParser.js` parses CSS via `buildCssMap()`
+3. **Style mapping**: `propertyMappers/*` map styles into Bricks format via `parseCssDeclarations()`
+4. **DOM traversal**: `domToBricks.js` walks the DOM via `domNodeToBricks()`
+5. **Element processing**: `elementProcessors/*` build Bricks JSON nodes for each element type
+6. **Attribute handling**: `attributeProcessor.js` processes custom attributes, links, and inline styles
+7. **CSS class aggregation**: Classes are matched and created in `_cssGlobalClasses`
+8. **JS handling**: `jsProcessor.js` optionally injects or attaches JS as a code element
+9. **Assembly**: `bricksGenerator.js` coordinates pipeline and produces final JSON via `createBricksStructure()`
+10. **Display**: `StructureView` shows tree; `Preview` renders HTML; options control output formatting
 
 ---
 
@@ -234,6 +223,7 @@ e2e/                       # End-to-end tests (Playwright/Cypress)
 - **Linting**: ESLint with React plugins
 - **Testing**: Vitest
 - **Dependency Management**: Yarn
+- **AI Integration**: OpenAI API, Google Gemini API, OpenRouter API
 
 ---
 
@@ -245,3 +235,45 @@ e2e/                       # End-to-end tests (Playwright/Cypress)
 - **Run linter**: `yarn lint`
 - **Run tests**: `yarn test`
 - **Run tests in watch mode**: `yarn test:watch`
+
+---
+
+## Code Quality Findings
+
+### Areas for Improvement
+
+#### Performance
+- `getCssPropMappers()` in `cssParser.js` recreates the mapper object on every call. Consider memoization or singleton pattern.
+- CSS matching in `matchCSSSelectors()` iterates through entire cssMap for each element.
+
+#### Code Cleanup Needed
+- Remove debug `console.log` statements from production code (found in `domToBricks.js`, `handleInlineStyles`)
+- `convertStylesToClass()` function in `domToBricks.js` is defined but never used
+- `processTable()` function in `tableProcessor.js` is exported but never called
+- `parseValue` imported in `display.js` but not used
+- `propertyMappers/index.js` exports `CSS_PROP_MAPPERS` but it's not imported by `cssParser.js`
+
+#### Architecture Suggestions
+1. **Centralize mappers**: Import from `propertyMappers/index.js` instead of individual files
+2. **Add TypeScript**: Would help catch type errors and improve maintainability
+3. **Add more tests**: Current test coverage is minimal
+4. **Error boundaries**: Add React error boundaries for better UX on failures
+
+### Recently Fixed Issues
+- **SVG Classes Bug**: SVG elements now properly receive CSS classes (was returning early before CSS processing)
+
+---
+
+## Suggested Directory Additions
+
+For future scalability:
+
+```
+src/hooks/                 # Custom hooks (e.g., useGeneratorOptions, useClipboard)
+src/constants/             # Constants/enums (CSS modes, default options)
+src/types/                 # JSDoc or TS type definitions/interfaces
+src/fixtures/              # Sample HTML/CSS/JS inputs for testing/demo
+src/lib/                   # Shared pure functions (parsers/mappers)
+tests/                     # Broader unit/integration tests
+e2e/                       # End-to-end tests (Playwright/Cypress)
+```

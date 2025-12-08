@@ -22,14 +22,14 @@ const AISettings = ({ isOpen, onClose }) => {
       openrouter: localStorage.getItem('ai_api_key_openrouter') || '',
       openai: localStorage.getItem('ai_api_key_openai') || ''
     };
-    
+
     setApiKeys(savedKeys);
-    
+
     const savedProvider = localStorage.getItem('ai_provider') || 'gemini';
     const savedModel = localStorage.getItem('ai_model');
-    
+
     setProvider(savedProvider);
-    
+
     if (savedModel) {
       // Validate that the saved model matches the provider
       if (savedProvider === 'gemini') {
@@ -50,21 +50,21 @@ const AISettings = ({ isOpen, onClose }) => {
       // Test the API key first
       setIsTesting(true);
       setTestResult(null);
-      
+
       const isValid = await testApiKey(currentApiKey.trim(), provider);
       setIsTesting(false);
-      
+
       if (!isValid) {
         setTestResult('Invalid API key or network error. You can try "Save Without Testing" if you\'re sure your key is correct.');
         return;
       }
-      
+
       localStorage.setItem(`ai_api_key_${provider}`, currentApiKey.trim());
       localStorage.setItem('ai_provider', provider);
       localStorage.setItem('ai_model', model);
       setIsSaved(true);
       setTestResult('API key verified and saved successfully!');
-      
+
       setTimeout(() => {
         onClose();
       }, 1000);
@@ -79,7 +79,7 @@ const AISettings = ({ isOpen, onClose }) => {
       localStorage.setItem('ai_model', model);
       setIsSaved(true);
       setTestResult('Saved without testing. If it doesn\'t work, check your API key.');
-      
+
       setTimeout(() => {
         onClose();
       }, 1500);
@@ -102,7 +102,7 @@ const AISettings = ({ isOpen, onClose }) => {
     setProvider(newProvider);
     setIsSaved(false);
     setTestResult(null);
-    
+
     // Set default model for provider
     if (newProvider === 'gemini') {
       setModel('gemini-2.5-flash');
@@ -240,20 +240,20 @@ const AISettings = ({ isOpen, onClose }) => {
           )}
 
           <div className="settings-actions">
-            <button className="cancel-btn" onClick={onClose}>
+            <button className="button secondary cancel-btn" onClick={onClose}>
               Cancel
             </button>
             {testResult && testResult.includes('Invalid') && (
-              <button 
-                className="skip-test-btn" 
+              <button
+                className="button secondary skip-test-btn"
                 onClick={handleSaveWithoutTest}
                 disabled={!apiKeys[provider]?.trim() || isSaved}
               >
                 Save Without Testing
               </button>
             )}
-            <button 
-              className="save-btn" 
+            <button
+              className="button primary save-btn"
               onClick={handleSave}
               disabled={!apiKeys[provider]?.trim() || isSaved || isTesting}
             >

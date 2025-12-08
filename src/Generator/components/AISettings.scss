@@ -209,31 +209,18 @@
       }
 
       .cancel-btn {
-        background: var(--color-surface-2);
-        color: var(--color-text);
 
-        &:hover:not(:disabled) {
-          background: var(--color-surface-3);
-        }
+        &:hover:not(:disabled) {}
       }
 
       .skip-test-btn {
-        background: var(--color-surface-2);
-        color: var(--color-primary);
-        border: 1px solid var(--color-primary);
 
-        &:hover:not(:disabled) {
-          background: rgba(108, 99, 255, 0.1);
-        }
+        &:hover:not(:disabled) {}
       }
 
       .save-btn {
-        background: var(--color-primary);
-        color: white;
 
-        &:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--color-primary), black 15%);
-        }
+        &:hover:not(:disabled) {}
       }
     }
   }
@@ -244,6 +231,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -254,6 +242,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

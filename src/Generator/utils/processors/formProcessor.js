@@ -229,7 +229,7 @@ export const processFormElement = (formNode, context = {}) => {
   });
 
   // Add form attributes
-  const formAttrs = ['action', 'method', 'enctype', 'autocomplete', 'novalidate', 'target'];
+  const formAttrs = ['action', 'method', 'enctype', 'autoComplete', 'novalidate', 'target'];
   formAttrs.forEach(attr => {
     if (formNode.hasAttribute(attr)) {
       formElement.settings[attr] = formNode.getAttribute(attr);

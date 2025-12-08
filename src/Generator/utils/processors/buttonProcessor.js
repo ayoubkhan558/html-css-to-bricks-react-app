@@ -11,7 +11,7 @@ import { getElementLabel } from './labelUtils';
 export const processButtonElement = (node, element, tag = 'button', context = {}) => {
   element.name = 'button';
   element.label = getElementLabel(node, 'Button', context);
-  
+
   // Set default button styles with text content
   element.settings = {
     style: "primary",
@@ -19,14 +19,21 @@ export const processButtonElement = (node, element, tag = 'button', context = {}
     size: "md",
     text: node.textContent.trim() || 'Button'
   };
-  
-  // Handle button attributes
+
+  // Handle button attributes 
   if (node.hasAttribute('disabled')) {
-    element.settings.disabled = true;
+    element._attributes = element._attributes || [];
+
+    element._attributes.push({
+      id: crypto.randomUUID().slice(0, 6),
+      name: "disabled",
+      value: "true"
+    });
   }
-  
+
+
   // Prevent processing of child text nodes
   element._skipTextNodes = true;
-  
+
   return element;
 };

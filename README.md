@@ -1,86 +1,144 @@
-# Brickify - HTML CSS JS to Bricks
+# Brickify - HTML/CSS/JS to Bricks Builder Converter
 
-This tool is designed to help Bricks Builder users quickly convert their existing HTML/CSS/JS into the proper JSON structure that Bricks Builder can import, saving significant development time when migrating or creating new templates.
+A powerful web-based tool that converts HTML, CSS, and JavaScript code into Bricks Builder–compatible JSON structure. Designed for Bricks Builder users who want to quickly migrate existing templates or convert AI-generated code into ready-to-use Bricks elements.
 
+## 🚀 Features
 
-## Core Features
+### Core Conversion
+- **HTML to Bricks** – Converts raw HTML into Bricks Builder's JSON structure with proper element hierarchy
+- **CSS Processing** – Transforms CSS styles into Bricks-compatible format with support for:
+  - Typography (font-size, font-weight, color, line-height, etc.)
+  - Layout (flexbox, grid, positioning, spacing)
+  - Backgrounds (colors, gradients, images)
+  - Borders and box-shadows
+  - Transforms and transitions
+  - Filters and effects
+  - Pseudo-classes (:hover, :focus, :active)
+- **JavaScript Integration** – Optionally include custom JS as a code element
 
-### HTML to Bricks Conversion
-- Converts raw HTML into Bricks Builder's JSON structure
-- Preserves HTML structure and hierarchy
-- Handles various HTML elements including section, div, container, forms, buttons, images, and more
-- Processes inline styles with flexible handling options
-
-### CSS Processing
-- Converts CSS styles into Bricks-compatible format
-- Handles class-based styling with proper specificity
-- Supports pseudo-classes (:hover, :active, :focus, :visited)
-- Preserves class names even without styles
-- Advanced typography property handling (font-weight, font-size, color, etc.)
-
-### JavaScript Integration
-- Processes and includes JavaScript functionality
-- Supports custom JavaScript code integration
-- Maintains global elements and their references
+### Element Support
+- **Structure**: Sections, Containers, Divs
+- **Text**: Headings (H1-H6), Paragraphs, Spans, Blockquotes
+- **Media**: Images, Videos, Audio, SVG
+- **Forms**: Complete form handling with labels, inputs, selects, textareas
+- **Navigation**: Nested nav with dropdown support
+- **Tables**: Full table structure preservation
+- **Lists**: Ordered and unordered lists
+- **Links & Buttons**: With proper link settings
 
 ### Style Handling Options
-- **Skip**: Ignores inline styles completely
-- **Inline**: Preserves styles as inline attributes
-- **Class**: Converts inline styles to CSS classes with proper merging
-  - Maintains existing class styles
-  - Merges inline styles with class definitions
-  - Preserves typography and layout properties
+| Mode | Description |
+|------|-------------|
+| **Skip** | Ignores inline styles completely |
+| **Inline** | Preserves styles as inline attributes |
+| **Class** | Converts styles to Bricks global classes (recommended) |
 
-### Preview Functionality
-- Live preview of the generated structure
-- Toggle between HTML preview and JSON output
-- Real-time updates as you type
-
+### AI Code Generation
+Generate HTML/CSS code using AI providers:
+- **Google Gemini** – Fast and free tier available
+- **OpenAI** – GPT-4o-mini and other models
+- **OpenRouter** – Access to multiple free models
 
 ### Output Options
 - Toggle minified/pretty-printed JSON
-- Copy to clipboard functionality
-- Option to include/exclude JavaScript
-
-
-### Advanced Features
-- Handles form elements with proper field types
-- Processes custom attributes and data-* attributes
-- Maintains parent-child relationships in the element tree
-- Supports dynamic class name generation
-- Properly merges inline styles with existing class definitions
-- Handles complex CSS properties and values
-- Preserves media queries and responsive styles
-- Support for CSS Custom Properties (Variables)
-- Support for CSS Grid and Flexbox properties
-- Typography property handling support
-- Support for more HTML elements (tables, lists, etc.)
+- Copy to clipboard with one click
+- Include/exclude JavaScript
+- Live preview with real-time updates
+- Element structure tree view
 
 ---
 
-## Roadmap
-- [x] Add support for inline styles to classes
-- [x] Add support for bricks inner selector
-- [x] Add support for CSS animations and transitions
-- [x] Add support for more complex CSS selectors
+## 🛠️ Installation
 
+```bash
+# Clone the repository
+git clone https://github.com/ayoubkhan558/brickify.git
 
-## Known Bugs
-- [ ] SVG Code is not signed by default
+# Navigate to project
+cd brickify
 
+# Install dependencies
+yarn install
 
-## Technical Implementation
+# Start development server
+yarn dev
+```
 
+---
 
-### Browser Compatibility
-- Works in modern browsers
-- Uses DOMParser for HTML parsing
-- Fallback to jsdom in Node.js environments
+## 📋 Usage
 
+1. **Paste your HTML** into the HTML editor tab
+2. **Add CSS** (optional) in the CSS tab
+3. **Add JavaScript** (optional) in the JS tab
+4. Configure output options as needed
+5. Click **Copy to Clipboard**
+6. In Bricks Builder, use **Cmd/Ctrl + Shift + V** to paste
 
-## Created By
+---
 
-This project was created by [Ayoub Khan](https://mayoub.dev).
+## 🔧 Development
 
-[![Portfolio](https://img.shields.io/badge/Portfolio-mayoub.dev-4CAF50?style=flat-square)](https://mayoub.dev) [![LinkedIn](https://img.shields.io/badge/LinkedIn-ayoubkhan558-0077B5?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/ayoubkhan558)
--------------------------------------------------------------
+### Commands
+| Command | Description |
+|---------|-------------|
+| `yarn dev` | Start development server |
+| `yarn build` | Build for production |
+| `yarn preview` | Preview production build |
+| `yarn lint` | Run ESLint |
+| `yarn test` | Run tests |
+| `yarn test:watch` | Run tests in watch mode |
+
+### Tech Stack
+- **React 19** – UI framework
+- **Vite 6** – Build tool
+- **Sass** – Styling
+- **CodeMirror** – Code editor
+- **Vitest** – Testing
+
+---
+
+## ✅ Roadmap
+
+### Completed
+- [x] Inline styles to classes conversion
+- [x] Bricks inner selector support
+- [x] CSS animations and transitions
+- [x] Complex CSS selectors
+- [x] Pseudo-classes (:hover, :focus, etc.)
+- [x] SVG element support with classes
+- [x] AI code generation integration
+- [x] Multiple AI provider support
+
+### Planned
+- [ ] Media query handling
+- [ ] Pseudo-elements (::before, ::after)
+
+---
+
+## 🐛 Known Issues
+
+- Nested forms may not convert correctly
+- Some complex CSS selectors are added as custom CSS
+- Media queries are preserved but not converted to Bricks breakpoints
+
+---
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+---
+
+## 👤 Author
+
+Created by [Ayoub Khan](https://mayoub.dev)
+
+[![Portfolio](https://img.shields.io/badge/Portfolio-mayoub.dev-4CAF50?style=flat-square)](https://mayoub.dev)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-ayoubkhan558-0077B5?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/ayoubkhan558)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.

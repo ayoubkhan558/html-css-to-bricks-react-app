@@ -30,6 +30,8 @@ const GeneratorComponent = () => {
     setInlineStyleHandling,
     showNodeClass,
     setShowNodeClass,
+    mergeNonClassSelectors,
+    setMergeNonClassSelectors,
     html,
     setHtml,
     css,
@@ -247,8 +249,8 @@ const GeneratorComponent = () => {
           - Do NOT wrap JavaScript in <script> tags - provide raw JavaScript only
           - Keep HTML, CSS, and JavaScript separate`;
 
-                if (hasExistingCode) {
-                  systemPrompt += `
+      if (hasExistingCode) {
+        systemPrompt += `
 
           CURRENT ${activeTab.toUpperCase()} CODE:
           \`\`\`${activeTab}
@@ -354,7 +356,8 @@ const GeneratorComponent = () => {
         const result = createBricksStructure(html, css, includeJs ? js : '', {
           context: {
             showNodeClass,
-            inlineStyleHandling
+            inlineStyleHandling,
+            mergeNonClassSelectors
           }
         });
         const json = isMinified
@@ -368,7 +371,7 @@ const GeneratorComponent = () => {
       console.error('Failed to generate structure:', err);
       // Optionally, you can set an error state here to show in the UI
     }
-  }, [html, css, js, includeJs, inlineStyleHandling, isMinified, showNodeClass]);
+  }, [html, css, js, includeJs, inlineStyleHandling, isMinified, showNodeClass, mergeNonClassSelectors]);
 
   return (
     <div className="generator">
@@ -384,7 +387,7 @@ const GeneratorComponent = () => {
           <span>Brickify </span>
           <div className="app-header__buttons">
             <button
-              className="app-header__button"
+              className="button buttn-sm primary"
               onClick={() => setIsAboutOpen(true)}
               title="About"
             >
@@ -394,21 +397,40 @@ const GeneratorComponent = () => {
         </div>
         <div className="app-header__controls">
           <div className="generator-options">
-            <div className="inline-styles-handling">
-              <label className="inline-styles-handling__label">Inline Styles:</label>
-              <div className="inline-styles-handling__options">
-                <label className="inline-styles-handling__option">
-                  <input type="radio" name="inlineStyleHandling" value="skip" checked={inlineStyleHandling === 'skip'} onChange={() => setInlineStyleHandling('skip')} className="inline-styles-handling__radio" />
-                  <span className="inline-styles-handling__text">Skip</span>
+            <div className="form-control">
+              <span className="form-control__label">Inline Styles</span>
+              <div className="form-control__options">
+                <label className="form-control__option">
+                  <input type="radio" name="inlineStyleHandling" value="skip" checked={inlineStyleHandling === 'skip'} onChange={() => setInlineStyleHandling('skip')} className="form-control__radio" />
+                  <span className="form-control__text">Skip</span>
                 </label>
-                <label className="inline-styles-handling__option">
-                  <input type="radio" name="inlineStyleHandling" value="inline" checked={inlineStyleHandling === 'inline'} onChange={() => setInlineStyleHandling('inline')} className="inline-styles-handling__radio" />
-                  <span className="inline-styles-handling__text">Inline</span>
+                <label className="form-control__option">
+                  <input type="radio" name="inlineStyleHandling" value="inline" checked={inlineStyleHandling === 'inline'} onChange={() => setInlineStyleHandling('inline')} className="form-control__radio" />
+                  <span className="form-control__text">Inline</span>
                 </label>
-                <label className="inline-styles-handling__option">
-                  <input type="radio" name="inlineStyleHandling" value="class" checked={inlineStyleHandling === 'class'} onChange={() => setInlineStyleHandling('class')} className="inline-styles-handling__radio" />
-                  <span className="inline-styles-handling__text">Class</span>
+                <label className="form-control__option">
+                  <input type="radio" name="inlineStyleHandling" value="class" checked={inlineStyleHandling === 'class'} onChange={() => setInlineStyleHandling('class')} className="form-control__radio" />
+                  <span className="form-control__text">Class</span>
                 </label>
+              </div>
+            </div>
+            <div className="form-control">
+              <label className="form-control__label">Selectors</label>
+
+              <div className="form-control__options----">
+                <span className="form-control__option">
+
+                  <label className="form-control__switch">
+                    <input
+                      type="checkbox"
+                      checked={mergeNonClassSelectors}
+                      onChange={(e) => setMergeNonClassSelectors(e.target.checked)}
+                    />
+                    <span className="form-control__slider"></span>
+                  </label>
+
+                  <span className="form-control__text">Merge Selectors</span>
+                </span>
               </div>
             </div>
           </div>
@@ -420,7 +442,7 @@ const GeneratorComponent = () => {
           <div className="app-header__actions">
             <div className="split-dropdown">
               <button
-                className="app-header__button primary split-dropdown__main"
+                className="button primary split-dropdown__main"
                 onClick={handleGenerateAndCopy}
                 disabled={typeof html !== 'string' || !html.trim()}
               >
@@ -429,7 +451,7 @@ const GeneratorComponent = () => {
                 {isCopied ? 'Copied to Clipboard!' : 'Copy Bricks Structure'}
               </button>
               <button
-                className="app-header__button primary split-dropdown__toggle"
+                className="button primary split-dropdown__toggle"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 disabled={typeof html !== 'string' || !html.trim()}
                 aria-expanded={isDropdownOpen}
@@ -548,34 +570,38 @@ const GeneratorComponent = () => {
                       </div>
                     )}
 
-                    {/* Provider and Key Status */}
-                    <div className="quick-ai-status">
-                      <span className="provider-info">
-                        Provider: <strong>{currentProvider.charAt(0).toUpperCase() + currentProvider.slice(1)}</strong>
-                      </span>
-                      <span className={`key-status ${hasApiKey ? 'valid' : 'invalid'}`}>
-                        {hasApiKey ? '✓ Key Set' : '✗ No Key'}
-                      </span>
-                    </div>
+                    <div className="quick-ai-header">
+                      {/* Provider and Key Status */}
+                      <div className="quick-ai-status">
+                        <span className="provider-info">
+                          Provider: <strong>{currentProvider.charAt(0).toUpperCase() + currentProvider.slice(1)}</strong>
+                        </span>
+                        <span className={`key-status ${hasApiKey ? 'valid' : 'invalid'}`}>
+                          {hasApiKey ? '✓ Key Set' : '✗ No Key'}
+                        </span>
+                      </div>
 
-                    {/* Model Selector - Show for all providers */}
-                    <div className="quick-ai-model-selector">
-                      <label htmlFor="quick-model">Model:</label>
-                      <select
-                        id="quick-model"
-                        value={selectedQuickModel}
-                        onChange={(e) => setSelectedQuickModel(e.target.value)}
-                        className="quick-model-select"
-                        disabled={isQuickGenerating}
-                      >
-                        {aiModels[currentProvider]?.map((model) => (
-                          <option key={model.value} value={model.value}>
-                            {model.label}{model.description ? ` (${model.description})` : ''}
-                          </option>
-                        )) || (
-                            <option value="">No models available</option>
-                          )}
-                      </select>
+                      {/* Model Selector - Show for all providers */}
+                      <div className="quick-ai-model-selector">
+                        <label htmlFor="quick-model">Model:</label>
+                        <select
+                          id="quick-model"
+                          value={selectedQuickModel}
+                          onChange={(e) => setSelectedQuickModel(e.target.value)}
+                          className="quick-model-select"
+                          disabled={isQuickGenerating}
+                        >
+                          {aiModels[currentProvider]?.map((model) => (
+                            <option key={model.value} value={model.value}>
+                              {model.label}
+                              {/* - {model.description ? ` (${model.description})` : ''} */}
+                            </option>
+                          )) || (
+                              <option value="">No models available</option>
+                            )}
+                        </select>
+                      </div>
+
                     </div>
 
                     <div className="quick-ai-input">
@@ -589,9 +615,18 @@ const GeneratorComponent = () => {
                             handleQuickGenerate();
                           }
                         }}
-                        placeholder={`Ask AI to create/modify ${activeTab.toUpperCase()} code... (e.g., "Create FAQs section" or "change color to blue")`}
+                        placeholder={`Ask AI to create/modify ${activeTab.toUpperCase()} code... (e.g., ${activeTab === "html"
+                          ? '"Create a new section with a button and image"'
+                          : activeTab === "jsx"
+                            ? '"Create a React component with state"'
+                            : activeTab === "css"
+                              ? '"Change the background color to blue"'
+                              : '"Add a click event to toggle visibility"'
+                          })`}
+                        rows={3}
                         disabled={isQuickGenerating}
                         className="quick-ai-input-field"
+                        autoComplete="off"
                       />
                       <button
                         onClick={handleQuickGenerate}
@@ -643,17 +678,20 @@ const GeneratorComponent = () => {
             <div className="structure-panel">
               <div className="structure-panel__header">
                 <h3>Layers</h3>
-                <div className="structure-actions">
-                  <label className="switch" style={{ marginRight: 8 }}>
+                <div className="form-control__option">
+                  <label className="form-control__label">
+                    Labels
+                  </label>
+                  <label className="form-control__switch" style={{ marginRight: 8 }}>
                     <input
                       type="checkbox"
                       checked={showNodeClass}
                       onChange={() => setShowNodeClass((prev) => !prev)}
                     />
-                    <span className="slider round"></span>
+                    <span className="form-control__slider"></span>
                   </label>
-                  <span style={{ fontSize: 13, color: 'var(--color-text-secondary)', minWidth: 72 }}>
-                    {showNodeClass ? 'Show Class' : 'Show Tag'}
+                  <span style={{ fontSize: 13, color: 'var(--color-text-2)', minWidth: 72 }}>
+                    {showNodeClass ? 'Class Label' : 'Tag Label'}
                   </span>
                 </div>
               </div>
