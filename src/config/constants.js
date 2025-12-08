@@ -3,6 +3,9 @@
  * Centralized configuration constants used throughout the application
  */
 
+// Last update date
+export const LAST_UPDATE_DATE = '9 December, 2025';
+
 // Bricks Builder version this tool targets
 export const BRICKS_VERSION = '2.1.4';
 

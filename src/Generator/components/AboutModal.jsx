@@ -1,5 +1,7 @@
 import React from 'react';
 import { FaLinkedin, FaGlobe, FaTimes } from 'react-icons/fa';
+
+import { LAST_UPDATE_DATE } from '../../config/constants';
 import './AboutModal.scss';
 
 const AboutModal = ({ isOpen, onClose }) => {
@@ -15,7 +17,7 @@ const AboutModal = ({ isOpen, onClose }) => {
         <div className="about-modal__content">
           <div>
             <h2> Brickify </h2>
-            <p><b>Last Updated:</b> 8 December, 2025</p>
+            <p><b>Last Updated:</b> {LAST_UPDATE_DATE}</p>
           </div>
 
           <div className="about-modal__author">
