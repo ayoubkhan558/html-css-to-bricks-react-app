@@ -36,8 +36,9 @@ const Preview = ({ html, css, activeTagIndex, highlight }) => {
               padding: 1rem;
               min-height: 100%;
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-              background: white;
-              color: #333;
+              // background: #111117;
+              background: #fff;
+              color: inherit;
             }
             .brickify-preview-highlight {
               outline: 1px solid #edb706;

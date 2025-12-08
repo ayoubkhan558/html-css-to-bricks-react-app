@@ -132,7 +132,7 @@ const StructureView = ({ data, globalClasses, activeIndex, showNodeClass }) => {
           {showNodeClass ? (
             <span className="node-class">{className}</span>
           ) : (
-            <span className="node-tag">{label}</span>
+            <span className="node-tag">&lt;{label} /&gt;</span>
           )}
         </div>
         {hasChildren && isOpen && (
