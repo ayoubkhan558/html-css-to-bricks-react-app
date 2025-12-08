@@ -17,7 +17,7 @@ const Preview = ({ html, css, activeTagIndex, highlight }) => {
 
   React.useEffect(() => {
     if (!iframeRef.current) return;
-    
+
     const iframe = iframeRef.current;
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
@@ -72,13 +72,24 @@ const Preview = ({ html, css, activeTagIndex, highlight }) => {
   }, [html, css, activeTagIndex, highlight]);
 
   return (
-    <div className="preview"> 
+    <div className="preview">
+      {!html && !css ? (
+        <div className="preview-placeholder">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+          <p>Preview will appear here</p>
+        </div>
+      ) : (
         <iframe
           ref={iframeRef}
           title="HTML/CSS Preview"
           className="preview__iframe"
           sandbox="allow-same-origin allow-scripts"
-        />  
+        />
+      )}
     </div>
   );
 };
