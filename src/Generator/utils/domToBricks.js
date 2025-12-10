@@ -17,6 +17,7 @@ import { processTextElement } from './processors/textElementProcessor';
 import { processAttributes } from './processors/attributeProcessor';
 import { processAlertElement } from './processors/alertProcessor';
 import { processNavElement } from './processors/navProcessor';
+import { logger } from '../../lib/utils/logger';
 
 
 // Alert/message class patterns to check
@@ -49,20 +50,20 @@ const hasContainerClasses = (node) => {
 const handleInlineStyles = (node, element, globalClasses, variables = {}, options = {}) => {
 
   const styleAttr = node.getAttribute('style');
-  console.log('111 Inline styles for element:', options?.context?.inlineStyleHandling);
+  logger.log('111 Inline styles for element:', options?.context?.inlineStyleHandling);
   if (!styleAttr || !styleAttr.trim()) return;
 
   switch (options?.context?.inlineStyleHandling) {
     case 'skip':
       // Do nothing - skip the inline styles completely
-      console.log('Skipping inline styles for element:', element.id);
+      logger.log('Skipping inline styles for element:', element.id);
       // Remove the style attribute
       node.removeAttribute('style');
       break;
 
     case 'inline':
       // This case is now handled in processAttributes
-      console.log('Inline styles handled in processAttributes for element:', element.id);
+      logger.log('Inline styles handled in processAttributes for element:', element.id);
       // Remove the style attribute since processAttributes already added it
       node.removeAttribute('style');
       break;
@@ -76,7 +77,7 @@ const handleInlineStyles = (node, element, globalClasses, variables = {}, option
       }
 
       // Convert inline styles to a class and merge with existing settings
-      console.log('Converting inline styles to class for element:', element.id, styleAttr, targetClass?.name, variables);
+      logger.log('Converting inline styles to class for element:', element.id, styleAttr, targetClass?.name, variables);
 
       if (targetClass) {
         // Parse the inline styles
@@ -112,7 +113,7 @@ const handleInlineStyles = (node, element, globalClasses, variables = {}, option
         });
       } else {
         // No class exists - add inline styles as custom CSS
-        console.log('No target class found, adding inline styles as custom CSS');
+        logger.log('No target class found, adding inline styles as custom CSS');
 
         // Parse inline styles and convert to custom CSS
         const styleDeclarations = styleAttr.split(';').filter(s => s.trim());
@@ -135,7 +136,7 @@ const handleInlineStyles = (node, element, globalClasses, variables = {}, option
       break;
 
     default:
-      console.warn('Unknown inlineStyleHandling value:', options?.context?.inlineStyleHandling);
+      logger.warn('Unknown inlineStyleHandling value:', options?.context?.inlineStyleHandling);
       break;
   }
 };
@@ -150,7 +151,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     showNodeClass = false
   } = options.context || {};
   // Debug logs
-  console.log('Context in domNodeToBricks:', { showNodeClass, inlineStyleHandling });
+  logger.log('Context in domNodeToBricks:', { showNodeClass, inlineStyleHandling });
   // Handle text nodes
   if (node.nodeType !== Node.ELEMENT_NODE) {
     // Skip text nodes that are inside a form element (labels, button text, etc.)
@@ -731,7 +732,7 @@ const convertHtmlToBricks = (html, css, options) => {
       globalElements: []
     };
   } catch (error) {
-    console.error('Error converting HTML to Bricks:', error);
+    logger.error('Error converting HTML to Bricks:', error);
     throw error;
   }
 };

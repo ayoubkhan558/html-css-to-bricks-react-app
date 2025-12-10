@@ -1,4 +1,5 @@
-import { toHex } from '../cssParser';
+import { toHex } from '@libs/css/cssUtils';
+import { logger } from '../../../lib/utils/logger';
 
 const generateId = () => Math.random().toString(36).substring(2, 8);
 
@@ -8,13 +9,13 @@ const isColor = (value) => {
   const lowerCaseValue = value.toLowerCase();
   const colorKeywords = ['transparent', 'currentcolor'];
   if (colorKeywords.includes(lowerCaseValue)) return true;
-  
+
   // Enhanced hex color detection - supports 3, 4, 6, and 8 digit hex colors
   if (lowerCaseValue.startsWith('#')) {
     const hexPart = lowerCaseValue.slice(1);
     return /^[0-9a-f]{3,8}$/i.test(hexPart);
   }
-  
+
   if (lowerCaseValue.startsWith('rgb') || lowerCaseValue.startsWith('hsl')) return true;
 
   // Basic color name check (can be expanded)
@@ -82,10 +83,10 @@ const parseColorStop = (stop) => {
   }
 
   // Handle additional color properties for transparent colors
-  if (colorPart.includes('rgba') || colorPart.includes('hsla') || 
-      (colorPart.startsWith('#') && (colorPart.length === 5 || colorPart.length === 9)) || 
-      colorPart === 'transparent') {
-    
+  if (colorPart.includes('rgba') || colorPart.includes('hsla') ||
+    (colorPart.startsWith('#') && (colorPart.length === 5 || colorPart.length === 9)) ||
+    colorPart === 'transparent') {
+
     // For 4-digit hex colors like #fff0, convert to rgba
     if (colorPart.startsWith('#') && colorPart.length === 5) {
       const r = parseInt(colorPart[1] + colorPart[1], 16);
@@ -108,7 +109,7 @@ const parseColorStop = (stop) => {
 };
 
 const parseGradient = (gradientString) => {
-  console.log(gradientString);
+  logger.log(gradientString);
   const typeMatch = gradientString.match(/(linear|radial|conic)-gradient/);
   if (!typeMatch) return null;
 

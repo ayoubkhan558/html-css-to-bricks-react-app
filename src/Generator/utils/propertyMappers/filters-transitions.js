@@ -1,5 +1,5 @@
 // CSS Filter Property Mappers
-import { parseValue } from '../cssParser';
+import { parseValue } from '@libs/css/cssUtils';
 
 // Helper to extract numeric value from filter string (e.g. '5px' -> '5')
 const parseFilterNumber = (val) => {
@@ -62,13 +62,13 @@ export const effectsMappers = {
       settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { filter: ${val}; }`;
       return;
     }
-    
+
     settings._cssFilters = settings._cssFilters || {};
-    
+
     // Extract individual filters from combined string
     // Updated regex to handle drop-shadow with its complex value
     const filters = val.match(/(blur|brightness|contrast|grayscale|hue-rotate|invert|saturate|sepia|drop-shadow)\(([^)]+)\)/g) || [];
-    
+
     filters.forEach(filter => {
       const match = filter.match(/([\w-]+)\(([^)]+)\)/);
       if (match) {
@@ -85,7 +85,7 @@ export const transitionsMappers = {
   'transition': (val, settings) => {
     // Store the original transition string as-is
     settings._cssTransition = val;
-    
+
     // Prevent these from being added to _cssCustom
     settings._skipTransitionCustom = true;
   },
@@ -93,7 +93,7 @@ export const transitionsMappers = {
     settings._cssTransition = settings._cssTransition || '';
     const parts = settings._cssTransition.split(' ');
     settings._cssTransition = `${val} ${parts[1] || '0s'} ${parts[2] || 'ease'} ${parts[3] || '0s'}`;
-    
+
     // Prevent these from being added to _cssCustom
     settings._skipTransitionCustom = true;
   },
@@ -101,7 +101,7 @@ export const transitionsMappers = {
     settings._cssTransition = settings._cssTransition || '';
     const parts = settings._cssTransition.split(' ');
     settings._cssTransition = `${parts[0] || 'all'} ${val} ${parts[2] || 'ease'} ${parts[3] || '0s'}`;
-    
+
     // Prevent these from being added to _cssCustom
     settings._skipTransitionCustom = true;
   },
@@ -109,7 +109,7 @@ export const transitionsMappers = {
     settings._cssTransition = settings._cssTransition || '';
     const parts = settings._cssTransition.split(' ');
     settings._cssTransition = `${parts[0] || 'all'} ${parts[1] || '0s'} ${val} ${parts[3] || '0s'}`;
-    
+
     // Prevent these from being added to _cssCustom
     settings._skipTransitionCustom = true;
   },
@@ -117,7 +117,7 @@ export const transitionsMappers = {
     settings._cssTransition = settings._cssTransition || '';
     const parts = settings._cssTransition.split(' ');
     settings._cssTransition = `${parts[0] || 'all'} ${parts[1] || '0s'} ${parts[2] || 'ease'} ${val}`;
-    
+
     // Prevent these from being added to _cssCustom
     settings._skipTransitionCustom = true;
   }

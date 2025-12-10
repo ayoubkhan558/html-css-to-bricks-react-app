@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaKey, FaSave, FaTrash, FaCheckCircle, FaSpinner } from 'react-icons/fa';
-import { testApiKey } from '../utils/openaiService';
+import { testApiKey } from '@generator/utils/openaiService';
 import './AISettings.scss';
 
 const AISettings = ({ isOpen, onClose }) => {
