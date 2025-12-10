@@ -1,4 +1,4 @@
-import { ENABLE_LOGS } from '../../config/constants';
+import { ENABLE_LOGS } from '@config/constants';
 
 /**
  * Custom logger that only logs if ENABLE_LOGS is true

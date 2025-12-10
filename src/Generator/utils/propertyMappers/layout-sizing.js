@@ -1,4 +1,4 @@
-import { parseValue } from '@libs/css/cssUtils';
+import { parseValue } from '@lib/css/cssUtils';
 
 export const sizingMappers = {
   'width': (val, settings) => {

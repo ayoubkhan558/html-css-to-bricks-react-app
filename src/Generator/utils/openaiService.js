@@ -1,3 +1,5 @@
+import { logger } from '@lib/utils/logger';
+
 /**
  * AI API Service
  * Handles communication with multiple AI providers (OpenAI, Google Gemini)
@@ -6,7 +8,7 @@
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-import { logger } from '../../lib/utils/logger';
+
 
 /**
  * Extract code blocks from AI response

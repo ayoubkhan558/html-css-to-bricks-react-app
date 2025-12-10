@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaPaperPlane, FaSpinner, FaRobot, FaTimes, FaCog } from 'react-icons/fa';
-import { callOpenAI } from '../utils/openaiService';
+import { callOpenAI } from '@generator/utils/openaiService';
 import './AIPrompt.scss';
 
 const AIPrompt = ({ isOpen, onClose, onCodeGenerated, currentHtml, currentCss, currentJs, onOpenSettings }) => {
@@ -44,9 +44,9 @@ const AIPrompt = ({ isOpen, onClose, onCodeGenerated, currentHtml, currentCss, c
     try {
       // Build context for AI
       const context = buildContext(userMessage, currentHtml, currentCss, currentJs);
-      
+
       const response = await callOpenAI(context, apiKey);
-      
+
       // Add AI response to conversation
       setConversation([...newConversation, { role: 'assistant', content: response.message }]);
 
@@ -62,7 +62,7 @@ const AIPrompt = ({ isOpen, onClose, onCodeGenerated, currentHtml, currentCss, c
     } catch (err) {
       setError(err.message || 'Failed to generate code. Please try again.');
       console.error('AI Error:', err);
-      
+
       // Add helpful context for common errors
       if (err.message.includes('quota')) {
         setError(err.message + ' Visit https://platform.openai.com/account/billing to add credits.');
@@ -76,7 +76,7 @@ const AIPrompt = ({ isOpen, onClose, onCodeGenerated, currentHtml, currentCss, c
 
   const buildContext = (userPrompt, html, css, js) => {
     const hasExistingCode = html.trim() || css.trim() || js.trim();
-    
+
     let systemPrompt = `You are an expert web developer assistant. Generate clean, semantic HTML, CSS, and JavaScript code based on user requests.
 
 IMPORTANT INSTRUCTIONS:

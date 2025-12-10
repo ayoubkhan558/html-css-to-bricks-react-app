@@ -17,7 +17,7 @@ import { processTextElement } from './processors/textElementProcessor';
 import { processAttributes } from './processors/attributeProcessor';
 import { processAlertElement } from './processors/alertProcessor';
 import { processNavElement } from './processors/navProcessor';
-import { logger } from '../../lib/utils/logger';
+import { logger } from '@lib/utils/logger';
 
 
 // Alert/message class patterns to check

@@ -1,4 +1,4 @@
-import { toHex, parseValue } from '@libs/css/cssUtils';
+import { toHex, parseValue } from '@lib/css/cssUtils';
 import { parseBoxShadow } from './mapperUtils';
 
 export const borderBoxShadowMappers = {

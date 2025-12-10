@@ -20,8 +20,8 @@ import * as parserHtml from 'prettier/parser-html';
 import * as parserCss from 'prettier/parser-postcss';
 import * as parserBabel from 'prettier/parser-babel';
 import './GeneratorComponent.scss';
-import aiModels from '../config/aiModels.json';
-import { logger } from '../../lib/utils/logger';
+import aiModels from '@config/aiModels.json';
+import { logger } from '@lib/utils';
 
 const GeneratorComponent = () => {
   const {

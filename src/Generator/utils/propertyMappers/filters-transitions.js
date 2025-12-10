@@ -1,5 +1,5 @@
 // CSS Filter Property Mappers
-import { parseValue } from '@libs/css/cssUtils';
+import { parseValue } from '@lib/css/cssUtils';
 
 // Helper to extract numeric value from filter string (e.g. '5px' -> '5')
 const parseFilterNumber = (val) => {

@@ -59,7 +59,7 @@ export const AI_PROVIDERS = {
 };
 
 // Logging configuration
-export const ENABLE_LOGS = false;
+export const ENABLE_LOGS = import.meta.env.VITE_ENABLE_LOGS === 'true';
 
 // AI Model identifiers
 export const AI_MODELS = {

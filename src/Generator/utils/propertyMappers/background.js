@@ -1,5 +1,5 @@
-import { toHex } from '@libs/css/cssUtils';
-import { logger } from '../../../lib/utils/logger';
+import { toHex } from '@lib/css/cssUtils';
+import { logger } from '@lib/utils/logger';
 
 const generateId = () => Math.random().toString(36).substring(2, 8);
 
