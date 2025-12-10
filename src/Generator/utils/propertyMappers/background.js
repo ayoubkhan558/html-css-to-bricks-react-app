@@ -1,4 +1,5 @@
 import { toHex } from '@libs/css/cssUtils';
+import { logger } from '../../../lib/utils/logger';
 
 const generateId = () => Math.random().toString(36).substring(2, 8);
 
@@ -108,7 +109,7 @@ const parseColorStop = (stop) => {
 };
 
 const parseGradient = (gradientString) => {
-  console.log(gradientString);
+  logger.log(gradientString);
   const typeMatch = gradientString.match(/(linear|radial|conic)-gradient/);
   if (!typeMatch) return null;
 

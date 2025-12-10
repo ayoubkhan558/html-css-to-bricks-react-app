@@ -58,6 +58,9 @@ export const AI_PROVIDERS = {
     OPENROUTER: 'openrouter'
 };
 
+// Logging configuration
+export const ENABLE_LOGS = true;
+
 // AI Model identifiers
 export const AI_MODELS = {
     GEMINI: {

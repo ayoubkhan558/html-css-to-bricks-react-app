@@ -21,6 +21,7 @@ import * as parserCss from 'prettier/parser-postcss';
 import * as parserBabel from 'prettier/parser-babel';
 import './GeneratorComponent.scss';
 import aiModels from '../config/aiModels.json';
+import { logger } from '../../lib/utils/logger';
 
 const GeneratorComponent = () => {
   const {
@@ -148,7 +149,7 @@ const GeneratorComponent = () => {
         const formatted = await prettier.format(code, options);
         return formatted;
       } catch (error) {
-        console.error(`Error formatting ${parser}:`, error);
+        logger.error(`Error formatting ${parser}:`, error);
         return code;
       }
     };
@@ -165,7 +166,7 @@ const GeneratorComponent = () => {
         setJs(formatted);
       }
     } catch (error) {
-      console.error('Error formatting code:', error);
+      logger.error('Error formatting code:', error);
     }
   };
 
@@ -185,7 +186,7 @@ const GeneratorComponent = () => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 3000);
     } catch (err) {
-      console.error('Failed to copy JSON:', err);
+      logger.error('Failed to copy JSON:', err);
     }
   };
 
@@ -202,7 +203,7 @@ const GeneratorComponent = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Failed to export JSON:', err);
+      logger.error('Failed to export JSON:', err);
     }
   };
 
@@ -312,7 +313,7 @@ const GeneratorComponent = () => {
 
     } catch (err) {
       setQuickError(err.message || 'Failed to generate code');
-      console.error('Quick AI Error:', err);
+      logger.error('Quick AI Error:', err);
       setTimeout(() => setQuickError(null), 5000);
     } finally {
       setIsQuickGenerating(false);
@@ -368,7 +369,7 @@ const GeneratorComponent = () => {
         setOutput('');
       }
     } catch (err) {
-      console.error('Failed to generate structure:', err);
+      logger.error('Failed to generate structure:', err);
       // Optionally, you can set an error state here to show in the UI
     }
   }, [html, css, js, includeJs, inlineStyleHandling, isMinified, showNodeClass, mergeNonClassSelectors]);

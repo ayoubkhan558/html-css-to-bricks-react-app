@@ -14,6 +14,7 @@ import { parseBoxShadow } from './propertyMappers/mapperUtils';
 import { filterMappers, effectsMappers, transitionsMappers } from './propertyMappers/filters-transitions';
 import { scrollSnapMappers } from './propertyMappers/layout-scroll-snap';
 import { transformsMappers } from './propertyMappers/transforms';
+import { logger } from '../../lib/utils/logger';
 
 
 
@@ -250,7 +251,7 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
         try {
           mapper(resolvedValue, settings);
         } catch (e) {
-          console.error(`Error processing ${prop}: ${resolvedValue}`, e);
+          logger.error(`Error processing ${prop}: ${resolvedValue}`, e);
           if (!customRules[prop]) customRules[prop] = {};
           customRules[prop][resolvedValue] = true;
         }
@@ -285,7 +286,7 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
         try {
           mapper(resolvedValue, settings);
         } catch (e) {
-          console.error(`Error processing ${prop}: ${resolvedValue}`, e);
+          logger.error(`Error processing ${prop}: ${resolvedValue}`, e);
           if (!customRules[prop]) customRules[prop] = {};
           customRules[prop][resolvedValue] = true;
         }
@@ -461,7 +462,7 @@ export function matchCSSSelectors(element, cssMap) {
         // console.log('Properties:', parsedProperties);
       }
     } catch (error) {
-      console.warn(`Error processing selector: ${selector}`, error);
+      logger.warn(`Error processing selector: ${selector}`, error);
     }
   });
 
