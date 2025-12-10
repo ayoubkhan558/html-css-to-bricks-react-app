@@ -1,4 +1,4 @@
-import { toHex, parseValue } from '../cssParser';
+import { toHex, parseValue } from '@libs/css/cssUtils';
 
 export const typographyMappers = {
   color: (val, settings) => {
@@ -14,17 +14,17 @@ export const typographyMappers = {
   },
   'font-weight': (val, settings) => {
     settings._typography = settings._typography || {};
-    
+
     // If the value is already a number, use it directly
     if (typeof val === 'number') {
       settings._typography['font-weight'] = val;
       return;
     }
-    
+
     // Handle string values
     if (typeof val === 'string') {
       const weight = val.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      
+
       const keywordMap = {
         '100': 100, 'thin': 100,
         '200': 200, 'extralight': 200, 'ultralight': 200,
@@ -36,18 +36,18 @@ export const typographyMappers = {
         '800': 800, 'extrabold': 800, 'ultrabold': 800,
         '900': 900, 'black': 900, 'heavy': 900
       };
-      
+
       // First try to parse as number
       let numeric = parseInt(weight, 10);
-      
+
       // If not a valid number, try to map from keywords
       if (isNaN(numeric) || numeric < 100 || numeric > 900) {
         numeric = keywordMap[weight] || 400; // default to 400 if unrecognized
       }
-      
+
       // Ensure the value is within valid range (100-900, in steps of 100)
       numeric = Math.max(100, Math.min(900, Math.round(numeric / 100) * 100));
-      
+
       settings._typography['font-weight'] = numeric;
     } else {
       // Fallback to normal weight if value is invalid

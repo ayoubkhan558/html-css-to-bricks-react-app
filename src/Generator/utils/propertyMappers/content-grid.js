@@ -1,4 +1,4 @@
-import { parseValue, splitCSSValue } from '../cssParser';
+import { parseValue, splitCSSValue } from '@libs/css/cssUtils';
 
 export const gridMappers = {
   // Grid container properties

@@ -1,17 +1,17 @@
-import { parseValue } from '../cssParser';
+import { parseValue } from '@libs/css/cssUtils';
 
 export const transformsMappers = {
   'transform': (val, settings) => {
     settings._transform = settings._transform || {};
-    
+
     // Extract transform functions
     const transforms = val.match(/(\w+)\(([^)]*)\)/g) || [];
-    
+
     transforms.forEach(t => {
       const [func, args] = t.split('(');
       const cleanArgs = args.replace(')', '').trim();
-      
-      switch(func) {
+
+      switch (func) {
         case 'translate':
         case 'translateX':
         case 'translateY':
@@ -39,7 +39,7 @@ export const transformsMappers = {
             settings._transform.translate.z = parseValue(z);
           }
           break;
-          
+
         case 'scale':
         case 'scaleX':
         case 'scaleY':
@@ -67,7 +67,7 @@ export const transformsMappers = {
             settings._transform.scale.z = parseFloat(z);
           }
           break;
-          
+
         case 'rotate':
         case 'rotateX':
         case 'rotateY':
@@ -92,7 +92,7 @@ export const transformsMappers = {
             settings._transform.rotate.angle = angle;
           }
           break;
-          
+
         case 'skew':
         case 'skewX':
         case 'skewY':
@@ -109,11 +109,11 @@ export const transformsMappers = {
             settings._transform.skew.y = cleanArgs;
           }
           break;
-          
+
         case 'perspective':
           settings._transform.perspective = parseValue(cleanArgs);
           break;
-          
+
         case 'matrix':
         case 'matrix3d':
           settings._transform.matrix = t;

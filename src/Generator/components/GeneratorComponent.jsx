@@ -13,7 +13,7 @@ import Tooltip from '../../components/Tooltip';
 import { useGenerator } from '../../contexts/GeneratorContext';
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
-import CodeEditor from '../../components/CodeEditor';
+import CodeEditor from '@generator/CodeEditor';
 import StructureView from './StructureView';
 import prettier from 'prettier/standalone';
 import * as parserHtml from 'prettier/parser-html';

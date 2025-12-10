@@ -1,17 +1,17 @@
-import { toHex, parseValue } from '../cssParser';
+import { toHex, parseValue } from '@libs/css/cssUtils';
 import { parseBoxShadow } from './mapperUtils';
 
 export const borderBoxShadowMappers = {
   'box-shadow': (val, settings) => {
     if (!val || val === 'none') return;
-    
+
     const boxShadow = parseBoxShadow(val);
     if (!boxShadow) return;
-    
+
     // Determine color format (hex, rgb, rgba)
-    const colorKey = boxShadow.color.startsWith('#') ? 'hex' : 
-                    boxShadow.color.startsWith('rgb') ? 'rgb' : 'hex';
-    
+    const colorKey = boxShadow.color.startsWith('#') ? 'hex' :
+      boxShadow.color.startsWith('rgb') ? 'rgb' : 'hex';
+
     settings._boxShadow = {
       values: {
         offsetX: boxShadow.offsetX,
@@ -30,17 +30,17 @@ export const borderBoxShadowMappers = {
       settings._border.width = { top: '0', right: '0', bottom: '0', left: '0' };
       return;
     }
-    
+
     // FIX: Better parsing that handles rgba() properly
     const parts = [];
     let current = '';
     let inParens = 0;
-    
+
     for (let i = 0; i < val.length; i++) {
       const char = val[i];
       if (char === '(') inParens++;
       if (char === ')') inParens--;
-      
+
       if (char === ' ' && inParens === 0) {
         if (current.trim()) {
           parts.push(current.trim());
@@ -51,13 +51,13 @@ export const borderBoxShadowMappers = {
       }
     }
     if (current.trim()) parts.push(current.trim());
-    
+
     if (parts.length >= 1) {
       settings._border = settings._border || {};
-      
+
       // Handle width (can be in format like '2px', 'thin', 'medium', 'thick')
       let width = parts[0];
-      
+
       if (['thin', 'medium', 'thick'].includes(width)) {
         const widthMap = { thin: '1px', medium: '3px', thick: '5px' };
         settings._border.width = {
@@ -75,12 +75,12 @@ export const borderBoxShadowMappers = {
           left: widthValue
         };
       }
-      
+
       // Handle style and color
       const validStyles = ['solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'inset', 'outset', 'none', 'hidden'];
       let styleFound = false;
       let colorPart = null;
-      
+
       // Look for style in parts
       for (let i = 1; i < parts.length; i++) {
         if (validStyles.includes(parts[i])) {
@@ -90,12 +90,12 @@ export const borderBoxShadowMappers = {
           colorPart = parts[i];
         }
       }
-      
+
       // Default to solid if no style found
       if (!styleFound) {
         settings._border.style = 'solid';
       }
-      
+
       // Handle color
       if (colorPart) {
         if (colorPart.startsWith('rgba(') || colorPart.startsWith('rgb(')) {
@@ -112,7 +112,7 @@ export const borderBoxShadowMappers = {
   'border-width': (val, settings) => {
     settings._border = settings._border || {};
     const values = val.split(/\s+/).map(v => parseValue(v)).filter(v => v !== undefined && v !== null);
-    
+
     // Handle different number of values (1-4 values)
     if (values.length === 1) {
       settings._border.width = {
@@ -165,13 +165,13 @@ export const borderBoxShadowMappers = {
   },
   'border-radius': (val, settings) => {
     settings._border = settings._border || {};
-    
+
     // Handle elliptical corners (e.g., '10px 20px / 5px 15px')
     if (val.includes('/')) {
       const [horizontal, vertical] = val.split('/').map(part => part.trim());
       const hValues = horizontal.split(/\s+/).map(v => parseValue(v)).filter(v => v !== undefined && v !== null);
       const vValues = vertical.split(/\s+/).map(v => parseValue(v)).filter(v => v !== undefined && v !== null);
-      
+
       // Handle horizontal values (top-left, top-right, bottom-right, bottom-left)
       const hRadius = {
         topLeft: hValues[0],
@@ -179,7 +179,7 @@ export const borderBoxShadowMappers = {
         bottomRight: hValues[2] !== undefined ? hValues[2] : hValues[0],
         bottomLeft: hValues[3] !== undefined ? hValues[3] : (hValues[1] !== undefined ? hValues[1] : hValues[0])
       };
-      
+
       // Handle vertical values (top-left, top-right, bottom-right, bottom-left)
       const vRadius = {
         topLeft: vValues[0],
@@ -187,7 +187,7 @@ export const borderBoxShadowMappers = {
         bottomRight: vValues[2] !== undefined ? vValues[2] : vValues[0],
         bottomLeft: vValues[3] !== undefined ? vValues[3] : (vValues[1] !== undefined ? vValues[1] : vValues[0])
       };
-      
+
       settings._border.radius = {
         top: `${hRadius.topLeft} / ${vRadius.topLeft}`,
         right: `${hRadius.topRight} / ${vRadius.topRight}`,
@@ -197,7 +197,7 @@ export const borderBoxShadowMappers = {
     } else {
       // Standard border-radius without elliptical corners
       const values = val.split(/\s+/).map(v => parseValue(v)).filter(v => v !== undefined && v !== null);
-      
+
       // Handle different number of values (1-4 values)
       if (values.length === 1) {
         // All sides same value

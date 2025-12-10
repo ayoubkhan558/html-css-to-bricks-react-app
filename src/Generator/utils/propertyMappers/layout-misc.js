@@ -1,26 +1,26 @@
-import { parseValue } from '../cssParser';
+import { parseValue } from '@libs/css/cssUtils';
 
 export const layoutMiscMappers = {
   // Pointer Events
   'pointer-events': (val, settings) => {
     settings._pointerEvents = val;
   },
-  
+
   // Mix Blend Mode
   'mix-blend-mode': (val, settings) => {
     settings._mixBlendMode = val;
   },
-  
+
   // Isolation
   'isolation': (val, settings) => {
     settings._isolation = val;
   },
-  
+
   // Cursor
   'cursor': (val, settings) => {
     settings._cursor = val;
   },
-  
+
   // Opacity
   'opacity': (val, settings) => {
     // Ensure opacity is between 0 and 1
@@ -29,7 +29,7 @@ export const layoutMiscMappers = {
       settings._opacity = Math.min(1, Math.max(0, opacity)).toString();
     }
   },
-  
+
   // Overflow
   'overflow': (val, settings) => {
     settings._overflow = val;
@@ -40,7 +40,7 @@ export const layoutMiscMappers = {
   'overflow-y': (val, settings) => {
     settings._overflowY = val;
   },
-  
+
   // Visibility
   'visibility': (val, settings) => {
     settings._visibility = val;
