@@ -1,4 +1,4 @@
-import { toHex, parseValue } from '@lib/css/cssUtils';
+import { toHex, parseValue } from '@lib/cssUtils';
 
 export const typographyMappers = {
   color: (val, settings) => {

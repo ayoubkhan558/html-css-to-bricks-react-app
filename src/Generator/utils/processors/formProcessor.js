@@ -1,4 +1,4 @@
-import { getUniqueId } from '@generator/utils';
+import { generateId } from '@lib/bricks';
 import { getElementLabel } from './labelUtils';
 
 export const getBricksFieldType = (node) => {
@@ -39,7 +39,7 @@ export const processFormField = (form, node, context = {}) => {
 
   const field = {
     type: getBricksFieldType(node),
-    id: getUniqueId().substring(0, 6),
+    id: generateId().substring(0, 6),
     name: node.getAttribute('name') || '',
     label: '',
     placeholder: node.getAttribute('placeholder') || '',
@@ -185,7 +185,7 @@ export const processFormElement = (formNode, context = {}) => {
   const dynamicSubmitText = submitButtons.length > 0 ? submitButtons[0] : 'Submit';
 
   const formElement = {
-    id: getUniqueId(),
+    id: generateId(),
     name: 'form',
     parent: 0,
     children: [],

@@ -1,4 +1,4 @@
-import { getUniqueId } from '../utils';
+import { generateId } from '@lib/bricks';
 
 
 /**
@@ -34,7 +34,7 @@ export const processAttributes = (node, element, tag, options = {}) => {
       // For 'inline' mode, we'll keep the styles as inline styles
       element.settings._attributes = element.settings._attributes || [];
       element.settings._attributes.push({
-        id: getUniqueId(),
+        id: generateId(),
         name: 'style',
         value: style
       });
@@ -52,7 +52,7 @@ export const processAttributes = (node, element, tag, options = {}) => {
       attr.name !== 'href' &&
       !(tag === 'a' && ['target', 'rel'].includes(attr.name))) {
       customAttributes.push({
-        id: getUniqueId(),
+        id: generateId(),
         name: attr.name,
         value: attr.value
       });

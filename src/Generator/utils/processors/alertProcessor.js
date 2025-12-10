@@ -1,4 +1,4 @@
-import { getUniqueId } from '../utils';
+import { generateId } from '@lib/bricks';
 import { getElementLabel } from './labelUtils';
 
 /**
@@ -10,7 +10,7 @@ import { getElementLabel } from './labelUtils';
 export const processAlertElement = (node, context = {}) => {
   // Default alert settings
   const alertElement = {
-    id: getUniqueId(),
+    id: generateId(),
     name: 'alert',
     label: getElementLabel(node, 'Alert', context),
     parent: '0',

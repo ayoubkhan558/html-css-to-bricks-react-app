@@ -1,6 +1,6 @@
 /**
- * Bricks Element Factory
- * Utilities for creating Bricks elements
+ * Bricks Utilities
+ * Element factory and ID generation utilities
  */
 
 import { getTagLabel } from '@config/elementMappings';
@@ -182,4 +182,17 @@ export function createCodeElement(code, { parentId = '0' } = {}) {
             javascriptCode: code
         }
     });
+}
+
+/**
+ * Sanitizes a string to be used as a CSS class name
+ * @param {string} str - The string to sanitize
+ * @returns {string} Sanitized class name
+ */
+export function sanitizeClassName(str) {
+    return str
+        .replace(/[^\w-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+        .toLowerCase();
 }

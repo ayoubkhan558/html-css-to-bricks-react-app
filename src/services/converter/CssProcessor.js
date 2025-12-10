@@ -5,7 +5,7 @@
  */
 
 import { buildCssMap, matchCSSSelectors } from '@generator/utils/cssParser';
-import { AdvancedSelectorMatcher } from '@lib/css/AdvancedSelectorMatcher';
+import { AdvancedSelectorMatcher } from '@lib/cssUtils';
 
 export class CssProcessor {
     constructor() {

@@ -4,7 +4,7 @@
  */
 
 import { BRICKS_VERSION, BRICKS_SOURCE, BRICKS_SOURCE_URL } from '@config/constants';
-import { generateId } from '@lib/bricks/elementFactory';
+import { generateId } from '@lib/bricks';
 
 export class BricksBuilder {
     constructor() {

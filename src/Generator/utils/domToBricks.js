@@ -1,4 +1,4 @@
-import { getUniqueId } from './utils';
+import { generateId } from '@lib/bricks';
 import { getBricksFieldType, processFormField, processFormElement } from "./processors/formProcessor"
 import { buildCssMap, parseCssDeclarations, matchCSSSelectors } from './cssParser';
 import { processAudioElement } from './processors/audioProcessor';
@@ -17,7 +17,7 @@ import { processTextElement } from './processors/textElementProcessor';
 import { processAttributes } from './processors/attributeProcessor';
 import { processAlertElement } from './processors/alertProcessor';
 import { processNavElement } from './processors/navProcessor';
-import { logger } from '@lib/utils/logger';
+import { logger } from '@lib/logger';
 
 
 // Alert/message class patterns to check
@@ -165,7 +165,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
     if (node.nodeType === Node.TEXT_NODE) {
       const textElement = {
-        id: getUniqueId(),
+        id: generateId(),
         name: 'text-basic',
         parent: parentId,
         children: [],
@@ -199,7 +199,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // We'll handle empty divs by setting appropriate defaults
 
   let name = 'div';
-  const elementId = getUniqueId();
+  const elementId = generateId();
   const element = {
     id: elementId,
     name,
@@ -215,7 +215,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   if (isStandaloneInline) {
     const textElement = {
-      id: getUniqueId(),
+      id: generateId(),
       name: 'text-basic',
       parent: parentId,
       children: [],
@@ -464,7 +464,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     classNames.forEach((cls, index) => {
       let targetClass = globalClasses.find(c => c.name === cls);
       if (!targetClass) {
-        targetClass = { id: getUniqueId(), name: cls, settings: {} };
+        targetClass = { id: generateId(), name: cls, settings: {} };
         globalClasses.push(targetClass);
       }
 
@@ -679,7 +679,7 @@ const convertHtmlToBricks = (html, css, options) => {
         firstClass.settings._cssCustom = `${rootStyles}\n${firstClass.settings._cssCustom}`.trim();
       } else {
         globalClasses.push({
-          id: getUniqueId(),
+          id: generateId(),
           name: 'custom-css',
           settings: {
             _cssCustom: rootStyles,
@@ -714,7 +714,7 @@ const convertHtmlToBricks = (html, css, options) => {
       } else {
         // Create a new global class for keyframes if none exists
         globalClasses.push({
-          id: getUniqueId(),
+          id: generateId(),
           name: 'animations',
           settings: {
             _cssCustom: keyframesCSS,

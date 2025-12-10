@@ -1,5 +1,5 @@
 // Flexbox Property Mappers
-import { parseValue, splitCSSValue } from '@lib/css/cssUtils';
+import { parseValue, splitCSSValue } from '@lib/cssUtils';
 
 // Flexbox Property Mappers
 export const flexboxMappers = {

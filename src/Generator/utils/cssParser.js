@@ -14,7 +14,7 @@ import { parseBoxShadow } from './propertyMappers/mapperUtils';
 import { filterMappers, effectsMappers, transitionsMappers } from './propertyMappers/filters-transitions';
 import { scrollSnapMappers } from './propertyMappers/layout-scroll-snap';
 import { transformsMappers } from './propertyMappers/transforms';
-import { logger } from '@lib/utils/logger';
+import { logger } from '@lib/logger';
 
 
 

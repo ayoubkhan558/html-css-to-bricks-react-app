@@ -1,4 +1,4 @@
-import { getUniqueId } from '@generator/utils';
+import { generateId } from '@lib/bricks/elementFactory';
 import { getElementLabel } from './labelUtils';
 
 /**
@@ -11,7 +11,7 @@ export const processNavElement = (node, context = {}) => {
   const elements = []; // Array to collect all elements
 
   const navElement = {
-    id: getUniqueId(),
+    id: generateId(),
     name: 'nav-nested',
     parent: '0',
     children: [],
@@ -36,7 +36,7 @@ export const processNavElement = (node, context = {}) => {
 
   // Process nav items
   const itemsBlock = {
-    id: getUniqueId(),
+    id: generateId(),
     name: 'block',
     parent: navElement.id,
     children: [],
@@ -67,7 +67,7 @@ export const processNavElement = (node, context = {}) => {
   const dropdowns = Array.from(node.querySelectorAll('.dropdown, .has-dropdown, [data-toggle="dropdown"]'));
   dropdowns.forEach(dropdown => {
     const dropdownElement = {
-      id: getUniqueId(),
+      id: generateId(),
       name: 'dropdown',
       parent: itemsBlock.id,
       children: [],
@@ -80,7 +80,7 @@ export const processNavElement = (node, context = {}) => {
     elements.push(dropdownElement); // Add dropdown element to collection
 
     const dropdownContent = {
-      id: getUniqueId(),
+      id: generateId(),
       name: 'div',
       parent: dropdownElement.id,
       children: [],
@@ -111,7 +111,7 @@ export const processNavElement = (node, context = {}) => {
 
   // Add mobile toggle elements
   const closeToggle = {
-    id: getUniqueId(),
+    id: generateId(),
     name: 'toggle',
     parent: itemsBlock.id,
     children: [],
@@ -124,7 +124,7 @@ export const processNavElement = (node, context = {}) => {
   };
 
   const openToggle = {
-    id: getUniqueId(),
+    id: generateId(),
     name: 'toggle',
     parent: navElement.id,
     children: [],
@@ -144,7 +144,7 @@ export const processNavElement = (node, context = {}) => {
 // Helper function to create link elements
 const createLinkElement = (link, parentId) => {
   return {
-    id: getUniqueId(),
+    id: generateId(),
     name: 'text-link',
     parent: parentId,
     children: [],

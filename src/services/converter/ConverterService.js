@@ -8,7 +8,7 @@ import { CssProcessor } from '@services/converter/CssProcessor';
 import { BricksBuilder } from '@services/converter/BricksBuilder';
 import { domNodeToBricks } from '@generator/utils/domToBricks';
 import { DEFAULT_GENERATOR_SETTINGS } from '@config/defaults';
-import { deepMerge } from '@lib/utils/helpers';
+import { deepMerge } from '@lib/helpers';
 
 export class ConverterService {
     constructor(options = {}) {

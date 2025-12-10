@@ -1,4 +1,4 @@
-import { logger } from '@lib/utils/logger';
+import { logger } from '@lib/logger';
 
 /**
  * AI API Service
