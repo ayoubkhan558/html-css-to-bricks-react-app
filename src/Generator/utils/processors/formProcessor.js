@@ -1,4 +1,4 @@
-import { getUniqueId } from '../utils';
+import { getUniqueId } from '@generator/utils';
 import { getElementLabel } from './labelUtils';
 
 export const getBricksFieldType = (node) => {

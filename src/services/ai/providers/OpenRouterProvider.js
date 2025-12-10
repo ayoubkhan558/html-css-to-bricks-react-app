@@ -3,8 +3,8 @@
  * Integration with OpenRouter's API
  */
 
-import { BaseProvider } from './BaseProvider';
-import { AI_MODELS } from '../../../config/constants';
+import { BaseProvider } from '@services/ai/providers/BaseProvider';
+import { AI_MODELS } from '@config/constants';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 

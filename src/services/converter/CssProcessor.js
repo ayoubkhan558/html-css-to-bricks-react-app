@@ -4,8 +4,8 @@
  * Now with advanced selector support!
  */
 
-import { buildCssMap, matchCSSSelectors } from '../../Generator/utils/cssParser';
-import { AdvancedSelectorMatcher } from '../../lib/css/AdvancedSelectorMatcher';
+import { buildCssMap, matchCSSSelectors } from '@generator/utils/cssParser';
+import { AdvancedSelectorMatcher } from '@lib/css/AdvancedSelectorMatcher';
 
 export class CssProcessor {
     constructor() {

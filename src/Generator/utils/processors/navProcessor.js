@@ -1,4 +1,4 @@
-import { getUniqueId } from '../utils';
+import { getUniqueId } from '@generator/utils';
 import { getElementLabel } from './labelUtils';
 
 /**
@@ -9,7 +9,7 @@ import { getElementLabel } from './labelUtils';
  */
 export const processNavElement = (node, context = {}) => {
   const elements = []; // Array to collect all elements
-  
+
   const navElement = {
     id: getUniqueId(),
     name: 'nav-nested',
@@ -31,7 +31,7 @@ export const processNavElement = (node, context = {}) => {
     },
     themeStyles: {}
   };
-  
+
   elements.push(navElement); // Add nav element to collection
 
   // Process nav items
@@ -50,7 +50,7 @@ export const processNavElement = (node, context = {}) => {
     cloneable: false,
     deletable: false
   };
-  
+
   elements.push(itemsBlock); // Add items block to collection
 
   // Process regular links
@@ -76,7 +76,7 @@ export const processNavElement = (node, context = {}) => {
       },
       label: 'Dropdown'
     };
-    
+
     elements.push(dropdownElement); // Add dropdown element to collection
 
     const dropdownContent = {
@@ -94,7 +94,7 @@ export const processNavElement = (node, context = {}) => {
       cloneable: false,
       deletable: false
     };
-    
+
     elements.push(dropdownContent); // Add dropdown content to collection
 
     // Process dropdown links

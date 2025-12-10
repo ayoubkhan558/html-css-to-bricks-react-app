@@ -3,8 +3,8 @@
  * Assembles final Bricks JSON structure
  */
 
-import { BRICKS_VERSION, BRICKS_SOURCE, BRICKS_SOURCE_URL } from '../../config/constants';
-import { generateId } from '../../lib/bricks/elementFactory';
+import { BRICKS_VERSION, BRICKS_SOURCE, BRICKS_SOURCE_URL } from '@config/constants';
+import { generateId } from '@lib/bricks/elementFactory';
 
 export class BricksBuilder {
     constructor() {

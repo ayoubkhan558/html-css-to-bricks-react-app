@@ -11,6 +11,8 @@ export default defineConfig({
       '@utils': path.resolve(__dirname, './src/lib'),
       '@lib': path.resolve(__dirname, './src/lib'),
       '@components': path.resolve(__dirname, './src/components'),
+      '@contexts': path.resolve(__dirname, './src/contexts'),
+      '@services': path.resolve(__dirname, './src/services'),
       '@generator': path.resolve(__dirname, './src/generator'),
       '@assets': path.resolve(__dirname, './src/assets'),
     },

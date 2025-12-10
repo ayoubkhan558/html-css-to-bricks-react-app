@@ -3,7 +3,7 @@
  * Utilities for creating Bricks elements
  */
 
-import { getTagLabel } from '../../config/elementMappings';
+import { getTagLabel } from '@config/elementMappings';
 
 // Counter for unique IDs
 let idCounter = 0;

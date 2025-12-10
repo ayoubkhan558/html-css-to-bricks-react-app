@@ -3,8 +3,8 @@
  * Integration with OpenAI's API
  */
 
-import { BaseProvider } from './BaseProvider';
-import { AI_MODELS } from '../../../config/constants';
+import { BaseProvider } from '@services/ai/providers/BaseProvider';
+import { AI_MODELS } from '@config/constants';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
