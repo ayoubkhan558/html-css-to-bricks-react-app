@@ -6,8 +6,8 @@ import { FaCss3, FaCode, FaCopy, FaPlay, FaCheck, FaDownload, FaChevronDown, FaP
 import { MdOutlineSettings } from "react-icons/md";
 import { FaInfoCircle } from "react-icons/fa";
 import { VscCopy } from "react-icons/vsc";
-import AboutModal from './AboutModal';
-import AISettings from './AISettings';
+import AboutModal from './../../components/AboutModal/index';
+import AISettings from './../../components/AISettings/index';
 import Tooltip from '../../components/Tooltip';
 
 import { useGenerator } from '../../contexts/GeneratorContext';

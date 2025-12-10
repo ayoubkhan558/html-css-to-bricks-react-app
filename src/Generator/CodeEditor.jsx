@@ -6,7 +6,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { autocompletion, closeBrackets } from '@codemirror/autocomplete';
 import { lineNumbers, highlightActiveLineGutter, highlightActiveLine, EditorView } from '@codemirror/view';
 import { bracketMatching, indentOnInput } from '@codemirror/language';
-import { darkTheme } from '../theme/codemirror-theme';
+import { darkTheme } from '@generator/theme/codemirror-theme';
 
 
 // HTML autocompletions
@@ -288,7 +288,7 @@ const CodeEditor = ({
     ];
 
     if (language === 'html') {
-      return [...baseExtensions, html({ autoCloseTags: true, matchClosingTags: true })];
+      // return [...baseExtensions, html({ autoCloseTags: true, matchClosingTags: true })];
     } else if (language === 'css') {
       return [...baseExtensions, css()];
     } else if (language === 'javascript' || language === 'js') {
