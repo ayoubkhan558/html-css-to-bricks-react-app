@@ -1,4 +1,4 @@
-import { generateId } from '@lib/bricks/elementFactory';
+import { generateId } from '@lib/bricks';
 import { getElementLabel } from './labelUtils';
 
 /**
