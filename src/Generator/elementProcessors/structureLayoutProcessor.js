@@ -1,4 +1,4 @@
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 /**
  * Processes structural/layout elements (section, container, row, column, etc.)
@@ -15,9 +15,9 @@ export const processStructureLayoutElement = (node, element, tag, context = {}) 
   const layoutTags = ['article', 'aside', 'main', 'nav', 'figure', 'section', 'footer', 'header'];
 
   // Handle full-width block elements (only on div tags)
-  if (tag === 'div' && (node.classList?.contains('container-fluid') || 
-                       node.classList?.contains('full-width') ||
-                       node.classList?.contains('fullwidth'))) {
+  if (tag === 'div' && (node.classList?.contains('container-fluid') ||
+    node.classList?.contains('full-width') ||
+    node.classList?.contains('fullwidth'))) {
     element.name = 'block';
     element.label = getElementLabel(node, 'Block', context);
     element.settings.tag = 'div';
@@ -42,7 +42,7 @@ export const processStructureLayoutElement = (node, element, tag, context = {}) 
 
   if (layoutTags.includes(tag) || node.classList.contains('section')) {
     element.name = 'section';
-    const defaultLabel = 
+    const defaultLabel =
       tag === 'article' ? 'Article' :
         tag === 'aside' ? 'Aside' :
           tag === 'main' ? 'Main' :

@@ -1,4 +1,4 @@
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 /**
  * Processes audio elements for Bricks conversion
@@ -10,13 +10,13 @@ import { getElementLabel } from './labelUtils';
  */
 export const processAudioElement = (node, element, tag = 'audio', context = {}) => {
   const audioSrc = node.querySelector('source')?.getAttribute('src') || node.getAttribute('src') || '';
-  
+
   element.name = 'audio';
   element.label = getElementLabel(node, 'Audio', context);
   element.settings.source = 'external';
   element.settings.external = audioSrc;
   element.settings.loop = node.hasAttribute('loop');
   element.settings.autoplay = node.hasAttribute('autoplay');
-  
+
   return element;
 };

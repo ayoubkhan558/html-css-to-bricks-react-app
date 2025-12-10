@@ -1,4 +1,4 @@
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 /**
  * Processes miscellaneous elements like canvas, details, summary, dialog, meter, progress
@@ -22,7 +22,7 @@ export const processMiscElement = (node, element, tag, context = {}) => {
     'meter': 'Meter',
     'progress': 'Progress'
   };
-  
+
   const defaultLabel = defaultLabels[tag] || tag.charAt(0).toUpperCase() + tag.slice(1);
   element.label = getElementLabel(node, defaultLabel, context);
 

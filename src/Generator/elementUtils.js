@@ -6,6 +6,6 @@
  * @returns {string} The label to use
  */
 export const getElementLabel = (node, defaultLabel, context = {}) => {
-  const firstClass = node.classList?.length > 0 ? node.classList[0] : null;
-  return context.showNodeClass && firstClass ? firstClass : defaultLabel;
+    const firstClass = node.classList?.length > 0 ? node.classList[0] : null;
+    return context.showNodeClass && firstClass ? firstClass : defaultLabel;
 };

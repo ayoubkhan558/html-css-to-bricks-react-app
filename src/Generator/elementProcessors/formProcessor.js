@@ -1,5 +1,5 @@
 import { generateId } from '@lib/bricks';
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 export const getBricksFieldType = (node) => {
   const type = (node.getAttribute('type') || 'text').toLowerCase();

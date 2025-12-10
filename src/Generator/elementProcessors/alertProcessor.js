@@ -1,5 +1,5 @@
 import { generateId } from '@lib/bricks';
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 /**
  * Processes alert elements into Bricks alert components

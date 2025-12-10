@@ -1,4 +1,4 @@
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 /**
  * Processes link elements (a) for Bricks conversion
@@ -11,7 +11,7 @@ import { getElementLabel } from './labelUtils';
 export const processLinkElement = (node, element, tag = 'a', context = {}) => {
   element.name = 'text-link';
   element.label = getElementLabel(node, 'Link', context);
-  
+
   // Handle href attribute and link settings
   if (node.hasAttribute('href')) {
     element.settings.link = {
@@ -22,7 +22,7 @@ export const processLinkElement = (node, element, tag = 'a', context = {}) => {
       noReferrer: node.getAttribute('rel')?.includes('noreferrer') || false
     };
   }
-  
+
   // Handle text content directly
   const textContent = node.textContent.trim();
   if (textContent) {
@@ -32,9 +32,9 @@ export const processLinkElement = (node, element, tag = 'a', context = {}) => {
     element.settings.text = 'Link';
     element.settings.tag = 'a';
   }
-  
+
   // Prevent processing of child text nodes
   element._skipTextNodes = true;
-  
+
   return element;
 };

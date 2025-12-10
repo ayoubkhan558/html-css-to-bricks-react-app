@@ -13,7 +13,7 @@ export default defineConfig({
       '@components': path.resolve(__dirname, './src/components'),
       '@contexts': path.resolve(__dirname, './src/contexts'),
       '@services': path.resolve(__dirname, './src/services'),
-      '@generator': path.resolve(__dirname, './src/generator'),
+      '@generator': path.resolve(__dirname, './src/Generator'),
       '@assets': path.resolve(__dirname, './src/assets'),
     },
   },

@@ -1,4 +1,4 @@
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 /**
  * Processes video elements for Bricks conversion
@@ -14,7 +14,7 @@ export const processVideoElement = (node, element, tag = 'video', context = {}) 
 
   element.name = 'video';
   element.label = getElementLabel(node, 'Video', context);
-  
+
   element.settings = {
     videoType: 'file',
     youTubeId: '',

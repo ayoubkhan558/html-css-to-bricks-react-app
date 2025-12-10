@@ -1,4 +1,4 @@
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 /**
  * Processes image elements for Bricks conversion
@@ -11,15 +11,15 @@ import { getElementLabel } from './labelUtils';
 export const processImageElement = (node, element, tag = 'img', context = {}) => {
   element.name = 'image';
   element.label = getElementLabel(node, 'Image', context);
-  
+
   element.settings.src = node.getAttribute('src') || '';
   element.settings.alt = node.getAttribute('alt') || '';
-  
+
   element.settings.image = {
     url: node.getAttribute('src') || '',
     external: true,
     filename: (node.getAttribute('src') || 'image.jpg').split('/').pop()
   };
-  
+
   return element;
 };

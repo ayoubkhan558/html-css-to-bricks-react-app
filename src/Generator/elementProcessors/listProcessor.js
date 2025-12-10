@@ -1,4 +1,4 @@
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 /**
  * Processes list elements (ul, ol, li) for Bricks conversion
@@ -12,20 +12,20 @@ export const processListElement = (node, element, tag, context = {}) => {
   // Check if list contains only simple text (no HTML tags except nested lists)
   const isSimpleList = Array.from(node.children).every(li => {
     if (li.tagName.toLowerCase() !== 'li') return false;
-    
+
     // Check for nested lists
     const nestedLists = li.getElementsByTagName('ul').length + li.getElementsByTagName('ol').length;
-    
+
     // Compare HTML vs text content, ignoring nested lists
     const liContent = li.innerHTML;
     const textContent = li.textContent.trim();
-    
+
     // Allow nested lists in simple lists
     if (nestedLists > 0) {
       const withoutNested = liContent.replace(/<\/?(ul|ol)[^>]*>/g, '');
       return withoutNested.replace(/<[^>]+>/g, '') === textContent;
     }
-    
+
     return liContent === textContent;
   });
 
@@ -54,6 +54,6 @@ export const processListElement = (node, element, tag, context = {}) => {
     element.settings.tag = tag;
     element.label = 'List Item';
   }
-  
+
   return element;
 };

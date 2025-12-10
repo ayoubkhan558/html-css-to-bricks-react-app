@@ -1,23 +1,24 @@
 import { generateId } from '@lib/bricks';
-import { getBricksFieldType, processFormField, processFormElement } from "./processors/formProcessor"
-import { buildCssMap, parseCssDeclarations, matchCSSSelectors } from './cssParser';
-import { processAudioElement } from './processors/audioProcessor';
-import { processVideoElement } from './processors/videoProcessor';
-import { processTableElement } from './processors/tableProcessor';
-import { processImageElement } from './processors/imageProcessor';
-import { processSvgElement } from './processors/svgProcessor';
-import { processHeadingElement } from './processors/headingProcessor';
-import { processListElement } from './processors/listProcessor';
-import { processLinkElement } from './processors/linkProcessor';
-import { processButtonElement } from './processors/buttonProcessor';
-import { processMiscElement } from './processors/miscProcessor';
-import { processStructureLayoutElement } from './processors/structureLayoutProcessor';
-import { getElementLabel } from './processors/labelUtils';
-import { processTextElement } from './processors/textElementProcessor';
-import { processAttributes } from './processors/attributeProcessor';
-import { processAlertElement } from './processors/alertProcessor';
-import { processNavElement } from './processors/navProcessor';
 import { logger } from '@lib/logger';
+
+import { getElementLabel } from '@generator/elementUtils';
+import { buildCssMap, parseCssDeclarations, matchCSSSelectors } from '@generator/utils/cssParser';
+import { getBricksFieldType, processFormField, processFormElement } from "@generator/elementProcessors/formProcessor"
+import { processAudioElement } from '@generator/elementProcessors/audioProcessor';
+import { processVideoElement } from '@generator/elementProcessors/videoProcessor';
+import { processTableElement } from '@generator/elementProcessors/tableProcessor';
+import { processImageElement } from '@generator/elementProcessors/imageProcessor';
+import { processSvgElement } from '@generator/elementProcessors/svgProcessor';
+import { processHeadingElement } from '@generator/elementProcessors/headingProcessor';
+import { processListElement } from '@generator/elementProcessors/listProcessor';
+import { processLinkElement } from '@generator/elementProcessors/linkProcessor';
+import { processButtonElement } from '@generator/elementProcessors/buttonProcessor';
+import { processMiscElement } from '@generator/elementProcessors/miscProcessor';
+import { processStructureLayoutElement } from '@generator/elementProcessors/structureLayoutProcessor';
+import { processTextElement } from '@generator/elementProcessors/textElementProcessor';
+import { processAttributes } from '@generator/elementProcessors/attributeProcessor';
+import { processAlertElement } from '@generator/elementProcessors/alertProcessor';
+import { processNavElement } from '@generator/elementProcessors/navProcessor';
 
 
 // Alert/message class patterns to check

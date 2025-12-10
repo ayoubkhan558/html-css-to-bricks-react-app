@@ -1,4 +1,4 @@
-import { getElementLabel } from './labelUtils';
+import { getElementLabel } from '@generator/elementUtils';
 
 /**
  * Processes SVG elements for Bricks conversion
@@ -13,6 +13,6 @@ export const processSvgElement = (node, element, tag = 'svg', context = {}) => {
   element.label = getElementLabel(node, 'SVG', context);
   element.settings.source = 'code';
   element.settings.code = node.outerHTML;
-  
+
   return element;
 };
