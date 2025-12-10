@@ -59,7 +59,7 @@ export const AI_PROVIDERS = {
 };
 
 // Logging configuration
-export const ENABLE_LOGS = true;
+export const ENABLE_LOGS = false;
 
 // AI Model identifiers
 export const AI_MODELS = {
