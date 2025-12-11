@@ -1,104 +1,86 @@
 /* Code Editor Styles */
 .code-editor {
     border-radius: 4px;
-    overflow: hidden;
     background: #1e1e1e;
-}
-
-.editor-container {
-    display: flex;
-    background: #1e1e1e;
-}
-
-/* Line Numbers */
-.line-numbers {
-    background: #1e1e1e;
-    color: #858585;
-    padding: 10px 8px;
-    text-align: right;
-    user-select: none;
-    min-width: 40px;
-    border-right: 1px solid #3e3e3e;
-}
-
-.line-number {
-    font-family: 'Fira code', 'Fira Mono', monospace;
-    font-size: 14px;
-    line-height: 21px;
-    height: 21px;
-}
-
-/* Editor Content */
-.editor-content {
-    flex: 1;
     overflow: auto;
+    height: 100%;
 }
 
-.code-editor textarea.code-textarea {
-    outline: none !important;
-    border: none !important;
-    background: transparent !important;
-    color: inherit !important;
-}
+.code-editor {
+    textarea.code-textarea {
+        outline: none !important;
+        border: none !important;
+        background: transparent !important;
+        color: inherit !important;
+    }
 
-.code-editor pre {
-    margin: 0 !important;
-    font-family: 'Fira code', 'Fira Mono', monospace !important;
-    line-height: 21px !important;
+    pre {
+        margin: 0 !important;
+    }
 }
 
 /* Prism theme overrides for dark mode */
-.code-editor .token.comment,
-.code-editor .token.prolog,
-.code-editor .token.doctype,
-.code-editor .token.cdata {
-    color: #6a9955;
-}
+.code-editor {
 
-.code-editor .token.punctuation {
-    color: #d4d4d4;
-}
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+        color: #6a9955;
+    }
 
-.code-editor .token.property,
-.code-editor .token.tag,
-.code-editor .token.boolean,
-.code-editor .token.number,
-.code-editor .token.constant,
-.code-editor .token.symbol,
-.code-editor .token.deleted {
-    color: #569cd6;
-}
+    .token.punctuation {
+        color: #d4d4d4;
+    }
 
-.code-editor .token.selector,
-.code-editor .token.attr-name,
-.code-editor .token.string,
-.code-editor .token.char,
-.code-editor .token.builtin,
-.code-editor .token.inserted {
-    color: #ce9178;
-}
+    .token.property,
+    .token.tag,
+    .token.boolean,
+    .token.number,
+    .token.constant,
+    .token.symbol,
+    .token.deleted {
+        color: #569cd6;
+    }
 
-.code-editor .token.operator,
-.code-editor .token.entity,
-.code-editor .token.url,
-.code-editor .language-css .token.string,
-.code-editor .style .token.string {
-    color: #d4d4d4;
-}
+    .token.selector,
+    .token.attr-name,
+    .token.string,
+    .token.char,
+    .token.builtin,
+    .token.inserted {
+        color: #ce9178;
+    }
 
-.code-editor .token.atrule,
-.code-editor .token.attr-value,
-.code-editor .token.keyword {
-    color: #c586c0;
-}
+    .token.operator,
+    .token.entity,
+    .token.url,
+    .language-css {
+        .token.string {
+            color: #d4d4d4;
+        }
+    }
 
-.code-editor .token.function,
-.code-editor .token.class-name {
-    color: #dcdcaa;
-}
+    .style {
+        .token.string {
+            color: #d4d4d4;
+        }
+    }
 
-.code-editor .token.regex,
-.code-editor .token.important,
-.code-editor .token.variable {
-    color: #d16969;
+    .token.atrule,
+    .token.attr-value,
+    .token.keyword {
+        color: #c586c0;
+    }
+
+    .token.function,
+    .token.class-name {
+        color: #dcdcaa;
+    }
+
+    .token.regex,
+    .token.important,
+    .token.variable {
+        color: #d16969;
+    }
 }
