@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-markup';
@@ -20,6 +20,12 @@ const CodeEditor = ({
   readOnly = false,
 }) => {
   const editorRef = useRef(null);
+
+  // Calculate line numbers
+  const lineNumbers = useMemo(() => {
+    const lines = value.split('\n').length;
+    return Array.from({ length: lines }, (_, i) => i + 1);
+  }, [value]);
 
   // Map language to Prism language
   const getPrismLanguage = (lang) => {
@@ -89,23 +95,35 @@ const CodeEditor = ({
 
   return (
     <div className={`code-editor ${className}`} style={{ height, overflow: 'auto', position: 'relative' }} ref={editorRef}>
-      <Editor
-        value={value}
-        onValueChange={onChange}
-        highlight={highlightCode}
-        padding={10}
-        disabled={readOnly}
-        placeholder={placeholder}
-        onKeyDown={handleKeyDown}
-        style={{
-          fontFamily: '"Fira code", "Fira Mono", monospace',
-          fontSize: 14,
-          minHeight: height,
-          backgroundColor: '#1e1e1e',
-          color: '#d4d4d4',
-        }}
-        textareaClassName="code-textarea"
-      />
+      <div className="editor-container">
+        {/* Line numbers */}
+        <div className="line-numbers">
+          {lineNumbers.map(num => (
+            <div key={num} className="line-number">{num}</div>
+          ))}
+        </div>
+
+        {/* Code editor */}
+        <div className="editor-content">
+          <Editor
+            value={value}
+            onValueChange={onChange}
+            highlight={highlightCode}
+            padding={10}
+            disabled={readOnly}
+            placeholder={placeholder}
+            onKeyDown={handleKeyDown}
+            style={{
+              fontFamily: '"Fira code", "Fira Mono", monospace',
+              fontSize: 14,
+              minHeight: height,
+              backgroundColor: 'transparent',
+              color: '#d4d4d4',
+            }}
+            textareaClassName="code-textarea"
+          />
+        </div>
+      </div>
     </div>
   );
 };

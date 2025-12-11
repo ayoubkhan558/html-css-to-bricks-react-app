@@ -2,6 +2,36 @@
 .code-editor {
     border-radius: 4px;
     overflow: hidden;
+    background: #1e1e1e;
+}
+
+.editor-container {
+    display: flex;
+    background: #1e1e1e;
+}
+
+/* Line Numbers */
+.line-numbers {
+    background: #1e1e1e;
+    color: #858585;
+    padding: 10px 8px;
+    text-align: right;
+    user-select: none;
+    min-width: 40px;
+    border-right: 1px solid #3e3e3e;
+}
+
+.line-number {
+    font-family: 'Fira code', 'Fira Mono', monospace;
+    font-size: 14px;
+    line-height: 21px;
+    height: 21px;
+}
+
+/* Editor Content */
+.editor-content {
+    flex: 1;
+    overflow: auto;
 }
 
 .code-editor textarea.code-textarea {
@@ -14,6 +44,7 @@
 .code-editor pre {
     margin: 0 !important;
     font-family: 'Fira code', 'Fira Mono', monospace !important;
+    line-height: 21px !important;
 }
 
 /* Prism theme overrides for dark mode */
