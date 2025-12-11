@@ -1,5 +1,5 @@
 import { generateId } from '@lib/bricks';
-import { getElementLabel } from '@generator/elementUtils';
+import { getElementLabel } from '@lib/bricks';
 
 /**
  * Processes navigation elements into Bricks nested nav components

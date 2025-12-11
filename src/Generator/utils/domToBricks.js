@@ -1,7 +1,8 @@
 import { generateId } from '@lib/bricks';
 import { logger } from '@lib/logger';
-
-import { getElementLabel } from '@generator/elementUtils';
+import { sanitizeClassName } from '@lib/helpers';
+import { getElementLabel } from '@lib/bricks';
+import { ALERT_CLASS_PATTERNS, CONTAINER_CLASS_PATTERNS } from '@config/constants';
 import { buildCssMap, parseCssDeclarations, matchCSSSelectors } from '@generator/utils/cssParser';
 import { getBricksFieldType, processFormField, processFormElement } from "@generator/elementProcessors/formProcessor"
 import { processAudioElement } from '@generator/elementProcessors/audioProcessor';
@@ -21,13 +22,6 @@ import { processAlertElement } from '@generator/elementProcessors/alertProcessor
 import { processNavElement } from '@generator/elementProcessors/navProcessor';
 
 
-// Alert/message class patterns to check
-const ALERT_CLASS_PATTERNS = [
-  'alert', 'notification', 'message', 'toast', 'msg', 'flash',
-  'banner', 'notice', 'warning', 'error', 'success', 'info',
-  'callout', 'hint', 'tip', 'note', 'status'
-];
-
 // Helper function to check if element has alert-related classes
 const hasAlertClasses = (node) => {
   if (!node.classList || node.classList.length === 0) return false;
@@ -44,8 +38,7 @@ const hasAlertClasses = (node) => {
 const hasContainerClasses = (node) => {
   if (!node.classList || node.classList.length === 0) return false;
 
-  const containerClasses = ['container', 'boxed', 'wrapper', 'content'];
-  return containerClasses.some(cls => node.classList.contains(cls));
+  return CONTAINER_CLASS_PATTERNS.some(cls => node.classList.contains(cls));
 };
 
 const handleInlineStyles = (node, element, globalClasses, variables = {}, options = {}) => {

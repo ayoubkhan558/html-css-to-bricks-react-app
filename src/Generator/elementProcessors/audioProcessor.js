@@ -1,4 +1,4 @@
-import { getElementLabel } from '@generator/elementUtils';
+import { getElementLabel } from '@lib/bricks';
 
 /**
  * Processes audio elements for Bricks conversion

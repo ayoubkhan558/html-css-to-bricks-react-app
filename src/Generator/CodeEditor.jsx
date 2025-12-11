@@ -288,7 +288,7 @@ const CodeEditor = ({
     ];
 
     if (language === 'html') {
-      // return [...baseExtensions, html({ autoCloseTags: true, matchClosingTags: true })];
+      return [...baseExtensions, html({ autoCloseTags: true, matchClosingTags: true })];
     } else if (language === 'css') {
       return [...baseExtensions, css()];
     } else if (language === 'javascript' || language === 'js') {

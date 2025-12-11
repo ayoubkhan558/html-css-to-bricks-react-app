@@ -1,4 +1,4 @@
-import { getElementLabel } from '@generator/elementUtils';
+import { getElementLabel } from '@lib/bricks';
 
 /**
  * Processes heading elements (h1-h6) for Bricks conversion

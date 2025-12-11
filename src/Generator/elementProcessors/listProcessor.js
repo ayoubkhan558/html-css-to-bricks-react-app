@@ -1,4 +1,4 @@
-import { getElementLabel } from '@generator/elementUtils';
+import { getElementLabel } from '@lib/bricks';
 
 /**
  * Processes list elements (ul, ol, li) for Bricks conversion
