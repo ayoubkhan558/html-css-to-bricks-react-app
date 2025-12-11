@@ -1,4 +1,4 @@
-import { getElementLabel } from '@generator/elementUtils';
+import { getElementLabel } from '@lib/bricks';
 
 /**
  * Processes miscellaneous elements like canvas, details, summary, dialog, meter, progress

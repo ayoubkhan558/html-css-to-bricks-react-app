@@ -1,7 +1,6 @@
 import { toHex } from '@lib/cssUtils';
 import { logger } from '@lib/logger';
-
-const generateId = () => Math.random().toString(36).substring(2, 8);
+import { generateId } from '@lib/bricks';
 
 // Helper function to check if a value is a color
 const isColor = (value) => {

@@ -3,9 +3,9 @@
  * Main orchestrator for HTML/CSS/JS to Bricks conversion
  */
 
-import { DomParser } from '@services/converter/DomParser';
-import { CssProcessor } from '@services/converter/CssProcessor';
-import { BricksBuilder } from '@services/converter/BricksBuilder';
+import { DomParser } from './DomParser.js';
+import { CssProcessor } from './CssProcessor.js';
+import { BricksBuilder } from './BricksBuilder.js';
 import { domNodeToBricks } from '@generator/utils/domToBricks';
 import { DEFAULT_GENERATOR_SETTINGS } from '@config/defaults';
 import { deepMerge } from '@lib/helpers';

@@ -552,7 +552,14 @@ const GeneratorComponent = () => {
                         language={activeTab}
                         placeholder={
                           activeTab === 'html'
-                            ? '<!-- Your HTML here… -->'
+                            ?
+                            `<!-- Your HTML here… -->
+                            
+<section>
+  <h1>My First Heading</h1>
+  <p>My first paragraph.</p>
+</section>
+                            `
                             : activeTab === 'css'
                               ? '/* Your CSS here… */'
                               : '// Your JavaScript here…'

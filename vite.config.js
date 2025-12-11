@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@src': path.resolve(__dirname, './src'),
       '@config': path.resolve(__dirname, './src/config'),
       '@utils': path.resolve(__dirname, './src/lib'),
       '@lib': path.resolve(__dirname, './src/lib'),
@@ -16,5 +17,10 @@ export default defineConfig({
       '@generator': path.resolve(__dirname, './src/Generator'),
       '@assets': path.resolve(__dirname, './src/assets'),
     },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './tests/setup.js',
   },
 });
