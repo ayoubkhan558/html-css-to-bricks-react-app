@@ -3,6 +3,25 @@
  * Color conversion, value parsing, and advanced selector matching
  */
 
+// Helper function to check if a value is a color
+export const isColor = (value) => {
+    if (typeof value !== 'string') return false;
+    const lowerCaseValue = value.toLowerCase();
+    const colorKeywords = ['transparent', 'currentcolor'];
+    if (colorKeywords.includes(lowerCaseValue)) return true;
+
+    // Enhanced hex color detection - supports 3, 4, 6, and 8 digit hex colors
+    if (lowerCaseValue.startsWith('#')) {
+        const hexPart = lowerCaseValue.slice(1);
+        return /^[0-9a-f]{3,8}$/i.test(hexPart);
+    }
+
+    if (lowerCaseValue.startsWith('rgb') || lowerCaseValue.startsWith('hsl')) return true;
+
+    // Basic color name check (can be expanded)
+    const namedColors = ['red', 'green', 'blue', 'white', 'black', 'yellow', 'purple', 'orange'];
+    return namedColors.includes(lowerCaseValue);
+};
 /**
  * Convert basic color names to hex; pass through hex values
  */
@@ -21,6 +40,7 @@ export function toHex(val) {
 
     // Handle named colors
     const namedColors = {
+        'powderblue': '#000000',
         'black': '#000000',
         'white': '#ffffff',
         'gray': '#808080',

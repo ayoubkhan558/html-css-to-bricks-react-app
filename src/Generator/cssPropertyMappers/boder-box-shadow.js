@@ -1,4 +1,4 @@
-import { toHex, parseValue } from '@lib/cssUtils';
+import { parseValue } from '@lib/cssUtils';
 import { parseBoxShadow } from './mapperUtils';
 
 export const borderBoxShadowMappers = {
@@ -98,14 +98,7 @@ export const borderBoxShadowMappers = {
 
       // Handle color
       if (colorPart) {
-        if (colorPart.startsWith('rgba(') || colorPart.startsWith('rgb(')) {
-          settings._border.color = { rgb: colorPart };
-        } else {
-          const hex = toHex(colorPart);
-          if (hex) {
-            settings._border.color = { hex };
-          }
-        }
+        settings._border.color = { raw: colorPart };
       }
     }
   },
@@ -150,18 +143,7 @@ export const borderBoxShadowMappers = {
   },
   'border-color': (val, settings) => {
     settings._border = settings._border || {};
-    // Handle rgba colors properly
-    if (val.startsWith('rgba(')) {
-      settings._border.color = { rgb: val };
-    } else {
-      const hex = toHex(val);
-      if (hex) {
-        settings._border.color = { hex };
-      } else if (val.startsWith('rgb(')) {
-        // Handle rgb colors
-        settings._border.color = { rgb: val };
-      }
-    }
+    settings._border.color = { raw: val };
   },
   'border-radius': (val, settings) => {
     settings._border = settings._border || {};
@@ -277,111 +259,31 @@ export const borderBoxShadowMappers = {
   },
   'border-top-color': (val, settings) => {
     settings._border = settings._border || {};
-    // Handle rgba colors properly
-    if (val.startsWith('rgba(')) {
-      if (!settings._cssCustom) settings._cssCustom = '';
-      const selector = settings._cssClass || '%element%';
-      // Escape dots in class names to prevent malformed selectors
-      const escapedSelector = selector.replace(/\./g, '\\.');
-      settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-top-color: ${val}; }`;
-    } else {
-      const hex = toHex(val);
-      if (hex) {
-        if (!settings._cssCustom) settings._cssCustom = '';
-        const selector = settings._cssClass || '%element%';
-        // Escape dots in class names to prevent malformed selectors
-        const escapedSelector = selector.replace(/\./g, '\\.');
-        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-top-color: ${hex}; }`;
-      } else if (val.startsWith('rgb(')) {
-        // Handle rgb colors
-        if (!settings._cssCustom) settings._cssCustom = '';
-        const selector = settings._cssClass || '%element%';
-        // Escape dots in class names to prevent malformed selectors
-        const escapedSelector = selector.replace(/\./g, '\\.');
-        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-top-color: ${val}; }`;
-      }
-    }
+    if (!settings._cssCustom) settings._cssCustom = '';
+    const selector = settings._cssClass || '%element%';
+    const escapedSelector = selector.replace(/\./g, '\\.');
+    settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-top-color: ${val}; }`;
   },
   'border-right-color': (val, settings) => {
     settings._border = settings._border || {};
-    // Handle rgba colors properly
-    if (val.startsWith('rgba(')) {
-      if (!settings._cssCustom) settings._cssCustom = '';
-      const selector = settings._cssClass || '%element%';
-      // Escape dots in class names to prevent malformed selectors
-      const escapedSelector = selector.replace(/\./g, '\\.');
-      settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-right-color: ${val}; }`;
-    } else {
-      const hex = toHex(val);
-      if (hex) {
-        if (!settings._cssCustom) settings._cssCustom = '';
-        const selector = settings._cssClass || '%element%';
-        // Escape dots in class names to prevent malformed selectors
-        const escapedSelector = selector.replace(/\./g, '\\.');
-        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-right-color: ${hex}; }`;
-      } else if (val.startsWith('rgb(')) {
-        // Handle rgb colors
-        if (!settings._cssCustom) settings._cssCustom = '';
-        const selector = settings._cssClass || '%element%';
-        // Escape dots in class names to prevent malformed selectors
-        const escapedSelector = selector.replace(/\./g, '\\.');
-        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-right-color: ${val}; }`;
-      }
-    }
+    if (!settings._cssCustom) settings._cssCustom = '';
+    const selector = settings._cssClass || '%element%';
+    const escapedSelector = selector.replace(/\./g, '\\.');
+    settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-right-color: ${val}; }`;
   },
   'border-bottom-color': (val, settings) => {
     settings._border = settings._border || {};
-    // Handle rgba colors properly
-    if (val.startsWith('rgba(')) {
-      if (!settings._cssCustom) settings._cssCustom = '';
-      const selector = settings._cssClass || '%element%';
-      // Escape dots in class names to prevent malformed selectors
-      const escapedSelector = selector.replace(/\./g, '\\.');
-      settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-bottom-color: ${val}; }`;
-    } else {
-      const hex = toHex(val);
-      if (hex) {
-        if (!settings._cssCustom) settings._cssCustom = '';
-        const selector = settings._cssClass || '%element%';
-        // Escape dots in class names to prevent malformed selectors
-        const escapedSelector = selector.replace(/\./g, '\\.');
-        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-bottom-color: ${hex}; }`;
-      } else if (val.startsWith('rgb(')) {
-        // Handle rgb colors
-        if (!settings._cssCustom) settings._cssCustom = '';
-        const selector = settings._cssClass || '%element%';
-        // Escape dots in class names to prevent malformed selectors
-        const escapedSelector = selector.replace(/\./g, '\\.');
-        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-bottom-color: ${val}; }`;
-      }
-    }
+    if (!settings._cssCustom) settings._cssCustom = '';
+    const selector = settings._cssClass || '%element%';
+    const escapedSelector = selector.replace(/\./g, '\\.');
+    settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-bottom-color: ${val}; }`;
   },
   'border-left-color': (val, settings) => {
     settings._border = settings._border || {};
-    // Handle rgba colors properly
-    if (val.startsWith('rgba(')) {
-      if (!settings._cssCustom) settings._cssCustom = '';
-      const selector = settings._cssClass || '%element%';
-      // Escape dots in class names to prevent malformed selectors
-      const escapedSelector = selector.replace(/\./g, '\\.');
-      settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-left-color: ${val}; }`;
-    } else {
-      const hex = toHex(val);
-      if (hex) {
-        if (!settings._cssCustom) settings._cssCustom = '';
-        const selector = settings._cssClass || '%element%';
-        // Escape dots in class names to prevent malformed selectors
-        const escapedSelector = selector.replace(/\./g, '\\.');
-        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-left-color: ${hex}; }`;
-      } else if (val.startsWith('rgb(')) {
-        // Handle rgb colors
-        if (!settings._cssCustom) settings._cssCustom = '';
-        const selector = settings._cssClass || '%element%';
-        // Escape dots in class names to prevent malformed selectors
-        const escapedSelector = selector.replace(/\./g, '\\.');
-        settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-left-color: ${val}; }`;
-      }
-    }
+    if (!settings._cssCustom) settings._cssCustom = '';
+    const selector = settings._cssClass || '%element%';
+    const escapedSelector = selector.replace(/\./g, '\\.');
+    settings._cssCustom += `\n${escapedSelector.startsWith('%') ? '' : '.'}${escapedSelector} { border-left-color: ${val}; }`;
   }
 };
 

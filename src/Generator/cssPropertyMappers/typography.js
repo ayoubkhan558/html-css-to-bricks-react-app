@@ -1,11 +1,10 @@
-import { toHex, parseValue } from '@lib/cssUtils';
+import { parseValue } from '@lib/cssUtils';
 
 export const typographyMappers = {
   color: (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
+    if (val) {
       settings._typography = settings._typography || {};
-      settings._typography.color = { hex };
+      settings._typography.color = { raw: val };
     }
   },
   'font-size': (val, settings) => {
@@ -100,7 +99,7 @@ export const typographyMappers = {
         offsetX: parseValue(parts[0]),
         offsetY: parseValue(parts[1]),
         blur: parseValue(parts[2]),
-        color: toHex(parts[3]) ? { hex: toHex(parts[3]) } : undefined
+        color: parts[3] ? { raw: parts[3] } : undefined
       };
     }
   }
