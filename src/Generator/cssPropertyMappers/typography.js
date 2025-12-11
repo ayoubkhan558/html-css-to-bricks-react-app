@@ -1,10 +1,10 @@
-import { parseValue } from '@lib/cssUtils';
+import { parseValue, createColorValue } from '@lib/cssUtils';
 
 export const typographyMappers = {
   color: (val, settings) => {
     if (val) {
       settings._typography = settings._typography || {};
-      settings._typography.color = { raw: val };
+      settings._typography.color = createColorValue(val);
     }
   },
   'font-size': (val, settings) => {
@@ -99,7 +99,7 @@ export const typographyMappers = {
         offsetX: parseValue(parts[0]),
         offsetY: parseValue(parts[1]),
         blur: parseValue(parts[2]),
-        color: parts[3] ? { raw: parts[3] } : undefined
+        color: parts[3] ? createColorValue(parts[3]) : undefined
       };
     }
   }

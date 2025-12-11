@@ -22,6 +22,17 @@ export const isColor = (value) => {
     const namedColors = ['red', 'green', 'blue', 'white', 'black', 'yellow', 'purple', 'orange'];
     return namedColors.includes(lowerCaseValue);
 };
+
+/**
+ * Create a color value object in the format expected by Bricks
+ * Preserves the original color value (names, CSS variables, rgb, hsl, hex)
+ * @param {string} value - Color value in any valid CSS format
+ * @returns {Object} Color object with raw property
+ */
+export const createColorValue = (value) => {
+    if (!value) return null;
+    return { raw: value };
+};
 /**
  * Convert basic color names to hex; pass through hex values
  */

@@ -1,4 +1,4 @@
-import { parseValue } from '@lib/cssUtils';
+import { parseValue, createColorValue } from '@lib/cssUtils';
 import { parseBoxShadow } from './mapperUtils';
 
 export const borderBoxShadowMappers = {
@@ -98,7 +98,7 @@ export const borderBoxShadowMappers = {
 
       // Handle color
       if (colorPart) {
-        settings._border.color = { raw: colorPart };
+        settings._border.color = createColorValue(colorPart);
       }
     }
   },
@@ -143,7 +143,7 @@ export const borderBoxShadowMappers = {
   },
   'border-color': (val, settings) => {
     settings._border = settings._border || {};
-    settings._border.color = { raw: val };
+    settings._border.color = createColorValue(val);
   },
   'border-radius': (val, settings) => {
     settings._border = settings._border || {};
