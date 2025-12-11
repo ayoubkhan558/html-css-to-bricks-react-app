@@ -24,26 +24,45 @@ const CodeEditor = ({
         onChange={handleEditorChange}
         theme="vs-dark"
         options={{
-          // readOnly,
+          // Auto-closing features
+          autoClosingBrackets: 'languageDefined',
+          autoClosingQuotes: 'languageDefined',
+          autoClosingDelete: 'auto',
+          autoClosingOvertype: 'auto',
+
+          // Suggestions
+          quickSuggestions: {
+            other: 'on',
+            comments: 'off',
+            strings: 'on',
+          },
+          suggestOnTriggerCharacters: true,
+          acceptSuggestionOnEnter: 'on',
+          tabCompletion: 'on',
+          wordBasedSuggestions: 'matchingDocuments',
+
+          // Emmet
+          'emmet.showExpandedAbbreviation': 'always',
+          'emmet.showSuggestionsAsSnippets': true,
+
+          // Bracket features
+          bracketPairColorization: {
+            enabled: true,
+          },
+          guides: {
+            bracketPairs: true,
+            indentation: true,
+          },
+
+          // Basic settings
           minimap: { enabled: false },
           fontSize: 14,
-          fontFamily: '"Fira code", "Fira Mono", monospace',
-          // lineNumbers: 'on',
           scrollBeyondLastLine: false,
           automaticLayout: true,
-          tabSize: 2,
+          contextmenu: false,
           wordWrap: 'on',
           formatOnPaste: true,
           formatOnType: true,
-          autoClosingBrackets: 'always',
-          autoClosingQuotes: 'always',
-          autoClosingTags: 'always',
-          folding: true,
-          matchBrackets: 'always',
-          scrollbar: {
-            vertical: 'auto',
-            horizontal: 'auto',
-          },
         }}
       />
     </div>
