@@ -1,26 +1,6 @@
-import { toHex } from '@lib/cssUtils';
+import { isColor } from '@lib/cssUtils';
 import { logger } from '@lib/logger';
 import { generateId } from '@lib/bricks';
-
-// Helper function to check if a value is a color
-const isColor = (value) => {
-  if (typeof value !== 'string') return false;
-  const lowerCaseValue = value.toLowerCase();
-  const colorKeywords = ['transparent', 'currentcolor'];
-  if (colorKeywords.includes(lowerCaseValue)) return true;
-
-  // Enhanced hex color detection - supports 3, 4, 6, and 8 digit hex colors
-  if (lowerCaseValue.startsWith('#')) {
-    const hexPart = lowerCaseValue.slice(1);
-    return /^[0-9a-f]{3,8}$/i.test(hexPart);
-  }
-
-  if (lowerCaseValue.startsWith('rgb') || lowerCaseValue.startsWith('hsl')) return true;
-
-  // Basic color name check (can be expanded)
-  const namedColors = ['red', 'green', 'blue', 'white', 'black', 'yellow', 'purple', 'orange'];
-  return namedColors.includes(lowerCaseValue);
-};
 
 const splitBySpacePreservingCalc = (input) => {
   const result = [];
@@ -52,12 +32,10 @@ const parseColorStop = (stop) => {
 
   if (!colorPart) return null;
 
-  const hex = toHex(colorPart);
-  if (!hex) return null;
-
+  // Preserve original color value (color names, CSS variables, rgb, etc.)
   const colorObj = {
     id: generateId(),
-    color: { hex }
+    color: { raw: colorPart }
   };
 
   const colorIndex = parts.indexOf(colorPart);
@@ -269,10 +247,10 @@ export const backgroundMappers = {
     });
   },
   'background-color': (val, settings) => {
-    const hex = toHex(val);
-    if (hex) {
+    // Preserve original color value (color names, CSS variables, rgb, hsl, hex)
+    if (val) {
       settings._background = settings._background || {};
-      settings._background.color = { hex };
+      settings._background.color = { raw: val };
     }
   },
   'background-image': (val, settings) => {
