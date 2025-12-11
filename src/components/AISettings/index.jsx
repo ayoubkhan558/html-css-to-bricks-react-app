@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaKey, FaSave, FaTrash, FaCheckCircle, FaSpinner } from 'react-icons/fa';
-import { testApiKey } from '@generator/utils/openaiService';
+import { aiService } from '@services/ai';
 import './AISettings.scss';
 
 const AISettings = ({ isOpen, onClose }) => {
@@ -51,23 +51,34 @@ const AISettings = ({ isOpen, onClose }) => {
       setIsTesting(true);
       setTestResult(null);
 
-      const isValid = await testApiKey(currentApiKey.trim(), provider);
-      setIsTesting(false);
+      try {
+        // Configure and test the AI service
+        aiService.configure(provider, currentApiKey.trim(), model);
+        const isValid = aiService.isConfigured();
 
-      if (!isValid) {
+        if (!isValid) {
+          setTestResult('Invalid API key or network error. You can try "Save Without Testing" if you\'re sure your key is correct.');
+          setIsTesting(false);
+          return;
+        }
+
+        // Try a test generation to verify it works
+        await aiService.generate('test', { systemPrompt: 'respond with ok' });
+
+        localStorage.setItem(`ai_api_key_${provider}`, currentApiKey.trim());
+        localStorage.setItem('ai_provider', provider);
+        localStorage.setItem('ai_model', model);
+        setIsSaved(true);
+        setTestResult('API key verified and saved successfully!');
+
+        setTimeout(() => {
+          onClose();
+        }, 1000);
+      } catch (error) {
         setTestResult('Invalid API key or network error. You can try "Save Without Testing" if you\'re sure your key is correct.');
-        return;
+      } finally {
+        setIsTesting(false);
       }
-
-      localStorage.setItem(`ai_api_key_${provider}`, currentApiKey.trim());
-      localStorage.setItem('ai_provider', provider);
-      localStorage.setItem('ai_model', model);
-      setIsSaved(true);
-      setTestResult('API key verified and saved successfully!');
-
-      setTimeout(() => {
-        onClose();
-      }, 1000);
     }
   };
 

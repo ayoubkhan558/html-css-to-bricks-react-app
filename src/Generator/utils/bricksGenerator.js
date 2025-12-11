@@ -1,32 +1,25 @@
-import { converterService } from '../../services/converter';
+/**
+ * Bricks Generator
+ * createBricksStructure() - Main entry point for HTML-to-Bricks conversion
+ */
+
+import { converterService } from '@services/converter';
 
 /**
- * Creates a Bricks-compatible structure from HTML, CSS, and JavaScript
- * Now using the new ConverterService architecture
- * @param {string} html - The HTML content
- * @param {string} css - The CSS content
- * @param {string} js - The JavaScript content
+ * Creates a Bricks structure from HTML, CSS, and JavaScript
+ * @param {string} html - HTML content
+ * @param {string} css - CSS content
+ * @param {string} js - JavaScript content
  * @param {Object} options - Conversion options
- * @returns {Object} Bricks structure object
+ * @returns {Object} Bricks structure (content, globalClasses, etc.)
  */
-const createBricksStructure = (html, css = '', js = '', options = {}) => {
-  try {
-    // Use the new ConverterService - it handles everything!
-    const result = converterService.convert(html, css, js, {
-      ...options,
-      // Flatten context into options (new API doesn't need context wrapper)
-      inlineStyleHandling: options.context?.inlineStyleHandling || options.inlineStyleHandling || 'class',
-      showNodeClass: options.context?.showNodeClass || options.showNodeClass || false,
-      mergeNonClassSelectors: options.context?.mergeNonClassSelectors || options.mergeNonClassSelectors || false,
-      includeJs: options.includeJs !== false
-    });
+export function createBricksStructure(html, css = '', js = '', options = {}) {
+  // Flatten options if they have a 'context' wrapper (for backward compatibility)
+  const flatOptions = options.context ? {
+    ...options.context,
+    ...options  // Merge top-level options too
+  } : options;
 
-    return result;
-  } catch (error) {
-    console.error('Error creating Bricks structure:', error);
-    throw error;
-  }
-};
-
-export { createBricksStructure };
-
+  // Use the new converter service
+  return converterService.convert(html, css, js, flatOptions);
+}

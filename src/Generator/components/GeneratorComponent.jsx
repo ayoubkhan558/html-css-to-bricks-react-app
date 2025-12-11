@@ -232,7 +232,7 @@ const GeneratorComponent = () => {
       const originalModel = localStorage.getItem('ai_model');
       localStorage.setItem('ai_model', selectedQuickModel);
 
-      const { callOpenAI } = await import('../utils/openaiService');
+      const { aiService } = await import('@services/ai');
 
       // Build context based on active tab and existing code
       const currentCode = activeTab === 'html' ? html : activeTab === 'css' ? css : js;
@@ -259,12 +259,13 @@ const GeneratorComponent = () => {
           \`\`\``;
       }
 
-      const context = {
-        systemPrompt,
-        userPrompt: quickPrompt.trim()
-      };
+      // Configure AI service
+      aiService.configure(currentProvider, currentApiKey, selectedQuickModel);
 
-      const response = await callOpenAI(context, currentApiKey);
+      // Generate code
+      const response = await aiService.generate(quickPrompt.trim(), {
+        systemPrompt
+      });
 
       // Restore original model
       if (originalModel) {

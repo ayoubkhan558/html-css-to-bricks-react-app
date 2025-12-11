@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaPaperPlane, FaSpinner, FaRobot, FaTimes, FaCog } from 'react-icons/fa';
-import { callOpenAI } from '@generator/utils/openaiService';
+import { aiService } from '@services/ai';
 import './AIPrompt.scss';
 
 const AIPrompt = ({ isOpen, onClose, onCodeGenerated, currentHtml, currentCss, currentJs, onOpenSettings }) => {
@@ -27,6 +27,9 @@ const AIPrompt = ({ isOpen, onClose, onCodeGenerated, currentHtml, currentCss, c
     if (!prompt.trim() || isLoading) return;
 
     const apiKey = localStorage.getItem('ai_api_key');
+    const provider = localStorage.getItem('ai_provider') || 'gemini';
+    const model = localStorage.getItem('ai_model');
+
     if (!apiKey) {
       setError('Please set your AI API key in settings first.');
       return;
@@ -42,10 +45,16 @@ const AIPrompt = ({ isOpen, onClose, onCodeGenerated, currentHtml, currentCss, c
     setConversation(newConversation);
 
     try {
+      // Configure AI service
+      aiService.configure(provider, apiKey, model);
+
       // Build context for AI
       const context = buildContext(userMessage, currentHtml, currentCss, currentJs);
 
-      const response = await callOpenAI(context, apiKey);
+      // Generate code using new service
+      const response = await aiService.generate(context.userPrompt, {
+        systemPrompt: context.systemPrompt
+      });
 
       // Add AI response to conversation
       setConversation([...newConversation, { role: 'assistant', content: response.message }]);
