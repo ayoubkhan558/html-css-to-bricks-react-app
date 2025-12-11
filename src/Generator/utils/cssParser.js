@@ -1,20 +1,20 @@
 // cssParser.js
 // CSS parsing utilities
-import { displayMappers } from './propertyMappers/display';
-import { gridMappers } from './propertyMappers/content-grid';
-import { flexboxMappers } from './propertyMappers/content-flexbox';
-import { spacingMappers } from './propertyMappers/layout-spacing';
-import { sizingMappers } from './propertyMappers/layout-sizing';
-import { positionMappers } from './propertyMappers/layout-position';
-import { layoutMiscMappers } from './propertyMappers/layout-misc';
-import { typographyMappers } from './propertyMappers/typography';
-import { backgroundMappers } from './propertyMappers/background';
-import { borderBoxShadowMappers } from './propertyMappers/boder-box-shadow';
-import { parseBoxShadow } from './propertyMappers/mapperUtils';
-import { filterMappers, effectsMappers, transitionsMappers } from './propertyMappers/filters-transitions';
-import { scrollSnapMappers } from './propertyMappers/layout-scroll-snap';
-import { transformsMappers } from './propertyMappers/transforms';
-import { logger } from '../../lib/utils/logger';
+import { displayMappers } from '@generator/cssPropertyMappers/display';
+import { gridMappers } from '@generator/cssPropertyMappers/content-grid';
+import { flexboxMappers } from '@generator/cssPropertyMappers/content-flexbox';
+import { spacingMappers } from '@generator/cssPropertyMappers/layout-spacing';
+import { sizingMappers } from '@generator/cssPropertyMappers/layout-sizing';
+import { positionMappers } from '@generator/cssPropertyMappers/layout-position';
+import { layoutMiscMappers } from '@generator/cssPropertyMappers/layout-misc';
+import { typographyMappers } from '@generator/cssPropertyMappers/typography';
+import { backgroundMappers } from '@generator/cssPropertyMappers/background';
+import { borderBoxShadowMappers } from '@generator/cssPropertyMappers/boder-box-shadow';
+import { parseBoxShadow } from '@generator/cssPropertyMappers/mapperUtils';
+import { filterMappers, effectsMappers, transitionsMappers } from '@generator/cssPropertyMappers/filters-transitions';
+import { scrollSnapMappers } from '@generator/cssPropertyMappers/layout-scroll-snap';
+import { transformsMappers } from '@generator/cssPropertyMappers/transforms';
+import { logger } from '@lib/logger';
 
 
 

@@ -3,10 +3,10 @@
  * Factory and facade for AI providers
  */
 
-import { AI_PROVIDERS } from '../../config/constants';
-import { GeminiProvider } from './providers/GeminiProvider';
-import { OpenAiProvider } from './providers/OpenAiProvider';
-import { OpenRouterProvider } from './providers/OpenRouterProvider';
+import { AI_PROVIDERS } from '@config/constants';
+import { GeminiProvider } from '@services/ai/providers/GeminiProvider';
+import { OpenAiProvider } from '@services/ai/providers/OpenAiProvider';
+import { OpenRouterProvider } from '@services/ai/providers/OpenRouterProvider';
 
 /**
  * Creates an AI provider instance

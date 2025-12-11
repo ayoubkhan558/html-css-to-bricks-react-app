@@ -3,8 +3,8 @@
  * Integration with Google's Gemini API
  */
 
-import { BaseProvider } from './BaseProvider';
-import { AI_MODELS } from '../../../config/constants';
+import { BaseProvider } from '@services/ai/providers/BaseProvider';
+import { AI_MODELS } from '@config/constants';
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 

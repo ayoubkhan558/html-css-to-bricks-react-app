@@ -1,23 +1,24 @@
-import { getUniqueId } from './utils';
-import { getBricksFieldType, processFormField, processFormElement } from "./processors/formProcessor"
-import { buildCssMap, parseCssDeclarations, matchCSSSelectors } from './cssParser';
-import { processAudioElement } from './processors/audioProcessor';
-import { processVideoElement } from './processors/videoProcessor';
-import { processTableElement } from './processors/tableProcessor';
-import { processImageElement } from './processors/imageProcessor';
-import { processSvgElement } from './processors/svgProcessor';
-import { processHeadingElement } from './processors/headingProcessor';
-import { processListElement } from './processors/listProcessor';
-import { processLinkElement } from './processors/linkProcessor';
-import { processButtonElement } from './processors/buttonProcessor';
-import { processMiscElement } from './processors/miscProcessor';
-import { processStructureLayoutElement } from './processors/structureLayoutProcessor';
-import { getElementLabel } from './processors/labelUtils';
-import { processTextElement } from './processors/textElementProcessor';
-import { processAttributes } from './processors/attributeProcessor';
-import { processAlertElement } from './processors/alertProcessor';
-import { processNavElement } from './processors/navProcessor';
-import { logger } from '../../lib/utils/logger';
+import { generateId } from '@lib/bricks';
+import { logger } from '@lib/logger';
+
+import { getElementLabel } from '@generator/elementUtils';
+import { buildCssMap, parseCssDeclarations, matchCSSSelectors } from '@generator/utils/cssParser';
+import { getBricksFieldType, processFormField, processFormElement } from "@generator/elementProcessors/formProcessor"
+import { processAudioElement } from '@generator/elementProcessors/audioProcessor';
+import { processVideoElement } from '@generator/elementProcessors/videoProcessor';
+import { processTableElement } from '@generator/elementProcessors/tableProcessor';
+import { processImageElement } from '@generator/elementProcessors/imageProcessor';
+import { processSvgElement } from '@generator/elementProcessors/svgProcessor';
+import { processHeadingElement } from '@generator/elementProcessors/headingProcessor';
+import { processListElement } from '@generator/elementProcessors/listProcessor';
+import { processLinkElement } from '@generator/elementProcessors/linkProcessor';
+import { processButtonElement } from '@generator/elementProcessors/buttonProcessor';
+import { processMiscElement } from '@generator/elementProcessors/miscProcessor';
+import { processStructureLayoutElement } from '@generator/elementProcessors/structureLayoutProcessor';
+import { processTextElement } from '@generator/elementProcessors/textElementProcessor';
+import { processAttributes } from '@generator/elementProcessors/attributeProcessor';
+import { processAlertElement } from '@generator/elementProcessors/alertProcessor';
+import { processNavElement } from '@generator/elementProcessors/navProcessor';
 
 
 // Alert/message class patterns to check
@@ -165,7 +166,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
     if (node.nodeType === Node.TEXT_NODE) {
       const textElement = {
-        id: getUniqueId(),
+        id: generateId(),
         name: 'text-basic',
         parent: parentId,
         children: [],
@@ -199,7 +200,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
   // We'll handle empty divs by setting appropriate defaults
 
   let name = 'div';
-  const elementId = getUniqueId();
+  const elementId = generateId();
   const element = {
     id: elementId,
     name,
@@ -215,7 +216,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
   if (isStandaloneInline) {
     const textElement = {
-      id: getUniqueId(),
+      id: generateId(),
       name: 'text-basic',
       parent: parentId,
       children: [],
@@ -464,7 +465,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     classNames.forEach((cls, index) => {
       let targetClass = globalClasses.find(c => c.name === cls);
       if (!targetClass) {
-        targetClass = { id: getUniqueId(), name: cls, settings: {} };
+        targetClass = { id: generateId(), name: cls, settings: {} };
         globalClasses.push(targetClass);
       }
 
@@ -679,7 +680,7 @@ const convertHtmlToBricks = (html, css, options) => {
         firstClass.settings._cssCustom = `${rootStyles}\n${firstClass.settings._cssCustom}`.trim();
       } else {
         globalClasses.push({
-          id: getUniqueId(),
+          id: generateId(),
           name: 'custom-css',
           settings: {
             _cssCustom: rootStyles,
@@ -714,7 +715,7 @@ const convertHtmlToBricks = (html, css, options) => {
       } else {
         // Create a new global class for keyframes if none exists
         globalClasses.push({
-          id: getUniqueId(),
+          id: generateId(),
           name: 'animations',
           settings: {
             _cssCustom: keyframesCSS,

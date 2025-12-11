@@ -4,8 +4,8 @@
  * Now with advanced selector support!
  */
 
-import { buildCssMap, matchCSSSelectors } from '../../Generator/utils/cssParser';
-import { AdvancedSelectorMatcher } from '../../lib/css/AdvancedSelectorMatcher';
+import { buildCssMap, matchCSSSelectors, parseCssDeclarations } from '@generator/utils/cssParser';
+import { AdvancedSelectorMatcher } from '@lib/cssUtils';
 
 export class CssProcessor {
     constructor() {
@@ -136,6 +136,17 @@ export class CssProcessor {
      */
     getKeyframes() {
         return this.keyframes;
+    }
+
+    /**
+     * Parses CSS declarations into Bricks settings
+     * @param {Object|string} properties - CSS properties (object or string)
+     * @param {string} className - Class name for custom CSS
+     * @param {Object} variables - CSS variables map
+     * @returns {Object} Parsed Bricks settings
+     */
+    parseDeclarations(properties, className = '', variables = {}) {
+        return parseCssDeclarations(properties, className, variables || this.variables);
     }
 
     /**
