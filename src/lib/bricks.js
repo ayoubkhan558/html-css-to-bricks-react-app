@@ -4,6 +4,7 @@
  */
 
 import { getTagLabel } from '@config/elementMappings';
+import { sanitizeClassName } from './helpers';
 
 // Counter for unique IDs
 let idCounter = 0;
@@ -184,15 +185,5 @@ export function createCodeElement(code, { parentId = '0' } = {}) {
     });
 }
 
-/**
- * Sanitizes a string to be used as a CSS class name
- * @param {string} str - The string to sanitize
- * @returns {string} Sanitized class name
- */
-export function sanitizeClassName(str) {
-    return str
-        .replace(/[^\w-]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '')
-        .toLowerCase();
-}
+// Re-export sanitizeClassName for convenience
+export { sanitizeClassName };
