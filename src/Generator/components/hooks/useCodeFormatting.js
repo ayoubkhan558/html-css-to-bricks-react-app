@@ -55,7 +55,11 @@ export const useCodeFormatting = () => {
             const formatted = await prettier.format(code, options);
             return formatted;
         } catch (error) {
-            logger.error(`Error formatting ${parser}:`, error);
+            logger.error(`Error formatting code`, {
+                file: 'useCodeFormatting.js',
+                step: 'formatCode',
+                feature: parser.toUpperCase()
+            }, error);
             return code;
         }
     }, []);
@@ -73,7 +77,11 @@ export const useCodeFormatting = () => {
                 setJs(formatted);
             }
         } catch (error) {
-            logger.error('Error formatting code:', error);
+            logger.error('Failed to format code', {
+                file: 'useCodeFormatting.js',
+                step: 'formatCurrent',
+                feature: activeTab?.toUpperCase() || 'Unknown'
+            }, error);
         }
     }, [formatCode]);
 

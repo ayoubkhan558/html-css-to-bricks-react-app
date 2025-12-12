@@ -141,7 +141,11 @@ export const useAIGeneration = (activeTab, html, css, js, setHtml, setCss, setJs
                 localStorage.setItem('ai_model', originalModel);
             }
         } catch (error) {
-            logger.error('AI generation error:', error);
+            logger.error('AI code generation failed', {
+                file: 'useAIGeneration.js',
+                step: 'handleQuickGenerate',
+                feature: `AI - ${activeTab?.toUpperCase() || 'Unknown'}`
+            }, error);
             setQuickError(error.message || 'Failed to generate code. Please try again.');
         } finally {
             setIsQuickGenerating(false);

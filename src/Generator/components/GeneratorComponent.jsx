@@ -108,7 +108,11 @@ const GeneratorComponent = () => {
         setOutput('');
       }
     } catch (err) {
-      logger.error('Failed to generate structure:', err);
+      logger.error('Failed to generate Bricks structure', {
+        file: 'GeneratorComponent.jsx',
+        step: 'useEffect - createBricksStructure',
+        feature: 'HTML to Bricks Conversion'
+      }, err);
       // Optionally, you can set an error state here to show in the UI
     }
   }, [html, css, js, includeJs, inlineStyleHandling, isMinified, showNodeClass, mergeNonClassSelectors]);

@@ -251,7 +251,11 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
         try {
           mapper(resolvedValue, settings);
         } catch (e) {
-          logger.error(`Error processing ${prop}: ${resolvedValue}`, e);
+          logger.error(`CSS property processing failed`, {
+            file: 'cssParser.js',
+            step: 'processStyles - mapper execution',
+            feature: `CSS: ${prop} = "${resolvedValue}"`
+          }, e);
           if (!customRules[prop]) customRules[prop] = {};
           customRules[prop][resolvedValue] = true;
         }
@@ -286,7 +290,11 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
         try {
           mapper(resolvedValue, settings);
         } catch (e) {
-          logger.error(`Error processing ${prop}: ${resolvedValue}`, e);
+          logger.error(`CSS property processing failed`, {
+            file: 'cssParser.js',
+            step: 'processInlineStyles - mapper execution',
+            feature: `CSS: ${prop} = "${resolvedValue}"`
+          }, e);
           if (!customRules[prop]) customRules[prop] = {};
           customRules[prop][resolvedValue] = true;
         }

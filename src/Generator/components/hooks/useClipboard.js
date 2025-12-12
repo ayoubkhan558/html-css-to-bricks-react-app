@@ -17,7 +17,11 @@ export const useClipboard = () => {
             setTimeout(() => setIsCopied(false), 2000);
             return true;
         } catch (err) {
-            logger.error('Failed to copy to clipboard:', err);
+            logger.error('Failed to copy text', {
+                file: 'useClipboard.js',
+                step: 'copyToClipboard',
+                feature: 'Clipboard API'
+            }, err);
             return false;
         }
     }, []);
@@ -29,7 +33,11 @@ export const useClipboard = () => {
             setIsCopied(true);
             setTimeout(() => setIsCopied(false), 3000);
         } catch (err) {
-            logger.error('Failed to copy JSON:', err);
+            logger.error('Failed to copy JSON to clipboard', {
+                file: 'useClipboard.js',
+                step: 'handleCopyJson',
+                feature: 'JSON Export'
+            }, err);
         }
     }, []);
 
@@ -46,7 +54,11 @@ export const useClipboard = () => {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         } catch (err) {
-            logger.error('Failed to export JSON:', err);
+            logger.error('Failed to export JSON file', {
+                file: 'useClipboard.js',
+                step: 'handleExportJson',
+                feature: 'File Download'
+            }, err);
         }
     }, []);
 
