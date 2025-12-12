@@ -503,7 +503,18 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
               });
             } else {
               // Add as custom CSS if it doesn't match
-              const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
+              // Handle properties as either string or object
+              let propsFormatted;
+              if (typeof properties === 'string') {
+                propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
+              } else if (typeof properties === 'object') {
+                // Convert object to CSS string format
+                propsFormatted = Object.entries(properties)
+                  .map(([prop, val]) => `${prop}: ${val}`)
+                  .join(';\n  ');
+              } else {
+                propsFormatted = '';
+              }
               // Escape dots in selectors to prevent malformed CSS
               const escapedSelector = selector.replace(/\./g, '\\.');
               customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;

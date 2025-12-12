@@ -9,6 +9,7 @@ import { VscCopy } from "react-icons/vsc";
 import AboutModal from './../../components/AboutModal/index';
 import AISettings from './../../components/AISettings/index';
 import Tooltip from '../../components/Tooltip';
+import logger from '@lib/logger';
 
 import { useGenerator } from '../../contexts/GeneratorContext';
 import { createBricksStructure } from '../utils/bricksGenerator';
@@ -17,9 +18,10 @@ import CodeEditor from '@generator/CodeEditor';
 import StructureView from './StructureView';
 import './GeneratorComponent.scss';
 import aiModels from '@config/aiModels.json';
+import { TemplateSelector } from '@components/AITemplates';
 
 // Custom hooks
-import { useAIGeneration, useCodeFormatting, useClipboard } from './hooks';
+import { useAIGeneration, useCodeFormatting, useClipboard, useAITemplates } from './hooks';
 
 const GeneratorComponent = () => {
   const {
@@ -54,9 +56,12 @@ const GeneratorComponent = () => {
   const [rightPanelView, setRightPanelView] = useState('layers'); // 'layers' or 'json'
 
   // Custom hooks
-  const aiGeneration = useAIGeneration(activeTab, html, css, js, setHtml, setCss, setJs);
   const formatting = useCodeFormatting();
   const clipboard = useClipboard();
+  const aiTemplates = useAITemplates();
+  const aiGeneration = useAIGeneration(activeTab, html, css, js, setHtml, setCss, setJs, aiTemplates);
+
+
 
   // Generate Bricks structure from current inputs
   const previewHtml = useMemo(() => {
@@ -284,7 +289,7 @@ const GeneratorComponent = () => {
                     <div className="code-editor__actions">
                       <button
                         className="code-editor__action"
-                        onClick={() => setIsAISettingsOpen(true)}
+                        onClick={() => aiGeneration.setIsAISettingsOpen(true)}
                         title="AI Settings"
                       >
                         <MdOutlineSettings size={16} /> AI
@@ -398,13 +403,34 @@ const GeneratorComponent = () => {
                       />
                       <button
                         onClick={aiGeneration.handleQuickGenerate}
-                        disabled={!aiGeneration.quickPrompt.trim() || aiGeneration.isQuickGenerating || !aiGeneration.hasApiKey}
+                        disabled={
+                          (!aiGeneration.quickPrompt.trim() && aiTemplates.getEnabledTemplates().length === 0) ||
+                          aiGeneration.isQuickGenerating ||
+                          !aiGeneration.hasApiKey
+                        }
                         className="quick-ai-send"
                         title="Generate/Modify Code"
                       >
                         {aiGeneration.isQuickGenerating ? <FaSpinner className="spinning" /> : <FaPaperPlane />}
                       </button>
                     </div>
+
+                    {/* AI Prompt Templates */}
+                    {aiTemplates.templates.length > 0 && (
+                      <div className="quick-ai-templates">
+                        <div className="quick-ai-templates__header">
+                          <span className="quick-ai-templates__title">Prompt Templates:</span>
+                          <span className="quick-ai-templates__count">
+                            {aiTemplates.getEnabledTemplates().length} selected
+                          </span>
+                        </div>
+                        <TemplateSelector
+                          templates={aiTemplates.templates}
+                          onToggle={aiTemplates.toggleTemplate}
+                          compact={true}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </Panel>

@@ -398,8 +398,9 @@ export function matchCSSSelectors(element, cssMap) {
       }
 
       // Check if selector contains pseudo-classes (:hover, :focus, etc.)
-      const pseudoClassMatch = selector.match(/:(\w+)$/);
+      const pseudoClassMatch = selector.match(/:(hover|focus|active|visited|disabled)$/);
       if (pseudoClassMatch) {
+        const pseudoClass = pseudoClassMatch[1];
         // Extract base selector (without pseudo-class)
         const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
 
@@ -407,8 +408,45 @@ export function matchCSSSelectors(element, cssMap) {
         try {
           matches = element.matches(baseSelector);
           if (matches) {
-            // Store this selector for custom CSS
-            unmatchedSelectors.push({ selector, properties });
+            // Process hover/focus/active properties using Bricks pseudo-state format
+            // Convert properties to Bricks format with pseudo-class suffix
+            let hasUnmappedProperties = false;
+            const unmappedProps = {};
+
+            Object.entries(properties).forEach(([prop, val]) => {
+              // Map CSS properties to Bricks properties with pseudo-class suffix
+              if (prop === 'background' || prop === 'background-color') {
+                const propName = `_background:${pseudoClass}`;
+                if (!combinedProperties[propName]) {
+                  combinedProperties[propName] = { color: { raw: val } };
+                } else {
+                  combinedProperties[propName].color = { raw: val };
+                }
+              } else if (prop === 'color') {
+                const propName = `_typography:${pseudoClass}`;
+                if (!combinedProperties[propName]) {
+                  combinedProperties[propName] = { color: { raw: val } };
+                } else {
+                  combinedProperties[propName].color = { raw: val };
+                }
+              } else if (prop === 'border-color') {
+                const propName = `_border:${pseudoClass}`;
+                if (!combinedProperties[propName]) {
+                  combinedProperties[propName] = { color: { raw: val } };
+                } else {
+                  combinedProperties[propName].color = { raw: val };
+                }
+              } else {
+                // Collect unmapped properties
+                hasUnmappedProperties = true;
+                unmappedProps[prop] = val;
+              }
+            });
+
+            // If there are unmapped properties, add them to custom CSS as a group
+            if (hasUnmappedProperties) {
+              unmatchedSelectors.push({ selector, properties: unmappedProps });
+            }
           }
         } catch (e) {
           // Fallback for complex base selectors
@@ -419,7 +457,8 @@ export function matchCSSSelectors(element, cssMap) {
               unmatchedSelectors.push({ selector, properties });
             }
           } catch (err) {
-            // Skip this selector
+            // If all else fails, add to custom CSS
+            unmatchedSelectors.push({ selector, properties });
           }
         }
         return; // Skip further processing for pseudo-classes

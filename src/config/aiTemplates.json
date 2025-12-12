@@ -1,0 +1,62 @@
+[
+    {
+        "id": "bem-naming",
+        "name": "BEM Naming",
+        "type": "default",
+        "category": "naming",
+        "enabled": false,
+        "editable": false,
+        "description": "Use Block Element Modifier(BEM) methodology for CSS naming",
+        "prompt": "🔴 MANDATORY BEM NAMING - YOU MUST FOLLOW THIS:\n\n1. EVERY HTML element MUST have a BEM class (no exceptions)\n2. Use ONLY class selectors in CSS (never tag selectors like 'table', 'h2', 'button')\n3. Format: .block, .block__element, .block--modifier\n\nBEM STRUCTURE:\n- Block: .product-card (standalone component)\n- Element: .product-card__title (child of block)\n- Modifier: .product-card--featured (variation of block)\n\nEXAMPLE - Before:\n<section class=\"table-section\">\n  <h2>Title</h2>\n  <table>\n    <tr><th>ID</th></tr>\n  </table>\n</section>\n\nEXAMPLE - After (BEM):\n<section class=\"data-table\">\n  <h2 class=\"data-table__title\">Title</h2>\n  <table class=\"data-table__table\">\n    <tr class=\"data-table__row\"><th class=\"data-table__header\">ID</th></tr>\n  </table>\n</section>\n\nCSS - Before:\ntable { border: 1px solid; }\nth { font-weight: bold; }\n\nCSS - After (BEM):\n.data-table__table { border: 1px solid; }\n.data-table__header { font-weight: bold; }\n\n⚠️ CRITICAL: Update BOTH HTML classes AND CSS selectors!"
+    },
+    {
+        "id": "oocss",
+        "name": "OOCSS Naming",
+        "type": "default",
+        "category": "naming",
+        "enabled": false,
+        "editable": false,
+        "description": "Object-Oriented CSS principles",
+        "prompt": "🔴 MANDATORY OOCSS PRINCIPLES:\n\n1. Separate STRUCTURE from SKIN:\n   - Structure classes: .media, .layout, .grid\n   - Skin classes: .theme-dark, .bordered, .rounded\n\n2. Separate CONTAINER from CONTENT:\n   - Components look the same anywhere\n   - Don't use location-based selectors\n\n3. Create REUSABLE objects:\n   - .media { display: flex; }\n   - .media__img { flex-shrink: 0; }\n   - .media__body { flex: 1; }\n\nEXAMPLE:\n<div class=\"media\">\n  <img class=\"media__img\" />\n  <div class=\"media__body\">Content</div>\n</div>\n\n⚠️ Update BOTH HTML and CSS!"
+    },
+    {
+        "id": "semantic-names",
+        "name": "Semantic Names",
+        "type": "default",
+        "category": "naming",
+        "enabled": false,
+        "editable": false,
+        "description": "Use descriptive, semantic class names",
+        "prompt": "Use semantic, purpose-based names.\n- Avoid visual/presentational names\n- Prefer functional naming\n- Make names self-explanatory\n- Examples: .hero-section, .cta-button, .feature-list"
+    },
+    {
+        "id": "clean-selectors",
+        "name": "Clean Selectors",
+        "type": "default",
+        "category": "refactoring",
+        "enabled": false,
+        "editable": false,
+        "description": "Refactor random selectors to meaningful names, including ID, attribute, and tag selectors.",
+        "prompt": "IMPORTANT - Selector Refactoring:\n- Replace random/meaningless selectors with semantic names\n- BAD: .div1, .class-123, .x, .temp, .style1, #id-456, [data-temp], div.classname\n- GOOD: .hero-section, .product-card, .navigation-menu, .call-to-action, #header, [data-user-id], button.submit\n\nFor specific selector types:\n1. **ID Selectors**: Make IDs meaningful and specific to the element's purpose. Use camelCase or kebab-case (e.g., #main-header, #submit-button, #user-profile).\n2. **Attribute Selectors**: Use attribute selectors for specific characteristics. Ensure they are related to content or behavior. For example, [data-role='submit'], [type='button'], [href='/contact']\n3. **Tag Selectors**: When using tag selectors, aim for general element types like button, header, or section when they are central to the structure. Avoid overly generic tags like div, span, or img unless necessary.\n- Use kebab-case for multi-word names\n- Make selectors descriptive of the element's purpose or content\n- Group related elements with common prefixes (e.g., .card-title, .card-body, .card-footer)"
+    },
+    {
+        "id": "accessibility",
+        "name": "Accessibility",
+        "type": "default",
+        "category": "quality",
+        "enabled": false,
+        "editable": false,
+        "description": "Add ARIA labels and semantic HTML",
+        "prompt": "IMPORTANT - Accessibility Requirements:\n- Use semantic HTML5 elements (header, nav, main, article, section, footer)\n- Add ARIA labels where needed (aria-label, aria-labelledby, aria-describedby)\n- Include alt text for all images\n- Ensure proper heading hierarchy (h1 → h2 → h3)\n- Add role attributes when appropriate\n- Make interactive elements keyboard accessible\n- Use sufficient color contrast"
+    },
+    {
+        "id": "css-variables",
+        "name": "CSS Variables",
+        "type": "default",
+        "category": "quality",
+        "enabled": false,
+        "editable": false,
+        "description": "Use CSS custom properties",
+        "prompt": "🔴 MANDATORY CSS VARIABLES:\n\n1. Define variables in :root:\n:root {\n  --color-primary: #3B82F6;\n  --color-secondary: #8B5CF6;\n  --spacing-sm: 0.5rem;\n  --spacing-md: 1rem;\n  --font-size-lg: 1.5rem;\n}\n\n2. Use var() everywhere:\nBEFORE:\n.button { background: #3B82F6; padding: 1rem; }\n\nAFTER:\n.button { background: var(--color-primary); padding: var(--spacing-md); }\n\n3. Group with prefixes:\n- Colors: --color-primary, --color-text\n- Spacing: --spacing-xs, --spacing-lg\n- Typography: --font-size-sm, --font-weight-bold\n\n⚠️ Replace ALL hardcoded values with CSS variables!"
+    }
+]
