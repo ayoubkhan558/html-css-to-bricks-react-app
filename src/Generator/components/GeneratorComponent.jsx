@@ -15,13 +15,11 @@ import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
 import CodeEditor from '@generator/CodeEditor';
 import StructureView from './StructureView';
-import prettier from 'prettier/standalone';
-import * as parserHtml from 'prettier/parser-html';
-import * as parserCss from 'prettier/parser-postcss';
-import * as parserBabel from 'prettier/parser-babel';
 import './GeneratorComponent.scss';
 import aiModels from '@config/aiModels.json';
-import { logger } from '@lib/logger';
+
+// Custom hooks
+import { useAIGeneration, useCodeFormatting, useClipboard } from './hooks';
 
 const GeneratorComponent = () => {
   const {
@@ -47,280 +45,20 @@ const GeneratorComponent = () => {
     includeJs,
     setIncludeJs,
     showJsonPreview,
-    setShowJsonPreview,
-    isCopied,
-    setIsCopied
+    setShowJsonPreview
   } = useGenerator();
+
   const [activeTagIndex, setActiveTagIndex] = useState(0);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isAISettingsOpen, setIsAISettingsOpen] = useState(false);
-  const [quickPrompt, setQuickPrompt] = useState('');
-  const [isQuickGenerating, setIsQuickGenerating] = useState(false);
-  const [quickError, setQuickError] = useState(null);
-  const [hasApiKey, setHasApiKey] = useState(false);
-  const [apiKeys, setApiKeys] = useState({
-    gemini: '',
-    openrouter: '',
-    openai: ''
-  });
-  const [currentProvider, setCurrentProvider] = useState('gemini');
-  const [selectedQuickModel, setSelectedQuickModel] = useState('');
+  const [rightPanelView, setRightPanelView] = useState('layers'); // 'layers' or 'json'
 
-  // Check for API key on mount and when settings close
-  useEffect(() => {
-    const checkApiKeys = () => {
-      const keys = {
-        gemini: localStorage.getItem('ai_api_key_gemini') || '',
-        openrouter: localStorage.getItem('ai_api_key_openrouter') || '',
-        openai: localStorage.getItem('ai_api_key_openai') || ''
-      };
+  // Custom hooks
+  const aiGeneration = useAIGeneration(activeTab, html, css, js, setHtml, setCss, setJs);
+  const formatting = useCodeFormatting();
+  const clipboard = useClipboard();
 
-      setApiKeys(keys);
-
-      const provider = localStorage.getItem('ai_provider') || 'gemini';
-      const model = localStorage.getItem('ai_model');
-
-      setCurrentProvider(provider);
-      setHasApiKey(!!keys[provider]);
-
-      // Set selected model from localStorage or default
-      if (model) {
-        setSelectedQuickModel(model);
-      } else {
-        const defaultModel = provider === 'gemini' ? 'gemini-2.5-flash' :
-          provider === 'openrouter' ? 'google/gemini-2.0-flash-exp:free' :
-            'gpt-4o-mini';
-        setSelectedQuickModel(defaultModel);
-      }
-    };
-
-    checkApiKeys();
-
-    // Re-check when component mounts or settings modal state changes
-    if (!isAISettingsOpen) {
-      checkApiKeys();
-    }
-  }, [isAISettingsOpen]);
-
-  const formatCurrent = async () => {
-    const formatCode = async (code, parser) => {
-      if (!code || typeof code !== 'string') return code;
-
-      try {
-        let options;
-
-        if (parser === 'html') {
-          options = {
-            parser: 'html',
-            plugins: [parserHtml],
-            printWidth: 80,
-            tabWidth: 2,
-            useTabs: false,
-            htmlWhitespaceSensitivity: 'css',
-            endOfLine: 'auto',
-          };
-        } else if (parser === 'css') {
-          options = {
-            parser: 'css',
-            plugins: [parserCss],
-            printWidth: 80,
-            tabWidth: 2,
-            useTabs: false,
-            singleQuote: true,
-            endOfLine: 'auto',
-          };
-        } else if (parser === 'babel') {
-          options = {
-            parser: 'babel',
-            plugins: [parserBabel],
-            printWidth: 80,
-            tabWidth: 2,
-            useTabs: false,
-            singleQuote: true,
-            semi: true,
-            trailingComma: 'es5',
-            bracketSpacing: true,
-            arrowParens: 'avoid',
-            endOfLine: 'auto',
-          };
-        }
-
-        const formatted = await prettier.format(code, options);
-        return formatted;
-      } catch (error) {
-        logger.error(`Error formatting ${parser}:`, error);
-        return code;
-      }
-    };
-
-    try {
-      if (activeTab === 'html' && html) {
-        const formatted = await formatCode(html, 'html');
-        setHtml(formatted);
-      } else if (activeTab === 'css' && css) {
-        const formatted = await formatCode(css, 'css');
-        setCss(formatted);
-      } else if (activeTab === 'js' && js) {
-        const formatted = await formatCode(js, 'babel');
-        setJs(formatted);
-      }
-    } catch (error) {
-      logger.error('Error formatting code:', error);
-    }
-  };
-
-  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
-
-  const handleGenerateAndCopy = () => {
-    if (!output) return;
-    navigator.clipboard.writeText(output);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
-  };
-
-  const handleCopyJson = async () => {
-    if (!output) return;
-    try {
-      await navigator.clipboard.writeText(output);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 3000);
-    } catch (err) {
-      logger.error('Failed to copy JSON:', err);
-    }
-  };
-
-  const handleExportJson = () => {
-    if (!output) return;
-    try {
-      const blob = new Blob([output], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `bricks-structure-${Date.now()}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      logger.error('Failed to export JSON:', err);
-    }
-  };
-
-  const handleAICodeGenerated = (generatedCode) => {
-    if (generatedCode.html) setHtml(generatedCode.html);
-    if (generatedCode.css) setCss(generatedCode.css);
-    if (generatedCode.js) setJs(generatedCode.js);
-  };
-
-  const handleQuickGenerate = async () => {
-    if (!quickPrompt.trim() || isQuickGenerating) return;
-
-    // Get the API key for the current provider
-    const currentApiKey = apiKeys[currentProvider];
-    if (!currentApiKey) {
-      setQuickError('Please set your AI API key in settings first.');
-      setTimeout(() => setQuickError(null), 3000);
-      return;
-    }
-
-    setIsQuickGenerating(true);
-    setQuickError(null);
-
-    try {
-      // Temporarily save the selected model to localStorage for this request
-      const originalModel = localStorage.getItem('ai_model');
-      localStorage.setItem('ai_model', selectedQuickModel);
-
-      const { aiService } = await import('@services/ai');
-
-      // Build context based on active tab and existing code
-      const currentCode = activeTab === 'html' ? html : activeTab === 'css' ? css : js;
-      const hasExistingCode = currentCode.trim();
-
-      let systemPrompt = `
-        You are an expert web developer. Generate clean, modern code based on the user's request.
-
-          IMPORTANT:
-          - Dont provide html, body, head tag etc
-          - Return ONLY the ${activeTab.toUpperCase()} code, no explanations
-          - Use proper formatting and indentation
-          - For updates, return the COMPLETE updated code
-          - Do NOT wrap CSS in <style> tags - provide raw CSS only
-          - Do NOT wrap JavaScript in <script> tags - provide raw JavaScript only
-          - Keep HTML, CSS, and JavaScript separate`;
-
-      if (hasExistingCode) {
-        systemPrompt += `
-
-          CURRENT ${activeTab.toUpperCase()} CODE:
-          \`\`\`${activeTab}
-          ${currentCode}
-          \`\`\``;
-      }
-
-      // Configure AI service
-      aiService.configure(currentProvider, currentApiKey, selectedQuickModel);
-
-      // Generate code
-      const response = await aiService.generate(quickPrompt.trim(), {
-        systemPrompt
-      });
-
-      // Restore original model
-      if (originalModel) {
-        localStorage.setItem('ai_model', originalModel);
-      } else {
-        localStorage.removeItem('ai_model');
-      }
-
-      // Extract code based on active tab
-      let generatedCode = '';
-      if (activeTab === 'html' && response.html) {
-        generatedCode = response.html;
-      } else if (activeTab === 'css' && response.css) {
-        generatedCode = response.css;
-      } else if (activeTab === 'js' && response.js) {
-        generatedCode = response.js;
-      } else {
-        // Fallback: try to extract from message
-        const codeBlockRegex = new RegExp(`\`\`\`${activeTab}\n([\s\S]*?)\`\`\``, 'i');
-        const match = response.message.match(codeBlockRegex);
-        if (match) {
-          generatedCode = match[1].trim();
-        } else {
-          // Just use the message as-is
-          generatedCode = response.message;
-        }
-      }
-
-      // Update the appropriate code
-      if (generatedCode) {
-        if (activeTab === 'html') setHtml(generatedCode);
-        else if (activeTab === 'css') setCss(generatedCode);
-        else setJs(generatedCode);
-
-        // If HTML was generated and it had embedded CSS/JS, update those tabs too
-        if (activeTab === 'html') {
-          if (response.css) setCss(response.css);
-          if (response.js) setJs(response.js);
-        }
-
-        setQuickPrompt('');
-      } else {
-        setQuickError('No code generated. Try rephrasing your prompt.');
-        setTimeout(() => setQuickError(null), 3000);
-      }
-
-    } catch (err) {
-      setQuickError(err.message || 'Failed to generate code');
-      logger.error('Quick AI Error:', err);
-      setTimeout(() => setQuickError(null), 5000);
-    } finally {
-      setIsQuickGenerating(false);
-    }
-  };
-
+  // Generate Bricks structure from current inputs
   const previewHtml = useMemo(() => {
     try {
       const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -370,7 +108,11 @@ const GeneratorComponent = () => {
         setOutput('');
       }
     } catch (err) {
-      logger.error('Failed to generate structure:', err);
+      logger.error('Failed to generate Bricks structure', {
+        file: 'GeneratorComponent.jsx',
+        step: 'useEffect - createBricksStructure',
+        feature: 'HTML to Bricks Conversion'
+      }, err);
       // Optionally, you can set an error state here to show in the UI
     }
   }, [html, css, js, includeJs, inlineStyleHandling, isMinified, showNodeClass, mergeNonClassSelectors]);
@@ -435,6 +177,23 @@ const GeneratorComponent = () => {
                 </span>
               </div>
             </div>
+
+            <div className="form-control__option">
+              <label className="form-control__label">
+                Generate Class Labels
+              </label>
+              <label className="form-control__switch" style={{ marginRight: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={showNodeClass}
+                  onChange={() => setShowNodeClass((prev) => !prev)}
+                />
+                <span className="form-control__slider"></span>
+              </label>
+              {/* <span style={{ fontSize: 13, color: 'var(--color-text-2)', minWidth: 72 }}>
+                {showNodeClass ? 'Class Label' : 'Tag Label'}
+              </span> */}
+            </div>
           </div>
 
           <AboutModal
@@ -445,12 +204,12 @@ const GeneratorComponent = () => {
             <div className="split-dropdown">
               <button
                 className="button primary split-dropdown__main"
-                onClick={handleGenerateAndCopy}
+                onClick={() => clipboard.copyToClipboard(output)}
                 disabled={typeof html !== 'string' || !html.trim()}
               >
                 <VscCopy />
-                {/* {isCopied ? 'Copied to Clipboard!' : 'Copy Bricks Builder Structure'} */}
-                {isCopied ? 'Copied to Clipboard!' : 'Copy Bricks Structure'}
+                {/* {clipboard.isCopied ? 'Copied to Clipboard!' : 'Copy Bricks Builder Structure'} */}
+                {clipboard.isCopied ? 'Copied to Clipboard!' : 'Copy Bricks Structure'}
               </button>
               <button
                 className="button primary split-dropdown__toggle"
@@ -465,7 +224,7 @@ const GeneratorComponent = () => {
                   <button
                     className="split-dropdown__item"
                     onClick={() => {
-                      handleExportJson();
+                      clipboard.handleExportJson(output);
                       setIsDropdownOpen(false);
                     }}
                   >
@@ -475,7 +234,7 @@ const GeneratorComponent = () => {
                   <button
                     className="split-dropdown__item"
                     onClick={() => {
-                      handleGenerateAndCopy();
+                      clipboard.copyToClipboard(output);
                       setIsDropdownOpen(false);
                     }}
                   >
@@ -534,7 +293,7 @@ const GeneratorComponent = () => {
                         className="code-editor__action"
                         onClick={(e) => {
                           e.stopPropagation();
-                          formatCurrent();
+                          formatting.formatCurrent(activeTab, html, css, js, setHtml, setCss, setJs);
                         }}
                         data-tooltip-id="format-tooltip"
                         data-tooltip-content="Auto Format & indent code"
@@ -573,9 +332,9 @@ const GeneratorComponent = () => {
 
                   {/* Quick AI Prompt - Show always to allow key setup */}
                   <div className="quick-ai-prompt">
-                    {quickError && (
+                    {aiGeneration.quickError && (
                       <div className="quick-ai-error">
-                        ⚠️ {quickError}
+                        ⚠️ {aiGeneration.quickError}
                       </div>
                     )}
 
@@ -583,10 +342,10 @@ const GeneratorComponent = () => {
                       {/* Provider and Key Status */}
                       <div className="quick-ai-status">
                         <span className="provider-info">
-                          Provider: <strong>{currentProvider.charAt(0).toUpperCase() + currentProvider.slice(1)}</strong>
+                          Provider: <strong>{aiGeneration.currentProvider.charAt(0).toUpperCase() + aiGeneration.currentProvider.slice(1)}</strong>
                         </span>
-                        <span className={`key-status ${hasApiKey ? 'valid' : 'invalid'}`}>
-                          {hasApiKey ? '✓ Key Set' : '✗ No Key'}
+                        <span className={`key-status ${aiGeneration.hasApiKey ? 'valid' : 'invalid'}`}>
+                          {aiGeneration.hasApiKey ? '✓ Key Set' : '✗ No Key'}
                         </span>
                       </div>
 
@@ -595,12 +354,12 @@ const GeneratorComponent = () => {
                         <label htmlFor="quick-model">Model:</label>
                         <select
                           id="quick-model"
-                          value={selectedQuickModel}
-                          onChange={(e) => setSelectedQuickModel(e.target.value)}
+                          value={aiGeneration.selectedQuickModel}
+                          onChange={(e) => aiGeneration.setSelectedQuickModel(e.target.value)}
                           className="quick-model-select"
-                          disabled={isQuickGenerating}
+                          disabled={aiGeneration.isQuickGenerating}
                         >
-                          {aiModels[currentProvider]?.map((model) => (
+                          {aiModels[aiGeneration.currentProvider]?.map((model) => (
                             <option key={model.value} value={model.value}>
                               {model.label}
                               {/* - {model.description ? ` (${model.description})` : ''} */}
@@ -616,34 +375,34 @@ const GeneratorComponent = () => {
                     <div className="quick-ai-input">
                       <textarea
                         type="text"
-                        value={quickPrompt}
-                        onChange={(e) => setQuickPrompt(e.target.value)}
+                        value={aiGeneration.quickPrompt}
+                        onChange={(e) => aiGeneration.setQuickPrompt(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
-                            handleQuickGenerate();
+                            aiGeneration.handleQuickGenerate();
                           }
                         }}
-                        placeholder={`Ask AI to create/modify ${activeTab.toUpperCase()} code... (e.g., ${activeTab === "html"
+                        placeholder={aiGeneration.hasApiKey ? `Ask AI to create/modify ${activeTab.toUpperCase()} code... (e.g., ${activeTab === "html"
                           ? '"Create a new section with a button and image"'
                           : activeTab === "jsx"
                             ? '"Create a React component with state"'
                             : activeTab === "css"
                               ? '"Change the background color to blue"'
                               : '"Add a click event to toggle visibility"'
-                          })`}
+                          })` : "Set API key in settings first..."}
                         rows={3}
-                        disabled={isQuickGenerating}
+                        disabled={aiGeneration.isQuickGenerating}
                         className="quick-ai-input-field"
                         autoComplete="off"
                       />
                       <button
-                        onClick={handleQuickGenerate}
-                        disabled={!quickPrompt.trim() || isQuickGenerating}
+                        onClick={aiGeneration.handleQuickGenerate}
+                        disabled={!aiGeneration.quickPrompt.trim() || aiGeneration.isQuickGenerating || !aiGeneration.hasApiKey}
                         className="quick-ai-send"
                         title="Generate/Modify Code"
                       >
-                        {isQuickGenerating ? <FaSpinner className="spinning" /> : <FaPaperPlane />}
+                        {aiGeneration.isQuickGenerating ? <FaSpinner className="spinning" /> : <FaPaperPlane />}
                       </button>
                     </div>
                   </div>
@@ -682,47 +441,72 @@ const GeneratorComponent = () => {
 
           <PanelResizeHandle className="resize-handle resize-handle--vertical" />
 
-          {/* Right Panel - Structure */}
+          {/* Right Panel - Structure/JSON */}
           <Panel defaultSize={20} minSize={15} maxSize={25} className="panel-right">
             <div className="structure-panel">
               <div className="structure-panel__header">
-                <h3>Layers</h3>
-                <div className="form-control__option">
-                  <label className="form-control__label">
-                    Labels
-                  </label>
-                  <label className="form-control__switch" style={{ marginRight: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={showNodeClass}
-                      onChange={() => setShowNodeClass((prev) => !prev)}
-                    />
-                    <span className="form-control__slider"></span>
-                  </label>
-                  <span style={{ fontSize: 13, color: 'var(--color-text-2)', minWidth: 72 }}>
-                    {showNodeClass ? 'Class Label' : 'Tag Label'}
-                  </span>
+                {/* Toggle between Layers and JSON */}
+                <div className="view-toggle">
+                  <button
+                    className={`view-toggle__btn ${rightPanelView === 'layers' ? 'active' : ''}`}
+                    onClick={() => setRightPanelView('layers')}
+                  >
+                    Layers
+                  </button>
+                  <button
+                    className={`view-toggle__btn ${rightPanelView === 'json' ? 'active' : ''}`}
+                    onClick={() => setRightPanelView('json')}
+                  >
+                    JSON
+                  </button>
                 </div>
               </div>
               <div className="structure-panel__content">
-                {output ? (
-                  <StructureView
-                    data={output ? JSON.parse(output).content : []}
-                    globalClasses={output ? JSON.parse(output).globalClasses : []}
-                    activeIndex={activeTagIndex}
-                    showNodeClass={showNodeClass}
-                  />
+                {rightPanelView === 'layers' ? (
+                  // Layers View
+                  output ? (
+                    <StructureView
+                      data={output ? JSON.parse(output).content : []}
+                      globalClasses={output ? JSON.parse(output).globalClasses : []}
+                      activeIndex={activeTagIndex}
+                      showNodeClass={showNodeClass}
+                    />
+                  ) : (
+                    <div className="structure-placeholder">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                      </svg>
+                      <p style={{ color: 'var(--color-text-2)', fontSize: 13, marginTop: 12 }}>No structure generated</p>
+                    </div>
+                  )
                 ) : (
-                  <div className="structure-placeholder">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"></path>
-                      <polyline points="14 2 14 8 20 8"></polyline>
-                      <line x1="16" y1="13" x2="8" y2="13"></line>
-                      <line x1="16" y1="17" x2="8" y2="17"></line>
-                      <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    <p>Generated structure will appear here</p>
-                  </div>
+                  // JSON View
+                  output ? (
+                    <div style={{ height: '100%', overflow: 'hidden' }}>
+                      <CodeEditor
+                        value={isMinified ? output : formatting.formatJson(output)}
+                        onChange={() => { }} // Read-only
+                        language="json"
+                        height="100%"
+                        readOnly={true}
+                        lineNumbers="off"
+                        minimap={false}
+                      />
+                    </div>
+                  ) : (
+                    <div className="structure-placeholder">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <circle cx="12" cy="15" r="3"></circle>
+                      </svg>
+                      <p style={{ color: 'var(--color-text-2)', fontSize: 13, marginTop: 12 }}>No JSON output</p>
+                    </div>
+                  )
                 )}
               </div>
             </div>
@@ -732,8 +516,8 @@ const GeneratorComponent = () => {
 
       {/* AI Components */}
       <AISettings
-        isOpen={isAISettingsOpen}
-        onClose={() => setIsAISettingsOpen(false)}
+        isOpen={aiGeneration.isAISettingsOpen}
+        onClose={() => aiGeneration.setIsAISettingsOpen(false)}
       />
     </div>
   );

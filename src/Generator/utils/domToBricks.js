@@ -726,7 +726,11 @@ const convertHtmlToBricks = (html, css, options) => {
       globalElements: []
     };
   } catch (error) {
-    logger.error('Error converting HTML to Bricks:', error);
+    logger.error('HTML to Bricks conversion failed', {
+      file: 'domToBricks.js',
+      step: 'convertHTMLToBricks',
+      feature: 'DOM Parsing & Structure Generation'
+    }, error);
     throw error;
   }
 };

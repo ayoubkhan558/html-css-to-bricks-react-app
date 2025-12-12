@@ -1,4 +1,4 @@
-import { isColor } from '@lib/cssUtils';
+import { isColor, createColorValue } from '@lib/cssUtils';
 import { logger } from '@lib/logger';
 import { generateId } from '@lib/bricks';
 
@@ -35,7 +35,7 @@ const parseColorStop = (stop) => {
   // Preserve original color value (color names, CSS variables, rgb, etc.)
   const colorObj = {
     id: generateId(),
-    color: { raw: colorPart }
+    color: createColorValue(colorPart)
   };
 
   const colorIndex = parts.indexOf(colorPart);
@@ -250,7 +250,7 @@ export const backgroundMappers = {
     // Preserve original color value (color names, CSS variables, rgb, hsl, hex)
     if (val) {
       settings._background = settings._background || {};
-      settings._background.color = { raw: val };
+      settings._background.color = createColorValue(val);
     }
   },
   'background-image': (val, settings) => {
