@@ -9,6 +9,8 @@ const CodeEditor = ({
   className = '',
   height = '100%',
   readOnly = false,
+  lineNumbers = 'on',
+  minimap = false,
 }) => {
   const handleEditorChange = (newValue) => {
     onChange(newValue || '');
@@ -55,7 +57,7 @@ const CodeEditor = ({
           },
 
           // Basic settings
-          minimap: { enabled: false },
+          minimap: { enabled: minimap },
           fontSize: 14,
           scrollBeyondLastLine: false,
           automaticLayout: true,
@@ -63,6 +65,8 @@ const CodeEditor = ({
           wordWrap: 'on',
           formatOnPaste: true,
           formatOnType: true,
+          lineNumbers: lineNumbers,
+          readOnly: readOnly,
         }}
       />
     </div>

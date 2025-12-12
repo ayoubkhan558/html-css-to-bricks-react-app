@@ -66,6 +66,7 @@ const GeneratorComponent = () => {
   });
   const [currentProvider, setCurrentProvider] = useState('gemini');
   const [selectedQuickModel, setSelectedQuickModel] = useState('');
+  const [rightPanelView, setRightPanelView] = useState('layers'); // 'layers' or 'json'
 
   // Check for API key on mount and when settings close
   useEffect(() => {
@@ -204,6 +205,16 @@ const GeneratorComponent = () => {
       URL.revokeObjectURL(url);
     } catch (err) {
       logger.error('Failed to export JSON:', err);
+    }
+  };
+
+  // Format JSON with indentation
+  const formatJson = (jsonString) => {
+    try {
+      const parsed = JSON.parse(jsonString);
+      return JSON.stringify(parsed, null, 2);
+    } catch (error) {
+      return jsonString; // Return as-is if parsing fails
     }
   };
 
@@ -434,6 +445,23 @@ const GeneratorComponent = () => {
                   <span className="form-control__text">Merge Selectors</span>
                 </span>
               </div>
+            </div>
+
+            <div className="form-control__option">
+              <label className="form-control__label">
+                Generate Class Labels
+              </label>
+              <label className="form-control__switch" style={{ marginRight: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={showNodeClass}
+                  onChange={() => setShowNodeClass((prev) => !prev)}
+                />
+                <span className="form-control__slider"></span>
+              </label>
+              {/* <span style={{ fontSize: 13, color: 'var(--color-text-2)', minWidth: 72 }}>
+                {showNodeClass ? 'Class Label' : 'Tag Label'}
+              </span> */}
             </div>
           </div>
 
@@ -682,47 +710,72 @@ const GeneratorComponent = () => {
 
           <PanelResizeHandle className="resize-handle resize-handle--vertical" />
 
-          {/* Right Panel - Structure */}
+          {/* Right Panel - Structure/JSON */}
           <Panel defaultSize={20} minSize={15} maxSize={25} className="panel-right">
             <div className="structure-panel">
               <div className="structure-panel__header">
-                <h3>Layers</h3>
-                <div className="form-control__option">
-                  <label className="form-control__label">
-                    Labels
-                  </label>
-                  <label className="form-control__switch" style={{ marginRight: 8 }}>
-                    <input
-                      type="checkbox"
-                      checked={showNodeClass}
-                      onChange={() => setShowNodeClass((prev) => !prev)}
-                    />
-                    <span className="form-control__slider"></span>
-                  </label>
-                  <span style={{ fontSize: 13, color: 'var(--color-text-2)', minWidth: 72 }}>
-                    {showNodeClass ? 'Class Label' : 'Tag Label'}
-                  </span>
+                {/* Toggle between Layers and JSON */}
+                <div className="view-toggle">
+                  <button
+                    className={`view-toggle__btn ${rightPanelView === 'layers' ? 'active' : ''}`}
+                    onClick={() => setRightPanelView('layers')}
+                  >
+                    Layers
+                  </button>
+                  <button
+                    className={`view-toggle__btn ${rightPanelView === 'json' ? 'active' : ''}`}
+                    onClick={() => setRightPanelView('json')}
+                  >
+                    JSON
+                  </button>
                 </div>
               </div>
               <div className="structure-panel__content">
-                {output ? (
-                  <StructureView
-                    data={output ? JSON.parse(output).content : []}
-                    globalClasses={output ? JSON.parse(output).globalClasses : []}
-                    activeIndex={activeTagIndex}
-                    showNodeClass={showNodeClass}
-                  />
+                {rightPanelView === 'layers' ? (
+                  // Layers View
+                  output ? (
+                    <StructureView
+                      data={output ? JSON.parse(output).content : []}
+                      globalClasses={output ? JSON.parse(output).globalClasses : []}
+                      activeIndex={activeTagIndex}
+                      showNodeClass={showNodeClass}
+                    />
+                  ) : (
+                    <div className="structure-placeholder">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                      </svg>
+                      <p style={{ color: 'var(--color-text-2)', fontSize: 13, marginTop: 12 }}>No structure generated</p>
+                    </div>
+                  )
                 ) : (
-                  <div className="structure-placeholder">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"></path>
-                      <polyline points="14 2 14 8 20 8"></polyline>
-                      <line x1="16" y1="13" x2="8" y2="13"></line>
-                      <line x1="16" y1="17" x2="8" y2="17"></line>
-                      <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    <p>Generated structure will appear here</p>
-                  </div>
+                  // JSON View
+                  output ? (
+                    <div style={{ height: '100%', overflow: 'hidden' }}>
+                      <CodeEditor
+                        value={isMinified ? output : formatJson(output)}
+                        onChange={() => { }} // Read-only
+                        language="json"
+                        height="100%"
+                        readOnly={true}
+                        lineNumbers="off"
+                        minimap={false}
+                      />
+                    </div>
+                  ) : (
+                    <div className="structure-placeholder">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9e9e9e" strokeWidth="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <circle cx="12" cy="15" r="3"></circle>
+                      </svg>
+                      <p style={{ color: 'var(--color-text-2)', fontSize: 13, marginTop: 12 }}>No JSON output</p>
+                    </div>
+                  )
                 )}
               </div>
             </div>
