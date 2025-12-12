@@ -1,0 +1,79 @@
+// Button styles
+.button {
+    border: none;
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    padding: 5px 5px;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    &.buttn-sm {
+        font-size: 0.8rem;
+        border-radius: 4px;
+        padding: 3px 3px;
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    &:hover {
+        background-color: var(--color-surface-3);
+        border-color: var(--color-primary);
+    }
+
+    &:active {}
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: var(--color-surface-2);
+        transform: none;
+        box-shadow: none;
+    }
+
+    &.primary {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary) 100%);
+        color: var(--color-text-dark-2);
+        border-color: transparent;
+
+        &:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-dark) 100%);
+        }
+    }
+
+    &.secondary {
+        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary) 100%);
+        color: var(--color-text-dark-2);
+        border-color: transparent;
+
+        &:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--color-secondary-light) 0%, var(--color-secondary) 100%);
+        }
+    }
+
+    &.accent {
+        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary) 100%);
+        color: var(--color-text-dark-2);
+        border-color: transparent;
+
+        &:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--color-secondary-light) 0%, var(--color-secondary) 100%);
+        }
+    }
+}

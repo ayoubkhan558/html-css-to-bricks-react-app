@@ -1,0 +1,62 @@
+// CSS Variables
+:root {
+    /* Primary (Blue Neon) */
+    --color-primary: hsl(220, 85%, 62%);
+    --color-primary-dark: hsl(from var(--color-primary) h s calc(l - 12));
+    --color-primary-darker: hsl(from var(--color-primary) h s calc(l - 22));
+    --color-primary-light: hsl(from var(--color-primary) h s calc(l + 10));
+    --color-primary-lighter: hsl(from var(--color-primary) h s calc(l + 20));
+    --color-primary-alpha: hsl(from var(--color-primary) h s l / 0.18);
+    --color-primary-alpha-strong: hsl(from var(--color-primary) h s l / 0.38);
+
+    /* Secondary (Teal Accent) */
+    --color-secondary: hsl(238, 88%, 41%);
+    --color-secondary-dark: hsl(from var(--color-secondary) h s calc(l - 18));
+    --color-secondary-darker: hsl(from var(--color-secondary) h s calc(l - 28));
+    --color-secondary-light: hsl(from var(--color-secondary) h s calc(l + 16));
+    --color-secondary-lighter: hsl(from var(--color-secondary) h s calc(l + 26));
+    --color-secondary-alpha: hsl(from var(--color-secondary) h s l / 0.18);
+    --color-secondary-alpha-strong: hsl(from var(--color-secondary) h s l / 0.38);
+
+    /* Surface Shades (Glass / Soft Charcoal) */
+    --color-surface: hsl(230, 20%, 14%);
+    --color-surface-1: hsl(from var(--color-surface) h s calc(l - 3));
+    --color-surface-2: hsl(from var(--color-surface) h s calc(l + 8));
+    --color-surface-3: hsl(from var(--color-surface) h s calc(l + 15));
+    --color-surface-4: hsl(from var(--color-surface) h s calc(l + 22));
+
+    /* Background (Deep Space) */
+    --color-bg: hsl(230, 25%, 8%);
+    --color-bg-dark: hsl(from var(--color-bg) h s calc(l - 4));
+    --color-bg-light: hsl(from var(--color-bg) h s calc(l + 6));
+
+    /* Border (Soft Subtle Gray) */
+    --color-border: hsl(230, 12%, 22%);
+    --color-border-dark: hsl(from var(--color-border) h s calc(l - 8));
+    --color-border-light: hsl(from var(--color-border) h s calc(l + 8));
+
+    /* Border Alt (Darker Panel Separator) */
+    --color-border-alt: hsl(230, 10%, 16%);
+    --color-border-alt-dark: hsl(from var(--color-border-alt) h s calc(l - 8));
+    --color-border-alt-light: hsl(from var(--color-border-alt) h s calc(l + 8));
+
+    /* Text (High Contrast Off-White) */
+    --color-text: hsl(220, 25%, 92%);
+    --color-text-dark: hsl(from var(--color-text) h s calc(l - 12));
+    --color-text-2: hsl(from var(--color-text) h s calc(l + 8));
+
+    /* Text Alt (Muted Grey for Pills / Tags) */
+    --color-text-dark: hsl(0, 0%, 12%);
+    --color-text-dark-1: hsl(from var(--color-text-dark) h s calc(l - 10));
+    --color-text-dark-2: hsl(from var(--color-text-dark) h s calc(l + 10));
+
+    /* General */
+    --color-text-dark-2: hsl(0, 0%, 100%);
+    --color-shadow: hsl(0, 0%, 0%, 0.55);
+    --box-shadow: 0 4px 12px hsl(0, 0%, 0%, 0.55);
+
+    --header-height: 52px;
+    --border-radius: 8px;
+    --border-radius-alt: 0px;
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
