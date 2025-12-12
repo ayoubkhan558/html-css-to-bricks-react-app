@@ -220,7 +220,7 @@ const GeneratorComponent = () => {
                   <button
                     className="split-dropdown__item"
                     onClick={() => {
-                      handleExportJson();
+                      clipboard.handleExportJson(output);
                       setIsDropdownOpen(false);
                     }}
                   >
@@ -230,7 +230,7 @@ const GeneratorComponent = () => {
                   <button
                     className="split-dropdown__item"
                     onClick={() => {
-                      handleGenerateAndCopy();
+                      clipboard.copyToClipboard(output);
                       setIsDropdownOpen(false);
                     }}
                   >
@@ -289,7 +289,7 @@ const GeneratorComponent = () => {
                         className="code-editor__action"
                         onClick={(e) => {
                           e.stopPropagation();
-                          formatCurrent();
+                          formatting.formatCurrent(activeTab, html, css, js, setHtml, setCss, setJs);
                         }}
                         data-tooltip-id="format-tooltip"
                         data-tooltip-content="Auto Format & indent code"
@@ -484,7 +484,7 @@ const GeneratorComponent = () => {
                   output ? (
                     <div style={{ height: '100%', overflow: 'hidden' }}>
                       <CodeEditor
-                        value={isMinified ? output : formatJson(output)}
+                        value={isMinified ? output : formatting.formatJson(output)}
                         onChange={() => { }} // Read-only
                         language="json"
                         height="100%"
