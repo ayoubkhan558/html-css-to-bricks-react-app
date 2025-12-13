@@ -39,24 +39,47 @@ export const useAITemplates = () => {
     }, []);
 
     /**
-     * Toggle template enabled state
+     * Toggle template enabled state and update prompt text
      */
-    const toggleTemplate = useCallback((templateId) => {
-        // Update enabled IDs
-        const newEnabled = enabledTemplateIds.includes(templateId)
-            ? enabledTemplateIds.filter(id => id !== templateId)
-            : [...enabledTemplateIds, templateId];
+    const toggleTemplate = useCallback((templateId, setPromptCallback) => {
+        // Find the template first
+        const template = templates.find(t => t.id === templateId);
+        if (!template) return;
 
-        setEnabledTemplateIds(newEnabled);
-        localStorage.setItem('ai_enabled_templates', JSON.stringify(newEnabled));
+        const newEnabledState = !template.enabled;
 
-        // Update templates array with new enabled state
-        setTemplates(current =>
-            current.map(t =>
-                t.id === templateId ? { ...t, enabled: !t.enabled } : t
-            )
-        );
-    }, [enabledTemplateIds]);
+        // Update template state
+        setTemplates(currentTemplates => {
+            const updatedTemplates = currentTemplates.map(t =>
+                t.id === templateId ? { ...t, enabled: newEnabledState } : t
+            );
+
+            // Save enabled state
+            const enabledIds = updatedTemplates.filter(t => t.enabled).map(t => t.id);
+            localStorage.setItem('ai_enabled_templates', JSON.stringify(enabledIds));
+            setEnabledTemplateIds(enabledIds);
+
+            return updatedTemplates;
+        });
+
+        // Update prompt text AFTER state update (outside of setState)
+        if (setPromptCallback) {
+            if (newEnabledState) {
+                // Template is being enabled - add its prompt
+                setPromptCallback(currentPrompt => {
+                    const trimmedPrompt = currentPrompt.trim();
+                    return trimmedPrompt
+                        ? `${trimmedPrompt}\n\n${template.prompt}`
+                        : template.prompt;
+                });
+            } else {
+                // Template is being disabled - remove its prompt
+                setPromptCallback(currentPrompt => {
+                    return currentPrompt.replace(template.prompt, '').trim();
+                });
+            }
+        }
+    }, [templates]);
 
     /**
      * Create new custom template

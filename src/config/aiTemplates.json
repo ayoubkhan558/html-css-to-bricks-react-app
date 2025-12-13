@@ -1,43 +1,63 @@
 [
     {
+        "id": "no-wrapper-tags",
+        "name": "No Wrapper Tags",
+        "type": "default",
+        "category": "structure",
+        "enabled": true,
+        "editable": false,
+        "description": "Never include HTML, body, head, or DOCTYPE tags",
+        "prompt": "🚫 ABSOLUTELY FORBIDDEN - HTML DOCUMENT TAGS:\n\n❌ You must NEVER EVER include these tags in your response:\n   - <!DOCTYPE html>\n   - <html> or </html>\n   - <head> or </head>\n   - <body> or </body>\n   - <meta>\n   - <title>\n   - <link>\n\n✅ CORRECT APPROACH:\n   - Start DIRECTLY with your main component container\n   - Example: <section class=\"hero\">...</section>\n   - Example: <div class=\"pricing-section\">...</div>\n   - Think of yourself as generating a COMPONENT, not a webpage\n\n⚠️ VIOLATION OF THIS RULE IS UNACCEPTABLE"
+    },
+    {
+        "id": "separate-css",
+        "name": "Always Generate CSS",
+        "type": "default",
+        "category": "styling",
+        "enabled": true,
+        "editable": false,
+        "description": "Always provide CSS when creating HTML components",
+        "prompt": "🎨 MANDATORY CSS GENERATION:\n\n✅ When generating HTML components, you MUST provide CSS:\n   - Return both HTML and CSS in JSON format: {\"html\": \"...\", \"css\": \"...\"}\n   - CSS should be COMPLETE and style ALL elements\n   - Use modern CSS (flexbox, grid, custom properties)\n   - Include responsive styles when appropriate\n\n❌ CSS FORBIDDEN RULES:\n   - NEVER style <body>, <html>, or * (universal selector)\n   - NEVER include CSS resets for body/html\n   - Do NOT wrap CSS in <style> tags\n   - Start styling from your component's root element\n\n✅ CORRECT CSS APPROACH:\n   - Style the component container first (e.g., .pricing-section)\n   - Then style child elements\n   - Use modern, professional design\n   - Include proper spacing, colors, and typography"
+    },
+    {
+        "id": "clean-modern-design",
+        "name": "Modern Design",
+        "type": "default",
+        "category": "styling",
+        "enabled": true,
+        "editable": false,
+        "description": "Use modern, clean design principles",
+        "prompt": "Design Principles:\n- Use modern, clean, and professional design\n- Apply proper spacing and typography\n- Use a cohesive color scheme\n- Ensure good contrast and readability\n- Make components responsive and accessible"
+    },
+    {
+        "id": "semantic-html",
+        "name": "Semantic HTML",
+        "type": "default",
+        "category": "structure",
+        "enabled": false,
+        "editable": false,
+        "description": "Use semantic HTML5 elements",
+        "prompt": "HTML Best Practices:\n- Use semantic HTML5 elements (header, nav, main, section, article, aside, footer)\n- Use appropriate heading hierarchy (h1-h6)\n- Include ARIA labels where needed for accessibility\n- Use meaningful class names"
+    },
+    {
         "id": "bem-naming",
         "name": "BEM Naming",
         "type": "default",
         "category": "naming",
         "enabled": false,
         "editable": false,
-        "description": "Use Block Element Modifier(BEM) methodology for CSS naming",
-        "prompt": "🔴 MANDATORY BEM NAMING - YOU MUST FOLLOW THIS:\n\n1. EVERY HTML element MUST have a BEM class (no exceptions)\n2. Use ONLY class selectors in CSS (never tag selectors like 'table', 'h2', 'button')\n3. Format: .block, .block__element, .block--modifier\n\nBEM STRUCTURE:\n- Block: .product-card (standalone component)\n- Element: .product-card__title (child of block)\n- Modifier: .product-card--featured (variation of block)\n\nEXAMPLE - Before:\n<section class=\"table-section\">\n  <h2>Title</h2>\n  <table>\n    <tr><th>ID</th></tr>\n  </table>\n</section>\n\nEXAMPLE - After (BEM):\n<section class=\"data-table\">\n  <h2 class=\"data-table__title\">Title</h2>\n  <table class=\"data-table__table\">\n    <tr class=\"data-table__row\"><th class=\"data-table__header\">ID</th></tr>\n  </table>\n</section>\n\nCSS - Before:\ntable { border: 1px solid; }\nth { font-weight: bold; }\n\nCSS - After (BEM):\n.data-table__table { border: 1px solid; }\n.data-table__header { font-weight: bold; }\n\n⚠️ CRITICAL: Update BOTH HTML classes AND CSS selectors!"
+        "description": "Use BEM (Block Element Modifier) naming convention",
+        "prompt": "BEM Naming Convention:\n- Use Block__Element--Modifier pattern\n- Example: .card, .card__title, .card__title--large\n- Keep names descriptive and consistent\n- Apply BEM to both HTML classes and CSS selectors"
     },
     {
-        "id": "oocss",
-        "name": "OOCSS Naming",
+        "id": "component-extraction",
+        "name": "Extract Components",
         "type": "default",
-        "category": "naming",
+        "category": "structure",
         "enabled": false,
         "editable": false,
-        "description": "Object-Oriented CSS principles",
-        "prompt": "🔴 MANDATORY OOCSS PRINCIPLES:\n\n1. Separate STRUCTURE from SKIN:\n   - Structure classes: .media, .layout, .grid\n   - Skin classes: .theme-dark, .bordered, .rounded\n\n2. Separate CONTAINER from CONTENT:\n   - Components look the same anywhere\n   - Don't use location-based selectors\n\n3. Create REUSABLE objects:\n   - .media { display: flex; }\n   - .media__img { flex-shrink: 0; }\n   - .media__body { flex: 1; }\n\nEXAMPLE:\n<div class=\"media\">\n  <img class=\"media__img\" />\n  <div class=\"media__body\">Content</div>\n</div>\n\n⚠️ Update BOTH HTML and CSS!"
-    },
-    {
-        "id": "semantic-names",
-        "name": "Semantic Names",
-        "type": "default",
-        "category": "naming",
-        "enabled": false,
-        "editable": false,
-        "description": "Use descriptive, semantic class names",
-        "prompt": "Use semantic, purpose-based names.\n- Avoid visual/presentational names\n- Prefer functional naming\n- Make names self-explanatory\n- Examples: .hero-section, .cta-button, .feature-list"
-    },
-    {
-        "id": "clean-selectors",
-        "name": "Clean Selectors",
-        "type": "default",
-        "category": "refactoring",
-        "enabled": false,
-        "editable": false,
-        "description": "Refactor random selectors to meaningful names, including ID, attribute, and tag selectors.",
-        "prompt": "IMPORTANT - Selector Refactoring:\n- Replace random/meaningless selectors with semantic names\n- BAD: .div1, .class-123, .x, .temp, .style1, #id-456, [data-temp], div.classname\n- GOOD: .hero-section, .product-card, .navigation-menu, .call-to-action, #header, [data-user-id], button.submit\n\nFor specific selector types:\n1. **ID Selectors**: Make IDs meaningful and specific to the element's purpose. Use camelCase or kebab-case (e.g., #main-header, #submit-button, #user-profile).\n2. **Attribute Selectors**: Use attribute selectors for specific characteristics. Ensure they are related to content or behavior. For example, [data-role='submit'], [type='button'], [href='/contact']\n3. **Tag Selectors**: When using tag selectors, aim for general element types like button, header, or section when they are central to the structure. Avoid overly generic tags like div, span, or img unless necessary.\n- Use kebab-case for multi-word names\n- Make selectors descriptive of the element's purpose or content\n- Group related elements with common prefixes (e.g., .card-title, .card-body, .card-footer)"
+        "description": "Identify reusable components",
+        "prompt": "Component Extraction:\n- Identify repeating patterns and extract them as reusable components\n- Create component-based structure\n- Name components clearly (e.g., Button, Card, Modal, Navbar)\n- Make components self-contained and reusable\n- Use composition for complex components"
     },
     {
         "id": "accessibility",
@@ -46,17 +66,37 @@
         "category": "quality",
         "enabled": false,
         "editable": false,
-        "description": "Add ARIA labels and semantic HTML",
-        "prompt": "IMPORTANT - Accessibility Requirements:\n- Use semantic HTML5 elements (header, nav, main, article, section, footer)\n- Add ARIA labels where needed (aria-label, aria-labelledby, aria-describedby)\n- Include alt text for all images\n- Ensure proper heading hierarchy (h1 → h2 → h3)\n- Add role attributes when appropriate\n- Make interactive elements keyboard accessible\n- Use sufficient color contrast"
+        "description": "Ensure accessibility standards",
+        "prompt": "Accessibility Requirements:\n- Include proper ARIA labels and roles\n- Ensure keyboard navigation support\n- Provide sufficient color contrast (WCAG AA minimum)\n- Include alt text for images\n- Use semantic HTML for screen readers\n- Ensure focus states are visible"
+    },
+    {
+        "id": "responsive-design",
+        "name": "Responsive Design",
+        "type": "default",
+        "category": "styling",
+        "enabled": false,
+        "editable": false,
+        "description": "Make designs responsive across devices",
+        "prompt": "Responsive Design:\n- Use mobile-first approach\n- Include media queries for tablet and desktop\n- Use flexible units (%, rem, em, vw, vh)\n- Ensure touch-friendly tap targets (min 44x44px)\n- Test layouts at common breakpoints (320px, 768px, 1024px, 1440px)"
+    },
+    {
+        "id": "performance",
+        "name": "Performance Optimization",
+        "type": "default",
+        "category": "quality",
+        "enabled": false,
+        "editable": false,
+        "description": "Optimize for performance",
+        "prompt": "Performance Optimization:\n- Minimize CSS specificity\n- Avoid excessive nesting\n- Use efficient selectors\n- Minimize reflows and repaints\n- Use CSS transforms for animations\n- Lazy load images when appropriate"
     },
     {
         "id": "css-variables",
         "name": "CSS Variables",
         "type": "default",
-        "category": "quality",
+        "category": "styling",
         "enabled": false,
         "editable": false,
         "description": "Use CSS custom properties",
-        "prompt": "🔴 MANDATORY CSS VARIABLES:\n\n1. Define variables in :root:\n:root {\n  --color-primary: #3B82F6;\n  --color-secondary: #8B5CF6;\n  --spacing-sm: 0.5rem;\n  --spacing-md: 1rem;\n  --font-size-lg: 1.5rem;\n}\n\n2. Use var() everywhere:\nBEFORE:\n.button { background: #3B82F6; padding: 1rem; }\n\nAFTER:\n.button { background: var(--color-primary); padding: var(--spacing-md); }\n\n3. Group with prefixes:\n- Colors: --color-primary, --color-text\n- Spacing: --spacing-xs, --spacing-lg\n- Typography: --font-size-sm, --font-weight-bold\n\n⚠️ Replace ALL hardcoded values with CSS variables!"
+        "prompt": "CSS Variables:\n- Define CSS custom properties for repeated values\n- Use variables for colors, spacing, typography\n- Example: --primary-color, --spacing-md, --font-heading\n- Define variables in :root or component scope\n- Make theming easier with CSS variables"
     }
 ]

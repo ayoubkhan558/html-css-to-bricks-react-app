@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaTimes, FaKey, FaSave, FaTrash, FaCheckCircle, FaSpinner, FaEdit, FaPlus, FaUpload, FaFileImport, FaCog, FaFileCode } from 'react-icons/fa';
 import { aiService } from '@services/ai';
 import { useAITemplates } from '@generator/components/hooks';
+import aiModels from '@config/aiModels.json';
 import './AISettings.scss';
 
 const AISettings = ({ isOpen, onClose }) => {
@@ -24,7 +25,6 @@ const AISettings = ({ isOpen, onClose }) => {
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [templateForm, setTemplateForm] = useState({
     name: '',
-    category: 'naming',
     description: '',
     prompt: ''
   });
@@ -44,9 +44,15 @@ const AISettings = ({ isOpen, onClose }) => {
     setApiKeys(savedKeys);
 
     const savedProvider = localStorage.getItem('ai_provider') || 'gemini';
-    const savedModel = localStorage.getItem('ai_api_key');
+    const savedModel = localStorage.getItem('ai_model');
     setProvider(savedProvider);
-    if (savedModel) setModel(savedModel);
+
+    // Set model from localStorage or use first model from the provider's list
+    if (savedModel) {
+      setModel(savedModel);
+    } else if (aiModels[savedProvider] && aiModels[savedProvider].length > 0) {
+      setModel(aiModels[savedProvider][0].value);
+    }
 
     // Load design systems (array of JSONs)
     const savedDesignSystems = localStorage.getItem('ai_design_systems');
@@ -93,17 +99,25 @@ const AISettings = ({ isOpen, onClose }) => {
     setTestResult(null);
   };
 
+  // Handle provider change - update model to first available for new provider
+  const handleProviderChange = (newProvider) => {
+    setProvider(newProvider);
+    // Set model to first available for this provider
+    if (aiModels[newProvider] && aiModels[newProvider].length > 0) {
+      setModel(aiModels[newProvider][0].value);
+    }
+  };
+
   // Template handlers
   const handleCreateTemplate = () => {
     setEditingTemplate({}); // Set to empty object to trigger form display
-    setTemplateForm({ name: '', category: 'naming', description: '', prompt: '' });
+    setTemplateForm({ name: '', description: '', prompt: '' });
   };
 
   const handleEditTemplate = (template) => {
     setEditingTemplate(template);
     setTemplateForm({
       name: template.name,
-      category: template.category,
       description: template.description,
       prompt: template.prompt
     });
@@ -125,7 +139,7 @@ const AISettings = ({ isOpen, onClose }) => {
 
     // Reset form
     setEditingTemplate(null);
-    setTemplateForm({ name: '', category: 'naming', description: '', prompt: '' });
+    setTemplateForm({ name: '', description: '', prompt: '' });
 
     // Reload templates to show updated list
     setTimeout(() => {
@@ -255,7 +269,7 @@ const AISettings = ({ isOpen, onClose }) => {
             <div className="settings-section">
               <div className="form-group">
                 <label>Provider</label>
-                <select value={provider} onChange={(e) => setProvider(e.target.value)}>
+                <select value={provider} onChange={(e) => handleProviderChange(e.target.value)}>
                   <option value="gemini">Google Gemini</option>
                   <option value="openrouter">OpenRouter</option>
                   <option value="openai">OpenAI</option>
@@ -274,12 +288,13 @@ const AISettings = ({ isOpen, onClose }) => {
 
               <div className="form-group">
                 <label>Model</label>
-                <input
-                  type="text"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  placeholder="Model name"
-                />
+                <select value={model} onChange={(e) => setModel(e.target.value)}>
+                  {aiModels[provider]?.map((modelOption) => (
+                    <option key={modelOption.value} value={modelOption.value}>
+                      {modelOption.label} {modelOption.description && `- ${modelOption.description}`}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {testResult && <div className="test-result">{testResult}</div>}
@@ -320,15 +335,6 @@ const AISettings = ({ isOpen, onClose }) => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Category</label>
-                    <select value={templateForm.category} onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}>
-                      <option value="naming">Naming</option>
-                      <option value="quality">Quality</option>
-                      <option value="refactoring">Refactoring</option>
-                      <option value="structure">Structure</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
                     <label>Description</label>
                     <input
                       type="text"
@@ -347,7 +353,7 @@ const AISettings = ({ isOpen, onClose }) => {
                     />
                   </div>
                   <div className="button-group">
-                    <button onClick={() => { setEditingTemplate(null); setTemplateForm({ name: '', category: 'naming', description: '', prompt: '' }); }} className="button secondary">
+                    <button onClick={() => { setEditingTemplate(null); setTemplateForm({ name: '', description: '', prompt: '' }); }} className="button secondary">
                       Cancel
                     </button>
                     <button onClick={handleSaveTemplate} disabled={!templateForm.name || !templateForm.prompt} className="button primary">
@@ -366,8 +372,7 @@ const AISettings = ({ isOpen, onClose }) => {
                     <div key={template.id} className="template-item">
                       <div className="template-info">
                         <strong>{template.name}</strong>
-                        <span className="template-category">{template.category}</span>
-                        <p>{template.description}</p>
+                        {template.description && <p>{template.description}</p>}
                       </div>
                       <div className="button-group-inline">
                         <button onClick={() => handleEditTemplate(template)} className="button secondary small">
@@ -386,12 +391,13 @@ const AISettings = ({ isOpen, onClose }) => {
                   <div key={template.id} className="template-item">
                     <div className="template-info">
                       <strong>{template.name}</strong>
-                      <span className="template-category">{template.category}</span>
-                      <p>{template.description}</p>
+                      {template.description && <p>{template.description}</p>}
                     </div>
-                    <button onClick={() => handleEditTemplate(template)} className="button secondary small" disabled>
-                      View Only
-                    </button>
+                    <div className="button-group-inline">
+                      <button onClick={() => handleEditTemplate(template)} className="button secondary small" disabled>
+                        View Only
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -466,34 +472,6 @@ const AISettings = ({ isOpen, onClose }) => {
                 </div>
               )}
 
-              {/* Example Structure */}
-              <div className="design-system-example">
-                <h4>Example JSON Structure:</h4>
-                <pre>{`{
-  "colors": {
-    "primary": "#3B82F6",
-    "secondary": "#8B5CF6",
-    "text": "#1F2937",
-    "background": "#FFFFFF"
-  },
-  "typography": {
-    "heading-1": { "fontSize": "2.25rem", "fontWeight": "700" },
-    "body": { "fontSize": "1rem", "lineHeight": "1.5" }
-  },
-  "spacing": {
-    "xs": "0.25rem",
-    "sm": "0.5rem",
-    "md": "1rem",
-    "lg": "1.5rem",
-    "xl": "2rem"
-  },
-  "variables": {
-    "--border-radius": "8px",
-    "--transition": "all 0.3s ease"
-  },
-  "classes": ["container", "flex", "grid", "btn", "card"]
-}`}</pre>
-              </div>
             </div>
           )}
         </div>

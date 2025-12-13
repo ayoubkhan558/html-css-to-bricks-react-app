@@ -6,6 +6,9 @@ import './components/Tooltip.scss'
 import { AppProvider } from './contexts/AppContext.jsx';
 import { GeneratorProvider } from './contexts/GeneratorContext';
 
+
+import './App.scss'
+
 function App() {
   return (
     <AppProvider>

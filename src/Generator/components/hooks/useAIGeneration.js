@@ -97,20 +97,74 @@ export const useAIGeneration = (activeTab, html, css, js, setHtml, setCss, setJs
             const currentCode = activeTab === 'html' ? html : activeTab === 'css' ? css : js;
             const hasExistingCode = currentCode.trim();
 
-            let systemPrompt = `
-        You are an expert web developer. Generate clean, modern code based on the user's request.
+            // Detect if user is requesting multiple file types
+            const userPromptLower = quickPrompt.toLowerCase();
+            const requestsMultipleFiles =
+                userPromptLower.includes('html') && userPromptLower.includes('css') ||
+                userPromptLower.includes('html and css') ||
+                userPromptLower.includes('html + css') ||
+                userPromptLower.includes('html, css') ||
+                (activeTab === 'html' && !hasExistingCode && (
+                    userPromptLower.includes('create') ||
+                    userPromptLower.includes('build') ||
+                    userPromptLower.includes('make') ||
+                    userPromptLower.includes('design') ||
+                    userPromptLower.includes('section') ||
+                    userPromptLower.includes('component') ||
+                    userPromptLower.includes('page')
+                ));
 
-          CRITICAL RULES:
-          - Return ONLY raw ${activeTab.toUpperCase()} code - nothing else
-          - Do NOT return JSON objects like {"html":"...","css":"...","js":"..."}
-          - Do NOT include <!DOCTYPE html>, <html>, <body>, <head> tags
-          - Do NOT wrap CSS in <style> tags - provide raw CSS only
-          - Do NOT wrap JavaScript in <script> tags - provide raw JavaScript only
-          - Do NOT add explanations, comments about refactoring, or notes
-          - Use proper formatting and indentation
-          - For updates, return the COMPLETE updated code
-          - Keep HTML, CSS, and JavaScript separate
-          ${hasExistingCode ? `\n- PRESERVE the existing code structure - only update/refactor as requested\n- Do NOT delete or clear existing code unless explicitly asked` : ''}`;
+            let systemPrompt = `You are an expert web developer. Generate clean, modern code based on the user's request.
+
+⚠️ ABSOLUTE CRITICAL RULES - NEVER VIOLATE THESE:
+
+1. HTML STRUCTURE - FORBIDDEN TAGS:
+   ❌ NEVER EVER include: <!DOCTYPE html>, <html>, <head>, <body>, <meta>, <title>, <link>
+   ❌ These tags are COMPLETELY FORBIDDEN in your response
+   ✅ Start DIRECTLY with the component content (e.g., <div>, <section>, <header>)
+   ✅ Return ONLY the inner content that would go inside a <body> tag
+
+2. CSS RULES - FORBIDDEN SELECTORS:
+   ❌ NEVER style the <body> tag - it doesn't exist in this context
+   ❌ NEVER include CSS resets for *, html, or body
+   ❌ Do NOT wrap CSS in <style> tags
+   ✅ Style ONLY the component elements you create
+   ✅ Start with the main container class/element
+
+3. NO EXPLANATIONS:
+   ❌ Do NOT add any explanatory text, comments, or notes
+   ❌ Do NOT say "here's the code" or similar phrases
+   ✅ Return ONLY the code itself`;
+
+            if (requestsMultipleFiles) {
+                systemPrompt += `
+
+4. MULTI-FILE FORMAT:
+   ✅ Return BOTH HTML and CSS in this EXACT JSON format:
+      {
+        "html": "your HTML code here",
+        "css": "your CSS code here"
+      }
+   ❌ Do NOT include any text outside the JSON object
+   ✅ Ensure CSS styles ALL elements in the HTML completely
+   ✅ Use modern, professional styling with proper spacing and colors`;
+            } else {
+                systemPrompt += `
+
+4. SINGLE FILE FORMAT:
+   ✅ Return ONLY raw ${activeTab.toUpperCase()} code
+   ❌ Do NOT return JSON objects
+   ❌ Do NOT wrap JavaScript in <script> tags`;
+            }
+
+            systemPrompt += `
+
+5. CODE QUALITY:
+   ✅ Use proper formatting and indentation
+   ✅ For updates, return the COMPLETE updated code
+   ${hasExistingCode ? `✅ PRESERVE the existing code structure - only update/refactor as requested\n   ❌ Do NOT delete or clear existing code unless explicitly asked` : ''}
+
+REMEMBER: You are generating a COMPONENT, not a full webpage. No document structure tags allowed!`;
 
             // Add template requirements if templates are enabled
             if (aiTemplates && aiTemplates.getEnabledTemplates().length > 0) {
@@ -248,61 +302,81 @@ ${css}
             // Clean the response
             let cleanedCode = responseText.trim();
 
-            // Check if AI returned JSON object (e.g., {"html":"...","css":"...","js":""})
-            if (cleanedCode.startsWith('{') && cleanedCode.includes('"html"') || cleanedCode.includes('"css"') || cleanedCode.includes('"js"')) {
-                try {
-                    const parsed = JSON.parse(cleanedCode);
-                    // Extract the relevant code based on active tab
-                    if (activeTab === 'html' && parsed.html) {
-                        cleanedCode = parsed.html;
-                    } else if (activeTab === 'css' && parsed.css) {
-                        cleanedCode = parsed.css;
-                    } else if (activeTab === 'js' && parsed.js) {
-                        cleanedCode = parsed.js;
-                    }
-                } catch (e) {
-                    // Not valid JSON, continue with original
-                }
-            }
-
-            // Remove markdown code blocks if present
-            const codeBlockRegex = /^```[\w]*\n([\s\S]*?)\n```$/;
+            // Remove markdown code blocks if present (do this FIRST)
+            const codeBlockRegex = /^```(?:json)?\n?([\s\S]*?)\n?```$/;
             const match = cleanedCode.match(codeBlockRegex);
             if (match) {
-                cleanedCode = match[1];
+                cleanedCode = match[1].trim();
             }
 
-            // Check if response contains both HTML and CSS (for naming templates)
-            if (cleanedCode.startsWith('{') && cleanedCode.includes('"html"') && cleanedCode.includes('"css"')) {
+            // Helper function to clean HTML - remove forbidden tags
+            const cleanHTML = (html) => {
+                let cleaned = html;
+
+                // Remove DOCTYPE
+                cleaned = cleaned.replace(/<!DOCTYPE[^>]*>/gi, '');
+
+                // Remove opening and closing html, head, body tags
+                cleaned = cleaned.replace(/<\/?html[^>]*>/gi, '');
+                cleaned = cleaned.replace(/<\/?head[^>]*>/gi, '');
+                cleaned = cleaned.replace(/<\/?body[^>]*>/gi, '');
+
+                // Remove meta, title, link tags (complete tags)
+                cleaned = cleaned.replace(/<meta[^>]*>/gi, '');
+                cleaned = cleaned.replace(/<title[^>]*>.*?<\/title>/gi, '');
+                cleaned = cleaned.replace(/<link[^>]*>/gi, '');
+
+                return cleaned.trim();
+            };
+
+            // Helper function to clean CSS - remove forbidden selectors
+            const cleanCSS = (css) => {
+                let cleaned = css;
+
+                // Remove body styles (including nested rules)
+                cleaned = cleaned.replace(/body\s*{[^}]*}/gi, '');
+
+                // Remove universal reset rules
+                cleaned = cleaned.replace(/\*\s*,?\s*\*::before\s*,?\s*\*::after\s*{[^}]*}/gi, '');
+                cleaned = cleaned.replace(/\*\s*{[^}]*}/gi, '');
+
+                // Remove html styles
+                cleaned = cleaned.replace(/html\s*{[^}]*}/gi, '');
+
+                // Remove common reset comments
+                cleaned = cleaned.replace(/\/\*\s*General Reset.*?\*\//gi, '');
+                cleaned = cleaned.replace(/\/\*\s*Base Styles.*?\*\//gi, '');
+
+                return cleaned.trim();
+            };
+
+            // Check if AI returned JSON object with multiple files
+            let parsedMultiFile = null;
+            if (cleanedCode.startsWith('{') && (cleanedCode.includes('"html"') || cleanedCode.includes('"css"') || cleanedCode.includes('"js"'))) {
                 try {
-                    const parsed = JSON.parse(cleanedCode);
-                    // Update both HTML and CSS
-                    if (parsed.html) {
-                        setHtml(parsed.html);
-                    }
-                    if (parsed.css) {
-                        setCss(parsed.css);
-                    }
-                    // Don't update JS unless provided
-                    if (parsed.js) {
-                        setJs(parsed.js);
-                    }
+                    parsedMultiFile = JSON.parse(cleanedCode);
                 } catch (e) {
-                    // If JSON parse fails, fall back to single tab update
-                    if (activeTab === 'html') {
-                        setHtml(cleanedCode);
-                    } else if (activeTab === 'css') {
-                        setCss(cleanedCode);
-                    } else if (activeTab === 'js') {
-                        setJs(cleanedCode);
-                    }
+                    // Not valid JSON, will handle as single file below
+                }
+            }
+
+            // If we successfully parsed multi-file JSON, apply all files
+            if (parsedMultiFile) {
+                if (parsedMultiFile.html) {
+                    setHtml(cleanHTML(parsedMultiFile.html));
+                }
+                if (parsedMultiFile.css) {
+                    setCss(cleanCSS(parsedMultiFile.css));
+                }
+                if (parsedMultiFile.js) {
+                    setJs(parsedMultiFile.js);
                 }
             } else {
-                // Single tab update
+                // Single file response - apply to active tab
                 if (activeTab === 'html') {
-                    setHtml(cleanedCode);
+                    setHtml(cleanHTML(cleanedCode));
                 } else if (activeTab === 'css') {
-                    setCss(cleanedCode);
+                    setCss(cleanCSS(cleanedCode));
                 } else if (activeTab === 'js') {
                     setJs(cleanedCode);
                 }
