@@ -1,15 +1,5 @@
 [
     {
-        "id": "no-wrapper-tags",
-        "name": "No Wrapper Tags",
-        "type": "default",
-        "category": "structure",
-        "enabled": true,
-        "editable": false,
-        "description": "Never include HTML, body, head, or DOCTYPE tags",
-        "prompt": "🚫 ABSOLUTELY FORBIDDEN - HTML DOCUMENT TAGS:\n\n❌ You must NEVER EVER include these tags in your response:\n   - <!DOCTYPE html>\n   - <html> or </html>\n   - <head> or </head>\n   - <body> or </body>\n   - <meta>\n   - <title>\n   - <link>\n\n✅ CORRECT APPROACH:\n   - Start DIRECTLY with your main component container\n   - Example: <section class=\"hero\">...</section>\n   - Example: <div class=\"pricing-section\">...</div>\n   - Think of yourself as generating a COMPONENT, not a webpage\n\n⚠️ VIOLATION OF THIS RULE IS UNACCEPTABLE"
-    },
-    {
         "id": "separate-css",
         "name": "Always Generate CSS",
         "type": "default",
@@ -34,7 +24,7 @@
         "name": "Semantic HTML",
         "type": "default",
         "category": "structure",
-        "enabled": false,
+        "enabled": true,
         "editable": false,
         "description": "Use semantic HTML5 elements",
         "prompt": "HTML Best Practices:\n- Use semantic HTML5 elements (header, nav, main, section, article, aside, footer)\n- Use appropriate heading hierarchy (h1-h6)\n- Include ARIA labels where needed for accessibility\n- Use meaningful class names"
@@ -44,7 +34,7 @@
         "name": "BEM Naming",
         "type": "default",
         "category": "naming",
-        "enabled": false,
+        "enabled": true,
         "editable": false,
         "description": "Use BEM (Block Element Modifier) naming convention",
         "prompt": "BEM Naming Convention:\n- Use Block__Element--Modifier pattern\n- Example: .card, .card__title, .card__title--large\n- Keep names descriptive and consistent\n- Apply BEM to both HTML classes and CSS selectors"
@@ -58,16 +48,6 @@
         "editable": false,
         "description": "Identify reusable components",
         "prompt": "Component Extraction:\n- Identify repeating patterns and extract them as reusable components\n- Create component-based structure\n- Name components clearly (e.g., Button, Card, Modal, Navbar)\n- Make components self-contained and reusable\n- Use composition for complex components"
-    },
-    {
-        "id": "accessibility",
-        "name": "Accessibility",
-        "type": "default",
-        "category": "quality",
-        "enabled": false,
-        "editable": false,
-        "description": "Ensure accessibility standards",
-        "prompt": "Accessibility Requirements:\n- Include proper ARIA labels and roles\n- Ensure keyboard navigation support\n- Provide sufficient color contrast (WCAG AA minimum)\n- Include alt text for images\n- Use semantic HTML for screen readers\n- Ensure focus states are visible"
     },
     {
         "id": "responsive-design",
@@ -90,11 +70,21 @@
         "prompt": "Performance Optimization:\n- Minimize CSS specificity\n- Avoid excessive nesting\n- Use efficient selectors\n- Minimize reflows and repaints\n- Use CSS transforms for animations\n- Lazy load images when appropriate"
     },
     {
+        "id": "accessibility",
+        "name": "Accessibility",
+        "type": "default",
+        "category": "quality",
+        "enabled": true,
+        "editable": false,
+        "description": "Ensure accessibility standards",
+        "prompt": "Accessibility Requirements:\n- Include proper ARIA labels and roles\n- Ensure keyboard navigation support\n- Provide sufficient color contrast (WCAG AA minimum)\n- Include alt text for images\n- Use semantic HTML for screen readers\n- Ensure focus states are visible"
+    },
+    {
         "id": "css-variables",
         "name": "CSS Variables",
         "type": "default",
         "category": "styling",
-        "enabled": false,
+        "enabled": true,
         "editable": false,
         "description": "Use CSS custom properties",
         "prompt": "CSS Variables:\n- Define CSS custom properties for repeated values\n- Use variables for colors, spacing, typography\n- Example: --primary-color, --spacing-md, --font-heading\n- Define variables in :root or component scope\n- Make theming easier with CSS variables"
