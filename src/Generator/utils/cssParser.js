@@ -573,6 +573,32 @@ export function matchCSSSelectorsPerClass(element, cssMap, classList) {
     });
   });
 
+  // Handle compound class selectors like .class1.class2
+  Object.entries(cssMap).forEach(([selector, properties]) => {
+    // Check if this is a compound class selector (multiple classes without spaces)
+    // e.g., .tst-link.active or .btn.primary.large
+    const compoundMatch = selector.match(/^(\.[a-zA-Z0-9_-]+){2,}$/);
+    if (compoundMatch) {
+      // Extract all classes from the compound selector
+      const selectorClasses = selector.match(/\.[a-zA-Z0-9_-]+/g).map(c => c.substring(1));
+
+      // Check if element has ALL the classes in the compound selector
+      const hasAllClasses = selectorClasses.every(cls => classList.includes(cls));
+
+      if (hasAllClasses) {
+        // Apply properties to the first class in the compound selector that exists on element
+        const targetClass = selectorClasses.find(cls => classList.includes(cls));
+        if (targetClass) {
+          if (!propertiesByClass[targetClass]) {
+            propertiesByClass[targetClass] = {};
+          }
+          const parsedProperties = parseProperties(properties);
+          Object.assign(propertiesByClass[targetClass], parsedProperties);
+        }
+      }
+    }
+  });
+
   // Then, match non-class selectors (tag, id, attribute, complex)
   Object.entries(cssMap).forEach(([selector, properties]) => {
     try {
