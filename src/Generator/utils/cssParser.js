@@ -15,6 +15,7 @@ import { filterMappers, effectsMappers, transitionsMappers } from '@generator/cs
 import { scrollSnapMappers } from '@generator/cssPropertyMappers/layout-scroll-snap';
 import { transformsMappers } from '@generator/cssPropertyMappers/transforms';
 import { logger } from '@lib/logger';
+import * as csstree from 'css-tree';
 
 
 
@@ -692,7 +693,7 @@ const getSelectorType = (selector) => {
 
 
 /**
- * Enhanced buildCssMap function to handle complex selectors
+ * Enhanced buildCssMap function using css-tree for proper CSS parsing
  * @param {string} cssText - The CSS content
  * @returns {Object} Map of selectors to their CSS declarations
  */
@@ -700,107 +701,87 @@ export function buildCssMap(cssText) {
   const map = {};
   const variables = {};
   let rootStyles = [];
-  const keyframes = []; // Store @keyframes rules
-  const mediaQueries = []; // Store @media rules for future use
+  const keyframes = [];
+  const mediaQueries = [];
 
-  // Remove comments and normalize whitespace
-  const cleanCSS = cssText
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  // Extract @keyframes rules before processing other rules
-  const keyframeRegex = /@keyframes\s+([\w-]+)\s*\{/g;
-  let keyframeMatch;
-  let cssWithoutKeyframes = cleanCSS;
-  const extractedKeyframes = [];
-
-  while ((keyframeMatch = keyframeRegex.exec(cleanCSS)) !== null) {
-    const startIndex = keyframeMatch.index;
-    const animationName = keyframeMatch[1];
-
-    // Find the matching closing brace for this @keyframes block
-    let braceCount = 0;
-    let endIndex = startIndex + keyframeMatch[0].length;
-    let foundStart = false;
-
-    for (let i = startIndex; i < cleanCSS.length; i++) {
-      if (cleanCSS[i] === '{') {
-        braceCount++;
-        foundStart = true;
-      } else if (cleanCSS[i] === '}') {
-        braceCount--;
-        if (foundStart && braceCount === 0) {
-          endIndex = i + 1;
-          break;
-        }
-      }
-    }
-
-    const fullRule = cleanCSS.substring(startIndex, endIndex);
-    extractedKeyframes.push({
-      name: animationName,
-      rule: fullRule
+  try {
+    // Parse CSS using css-tree AST parser
+    const ast = csstree.parse(cssText, {
+      parseCustomProperty: true,
+      parseAtrulePrelude: true,
+      parseRulePrelude: true,
+      parseValue: true
     });
-  }
 
-  // Remove all extracted keyframes from CSS
-  extractedKeyframes.forEach(kf => {
-    cssWithoutKeyframes = cssWithoutKeyframes.replace(kf.rule, '');
-  });
+    // Walk the AST to extract rules
+    csstree.walk(ast, {
+      visit: 'Rule',
+      enter(node) {
+        // Generate selector string
+        const selector = csstree.generate(node.prelude);
 
-  // Store in keyframes array
-  keyframes.push(...extractedKeyframes);
+        // Generate declarations string
+        const declarations = [];
+        if (node.block && node.block.children) {
+          node.block.children.forEach(child => {
+            if (child.type === 'Declaration') {
+              const property = child.property;
+              const value = csstree.generate(child.value);
+              declarations.push(`${property}: ${value}`);
 
-  // Split into rules
-  const rules = [];
-  let current = '';
-  let inBrackets = 0;
-
-  for (let i = 0; i < cssWithoutKeyframes.length; i++) {
-    const char = cssWithoutKeyframes[i];
-    if (char === '{') {
-      inBrackets++;
-    } else if (char === '}') {
-      inBrackets--;
-      if (inBrackets === 0) {
-        rules.push(current.trim() + '}');
-        current = '';
-        continue;
-      }
-    }
-    current += char;
-  }
-
-  // Process each rule
-  rules.forEach(rule => {
-    const [selectorPart, ...rest] = rule.split('{');
-    if (!selectorPart || !rest.length) return;
-
-    const properties = rest.join('{').replace(/}$/, '').trim();
-    if (!properties) return;
-
-    // Split multiple selectors and process each one
-    selectorPart.split(',').forEach(selector => {
-      const trimmed = selector.trim();
-      if (trimmed) {
-        map[trimmed] = properties;
-
-        if (trimmed === ':root') {
-          // Add to root styles array
-          rootStyles.push(properties);
-
-          // Process variables from all root blocks
-          properties.split(';').forEach(prop => {
-            const [key, value] = prop.split(':').map(s => s.trim());
-            if (key && key.startsWith('--')) {
-              variables[key] = value;
+              // Extract CSS variables from :root
+              if (selector === ':root' && property.startsWith('--')) {
+                variables[property] = value;
+              }
             }
+          });
+        }
+
+        const propertiesString = declarations.join('; ');
+
+        // Handle multiple selectors separated by comma
+        selector.split(',').forEach(sel => {
+          const trimmedSelector = sel.trim();
+          if (trimmedSelector) {
+            map[trimmedSelector] = propertiesString;
+
+            if (trimmedSelector === ':root') {
+              rootStyles.push(propertiesString);
+            }
+          }
+        });
+      }
+    });
+
+    // Extract @keyframes rules
+    csstree.walk(ast, {
+      visit: 'Atrule',
+      enter(node) {
+        if (node.name === 'keyframes' || node.name === '-webkit-keyframes') {
+          const animationName = node.prelude ? csstree.generate(node.prelude) : '';
+          const fullRule = csstree.generate(node);
+          keyframes.push({
+            name: animationName.trim(),
+            rule: fullRule
+          });
+        }
+        // Store media queries for future use
+        if (node.name === 'media') {
+          const mediaQuery = node.prelude ? csstree.generate(node.prelude) : '';
+          const rules = csstree.generate(node.block);
+          mediaQueries.push({
+            query: mediaQuery,
+            rules: rules
           });
         }
       }
     });
-  });
+
+  } catch (error) {
+    // Log error and return empty result - css-tree handles most cases reliably
+    logger.error('CSS parsing failed', error);
+    return { cssMap: {}, variables: {}, rootStyles: '', keyframes: [] };
+  }
 
   // Join all root styles with semicolons to maintain valid CSS
   const combinedRootStyles = rootStyles.length > 0 ? `:root {\n  ${rootStyles.join(';\n  ')};\n}` : '';

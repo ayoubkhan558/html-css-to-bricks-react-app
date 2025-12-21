@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import * as csstree from 'css-tree';
 
 const CSSHTMLAnalyzer = () => {
   const [htmlInput, setHtmlInput] = useState(`
@@ -72,18 +73,39 @@ const CSSHTMLAnalyzer = () => {
 
   const [analysis, setAnalysis] = useState([]);
 
+  // Use css-tree for proper CSS parsing
   const parseCSS = (cssString) => {
     const selectors = [];
-    const rules = cssString.split('}').filter(rule => rule.trim());
 
-    rules.forEach(rule => {
-      const parts = rule.split('{');
-      if (parts.length === 2) {
-        const selector = parts[0].trim();
-        const properties = parts[1].trim();
-        selectors.push({ selector, properties });
-      }
-    });
+    try {
+      const ast = csstree.parse(cssString, {
+        parseCustomProperty: true,
+        parseValue: true
+      });
+
+      csstree.walk(ast, {
+        visit: 'Rule',
+        enter(node) {
+          const selector = csstree.generate(node.prelude);
+          const declarations = [];
+
+          if (node.block && node.block.children) {
+            node.block.children.forEach(child => {
+              if (child.type === 'Declaration') {
+                const property = child.property;
+                const value = csstree.generate(child.value);
+                declarations.push(`${property}: ${value}`);
+              }
+            });
+          }
+
+          const properties = declarations.join('; ');
+          selectors.push({ selector, properties });
+        }
+      });
+    } catch (error) {
+      console.warn('CSS parsing error:', error);
+    }
 
     return selectors;
   };
