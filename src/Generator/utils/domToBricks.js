@@ -3,7 +3,7 @@ import { logger } from '@lib/logger';
 import { sanitizeClassName } from '@lib/helpers';
 import { getElementLabel } from '@lib/bricks';
 import { ALERT_CLASS_PATTERNS, CONTAINER_CLASS_PATTERNS } from '@config/constants';
-import { buildCssMap, parseCssDeclarations, matchCSSSelectors } from '@generator/utils/cssParser';
+import { buildCssMap, parseCssDeclarations, matchCSSSelectors, matchCSSSelectorsPerClass } from '@generator/utils/cssParser';
 import { getBricksFieldType, processFormField, processFormElement } from "@generator/elementProcessors/formProcessor"
 import { processAudioElement } from '@generator/elementProcessors/audioProcessor';
 import { processVideoElement } from '@generator/elementProcessors/videoProcessor';
@@ -425,7 +425,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
     // Handle pseudo-classes for ID
     Object.keys(cssRulesMap).forEach(selector => {
-      const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\w+)`));
+      const pseudoMatch = selector.match(new RegExp(`^#${node.id}:(\\w+)`));
       if (pseudoMatch) {
         const pseudoClass = pseudoMatch[1];
         const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], `#brx-${element.id}`, variables);
@@ -435,7 +435,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
       }
 
       // Handle pseudo-classes for tag selectors
-      const tagPseudoMatch = selector.match(new RegExp(`^${tag}:(\w+)`));
+      const tagPseudoMatch = selector.match(new RegExp(`^${tag}:(\\w+)`));
       if (tagPseudoMatch) {
         const pseudoClass = tagPseudoMatch[1];
         const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], tag, variables);
@@ -448,12 +448,16 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     // Process element attributes FIRST so they're available for class transfer
     processAttributes(node, element, tag, options);
 
-    // Apply styles via global classes (existing logic)
+    // Apply styles via global classes using per-class matching
     const existingClasses = node.classList && node.classList.length > 0 ? Array.from(node.classList) : [];
     const randomId = Math.random().toString(36).substring(2, 6);
     const generatedClass = existingClasses.length === 0 ? `${tag}-tag-${randomId}-class` : null;
     const classNames = generatedClass ? [generatedClass, ...existingClasses] : existingClasses;
     const cssGlobalClasses = [];
+
+    // Use per-class matching to distribute properties correctly
+    const perClassMatch = matchCSSSelectorsPerClass(node, cssRulesMap, existingClasses);
+    const { propertiesByClass, commonProperties, pseudoSelectors: perClassPseudos } = perClassMatch;
 
     classNames.forEach((cls, index) => {
       let targetClass = globalClasses.find(c => c.name === cls);
@@ -462,21 +466,29 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         globalClasses.push(targetClass);
       }
 
-      if (index === 0 && Object.keys(combinedProperties).length > 0) {
-        const parsedSettings = parseCssDeclarations(combinedProperties, cls, variables);
-        Object.assign(targetClass.settings, parsedSettings);
+      // Get class-specific properties
+      const classProperties = propertiesByClass[cls] || {};
 
-        // Transfer element attributes to the first class only
-        if (element.settings._attributes) {
-          targetClass.settings._attributes = element.settings._attributes;
-          delete element.settings._attributes; // Remove from element to avoid duplication
-        }
+      // For the first class, also include common properties (tag, id, attribute selectors)
+      const propertiesToAssign = index === 0
+        ? { ...commonProperties, ...classProperties }
+        : classProperties;
+
+      if (Object.keys(propertiesToAssign).length > 0) {
+        const parsedSettings = parseCssDeclarations(propertiesToAssign, cls, variables);
+        Object.assign(targetClass.settings, parsedSettings);
       }
 
-      // Handle pseudo-elements and non-class selectors for this class
-      if (index === 0 && pseudoSelectors.length > 0) {
+      // Transfer element attributes to the first class only
+      if (index === 0 && element.settings._attributes) {
+        targetClass.settings._attributes = element.settings._attributes;
+        delete element.settings._attributes; // Remove from element to avoid duplication
+      }
+
+      // Handle pseudo-selectors for the first class only
+      if (index === 0 && perClassPseudos.length > 0) {
         let customCss = '';
-        pseudoSelectors.forEach(({ selector, properties }) => {
+        perClassPseudos.forEach(({ selector, properties }) => {
           // Check if this is a pseudo-class selector
           const pseudoClassMatch = selector.match(/:(\w+)$/);
 
@@ -544,8 +556,9 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         }
       }
 
+      // Handle pseudo-classes for each specific class
       Object.keys(cssRulesMap).forEach(selector => {
-        const pseudoMatch = selector.match(new RegExp(`^\.${cls}:(\w+)`));
+        const pseudoMatch = selector.match(new RegExp(`^\\.${cls}:(\\w+)`));
         if (pseudoMatch) {
           const pseudoClass = pseudoMatch[1];
           const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], cls, variables);
@@ -556,7 +569,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
         // Handle pseudo-classes for tag selectors when processing the first (generated) class
         if (index === 0) {
-          const tagPseudoMatch = selector.match(new RegExp(`^${tag}:(\w+)`));
+          const tagPseudoMatch = selector.match(new RegExp(`^${tag}:(\\w+)`));
           if (tagPseudoMatch) {
             const pseudoClass = tagPseudoMatch[1];
             const pseudoStyles = parseCssDeclarations(cssRulesMap[selector], tag, variables);

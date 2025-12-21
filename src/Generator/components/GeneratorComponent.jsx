@@ -182,7 +182,7 @@ const GeneratorComponent = () => {
               </div>
             </div>
             <div className="form-control">
-              <label className="form-control__label">Selectors</label>
+              <label className="form-control__label">Merge Selectors</label>
 
               <div className="form-control__options----">
                 <span className="form-control__option">
@@ -196,7 +196,7 @@ const GeneratorComponent = () => {
                     <span className="form-control__slider"></span>
                   </label>
 
-                  <span className="form-control__text">Merge Selectors</span>
+                  {/* <span className="form-control__text"> Selectors</span> */}
                 </span>
               </div>
             </div>

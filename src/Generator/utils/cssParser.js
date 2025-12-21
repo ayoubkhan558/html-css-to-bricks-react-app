@@ -516,6 +516,141 @@ export function matchCSSSelectors(element, cssMap) {
   return { properties: combinedProperties, pseudoSelectors: unmatchedSelectors };
 }
 
+/**
+ * Enhanced CSS matching that returns properties grouped by class name
+ * This prevents merging all properties into the first class when element has multiple classes
+ * @param {Element} element - DOM element
+ * @param {Object} cssMap - CSS map
+ * @param {Array} classList - Array of class names on the element
+ * @returns {Object} { propertiesByClass, commonProperties, pseudoSelectors }
+ */
+export function matchCSSSelectorsPerClass(element, cssMap, classList) {
+  const propertiesByClass = {}; // Properties grouped by class name
+  const commonProperties = {}; // Properties from non-class selectors (tag, id, etc.)
+  const doc = element.ownerDocument;
+  const unmatchedSelectors = [];
+
+  // Helper to parse CSS properties string into object
+  const parseProperties = (propertiesString) => {
+    const properties = {};
+    const declarations = propertiesString.split(';').filter(decl => decl.trim());
+
+    declarations.forEach(decl => {
+      const [property, value] = decl.split(':').map(part => part.trim());
+      if (property && value) {
+        properties[property] = value;
+      }
+    });
+
+    return properties;
+  };
+
+  // First, match class selectors and group by class name
+  classList.forEach(className => {
+    const classSelector = `.${className}`;
+
+    Object.entries(cssMap).forEach(([selector, properties]) => {
+      // Only process selectors that are simple class selectors for this class
+      if (selector === classSelector) {
+        if (!propertiesByClass[className]) {
+          propertiesByClass[className] = {};
+        }
+        const parsedProperties = parseProperties(properties);
+        Object.assign(propertiesByClass[className], parsedProperties);
+      }
+      // Handle pseudo-class selectors for this specific class
+      else if (selector.startsWith(classSelector + ':')) {
+        const pseudoClassMatch = selector.match(/:(hover|focus|active|visited|disabled)$/);
+        if (pseudoClassMatch) {
+          // This will be handled in the pseudo-selector processing below
+          // Just mark it as matched so it doesn't get added to common
+        }
+      }
+    });
+  });
+
+  // Then, match non-class selectors (tag, id, attribute, complex)
+  Object.entries(cssMap).forEach(([selector, properties]) => {
+    try {
+      const selectorType = getSelectorType(selector);
+
+      // Skip class selectors (already processed above)
+      if (selectorType === 'class') {
+        return;
+      }
+
+      // Check for pseudo-elements
+      if (selector.includes('::')) {
+        const baseSelector = selector.split('::')[0].trim();
+        try {
+          const matches = element.matches(baseSelector);
+          if (matches) {
+            unmatchedSelectors.push({ selector, properties });
+          }
+        } catch (e) {
+          // Skip invalid selectors
+        }
+        return;
+      }
+
+      // Check for pseudo-classes
+      const pseudoClassMatch = selector.match(/:(hover|focus|active|visited|disabled)$/);
+      if (pseudoClassMatch) {
+        const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
+        try {
+          const matches = element.matches(baseSelector);
+          if (matches) {
+            unmatchedSelectors.push({ selector, properties });
+          }
+        } catch (e) {
+          // Skip invalid selectors
+        }
+        return;
+      }
+
+      // Match tag, id, and other non-class selectors
+      let matches = false;
+
+      if (selectorType === 'tag' && element.tagName.toLowerCase() === selector.toLowerCase()) {
+        matches = true;
+      } else if (selectorType === 'id' && element.id === selector.substring(1)) {
+        matches = true;
+      } else if (selectorType === 'complex') {
+        // For complex selectors, add to unmatchedSelectors (custom CSS)
+        try {
+          const matchingElements = doc.querySelectorAll(selector);
+          if (Array.from(matchingElements).includes(element)) {
+            unmatchedSelectors.push({ selector, properties });
+          }
+        } catch (err) {
+          // Skip invalid selectors
+        }
+        return;
+      } else {
+        // Try element.matches for other selectors
+        try {
+          matches = element.matches(selector);
+        } catch (e) {
+          // Skip invalid selectors
+        }
+      }
+
+      if (matches) {
+        const parsedProperties = parseProperties(properties);
+        Object.assign(commonProperties, parsedProperties);
+      }
+    } catch (error) {
+      logger.warn(`Error processing selector: ${selector}`, error);
+    }
+  });
+
+  return {
+    propertiesByClass,
+    commonProperties,
+    pseudoSelectors: unmatchedSelectors
+  };
+}
+
 // Helper to determine selector type
 const getSelectorType = (selector) => {
   if (selector.startsWith('#')) return 'id';
