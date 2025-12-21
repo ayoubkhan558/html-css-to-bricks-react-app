@@ -68,13 +68,19 @@ export const gridMappers = {
 
   // Grid item properties
   'grid-column': (val, settings) => {
-    settings._gridColumn = val;
+    settings._gridItemColumnSpan = val;
   },
   'grid-row': (val, settings) => {
-    settings._gridRow = val;
+    settings._gridItemRowSpan = val;
   },
   'grid-area': (val, settings) => {
     settings._gridArea = val;
+  },
+  'justify-self': (val, settings) => {
+    settings._gridItemJustifySelf = val;
+  },
+  'align-self': (val, settings) => {
+    settings._gridItemAlignSelf = val;
   },
 
   // Grid alignment
@@ -100,13 +106,27 @@ export const gridMappers = {
   }
 };
 
-// Export individual mappers for direct import
-export const gridGapMapper = gridMappers['gap'];
-export const gridTemplateColumnsMapper = gridMappers['grid-template-columns'];
-export const gridTemplateRowsMapper = gridMappers['grid-template-rows'];
-export const gridAutoFlowMapper = gridMappers['grid-auto-flow'];
-export const justifyItemsGridMapper = gridMappers['justify-items'];
-export const alignItemsGridMapper = gridMappers['align-items'];
-export const justifyContentGridMapper = gridMappers['justify-content'];
-export const alignContentGridMapper = gridMappers['align-content'];
-export const orderMapper = gridMappers['order'];
+// Exporting all mappers in one go using object destructuring
+export const {
+  'gap': gridGapMapper,
+  'grid-template-columns': gridTemplateColumnsMapper,
+  'grid-template-rows': gridTemplateRowsMapper,
+  'grid-auto-flow': gridAutoFlowMapper,
+  'justify-items': justifyItemsGridMapper,
+  'align-items': alignItemsGridMapper,
+  'justify-content': justifyContentGridMapper,
+  'align-content': alignContentGridMapper,
+  'order': orderMapper,
+
+  // Grid item properties
+  'grid-column': gridColumnMapper,
+  'grid-row': gridRowMapper,
+  'grid-area': gridAreaMapper,
+
+  // Grid container properties
+  'grid-row-gap': gridRowGapMapper,
+  'grid-column-gap': gridColumnGapMapper,
+  'grid-template-areas': gridTemplateAreasMapper,
+  'grid-auto-columns': gridAutoColumnsMapper,
+  'grid-auto-rows': gridAutoRowsMapper
+} = gridMappers;

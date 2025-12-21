@@ -168,6 +168,13 @@ export const getCssPropMappers = (settings) => {
         }
       }
     },
+
+    // Grid item properties (always available since any element can be a grid item)
+    'grid-column': gridMappers['grid-column'],
+    'grid-row': gridMappers['grid-row'],
+    'grid-area': gridMappers['grid-area'],
+    'justify-self': gridMappers['justify-self'],
+    'align-self': gridMappers['align-self'],
   };
 
   if (settings._display === 'grid') {
@@ -181,9 +188,6 @@ export const getCssPropMappers = (settings) => {
       'grid-auto-columns': gridMappers['grid-auto-columns'],
       'grid-auto-rows': gridMappers['grid-auto-rows'],
       'grid-auto-flow': gridMappers['grid-auto-flow'],
-      'grid-column': gridMappers['grid-column'],
-      'grid-row': gridMappers['grid-row'],
-      'grid-area': gridMappers['grid-area'],
       'justify-items': gridMappers['justify-items'],
       'gap': gridMappers['gap'] // Use the mapper from gridMappers instead of inline
     });
@@ -309,7 +313,7 @@ export function parseCssDeclarations(combinedProperties, className = '', variabl
   const nativeProperties = [
     'padding', 'margin', 'background', 'color', 'font-size', 'border',
     'width', 'height', 'display', 'position', 'top', 'right', 'bottom', 'left', 'box-shadow',
-    'opacity', 'overflow', 'transform', 'transition', 'filter', 'backdrop-filter'
+    'opacity', 'overflow', 'transform', 'transition', 'filter', 'backdrop-filter',
   ];
 
   Object.keys(customRules).forEach(property => {
