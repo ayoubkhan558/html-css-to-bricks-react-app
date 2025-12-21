@@ -1,5 +1,10 @@
 // CSS Variables
 :root {
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-code: var(--font-code);
+}
+
+:root {
     /* Primary (Blue Neon) */
     --color-primary: hsl(220, 85%, 62%);
     --color-primary-dark: hsl(from var(--color-primary) h s calc(l - 12));
@@ -59,4 +64,53 @@
     --border-radius: 8px;
     --border-radius-alt: 0px;
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+:root {
+    --color-primary: hsl(50, 100%, 55%);
+    --color-primary-dark: hsl(from var(--color-primary) h s calc(l - 25));
+    --color-primary-darker: hsl(from var(--color-primary) h s calc(l - 35));
+    --color-primary-light: hsl(from var(--color-primary) h s calc(l + 20));
+    --color-primary-lighter: hsl(from var(--color-primary) h s calc(l + 30));
+    --color-primary-alpha: hsl(from var(--color-primary) h s l / 0.3);
+    --color-primary-alpha-strong: hsl(from var(--color-primary) h s l / 0.55);
+
+    --color-secondary: hsl(140, 85%, 52%);
+    --color-secondary-dark: hsl(from var(--color-secondary) h s calc(l - 25));
+    --color-secondary-darker: hsl(from var(--color-secondary) h s calc(l - 35));
+    --color-secondary-light: hsl(from var(--color-secondary) h s calc(l + 20));
+    --color-secondary-lighter: hsl(from var(--color-secondary) h s calc(l + 30));
+    --color-secondary-alpha: hsl(from var(--color-secondary) h s l / 0.3);
+    --color-secondary-alpha-strong: hsl(from var(--color-secondary) h s l / 0.55);
+
+    --color-surface: hsl(240, 15%, 8%);
+    --color-surface-1: hsl(from var(--color-surface) h s calc(l - 4));
+    --color-surface-2: hsl(from var(--color-surface) h s calc(l + 12));
+    --color-surface-3: hsl(from var(--color-surface) h s calc(l + 22));
+    --color-surface-4: hsl(from var(--color-surface) h s calc(l + 32));
+
+    --color-bg: hsl(240, 20%, 4%);
+    --color-bg-dark: hsl(from var(--color-bg) h s calc(l - 5));
+    --color-bg-light: hsl(from var(--color-bg) h s calc(l + 8));
+
+    --color-border: hsl(240, 18%, 32%);
+    --color-border-dark: hsl(from var(--color-border) h s calc(l - 14));
+    --color-border-light: hsl(from var(--color-border) h s calc(l + 14));
+
+    --color-border-alt: hsl(240, 15%, 20%);
+    --color-border-alt-dark: hsl(from var(--color-border-alt) h s calc(l - 14));
+    --color-border-alt-light: hsl(from var(--color-border-alt) h s calc(l + 14));
+
+    --color-text: hsl(0, 0%, 100%);
+    --color-text-dark: hsl(from var(--color-text) h s calc(l - 18));
+    --color-text-2: hsl(from var(--color-text) h s calc(l + 8));
+
+    --color-text-dark: hsl(60, 4%, 11%);
+    --color-text-dark-1: hsl(from var(--color-text-dark) h s calc(l - 16));
+    --color-text-dark-1: hsl(from var(--color-text-dark) h s calc(l - 24));
+
+    --color-text-dark-2: hsl(0, 0%, 0%);
+    --color-shadow: hsl(0, 0%, 0% / 0.75);
+    --box-shadow: 0 4px 16px hsl(0, 0%, 0% / 0.65);
 }

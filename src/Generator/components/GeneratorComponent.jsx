@@ -4,22 +4,26 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { RiJavascriptLine, RiHtml5Line } from "react-icons/ri";
 import { FaCss3, FaCode, FaCopy, FaPlay, FaCheck, FaDownload, FaChevronDown, FaPaperPlane, FaSpinner } from "react-icons/fa6";
 import { MdOutlineSettings } from "react-icons/md";
-import { FaInfoCircle } from "react-icons/fa";
+import { FaInfoCircle, FaCog } from "react-icons/fa";
 import { VscCopy } from "react-icons/vsc";
-import AboutModal from './../../components/AboutModal/index';
-import AISettings from './../../components/AISettings/index';
-import Tooltip from '../../components/Tooltip';
+import AboutModal from '@components/AboutModal/index';
+import AISettings from '@components/AISettings/index';
+import Tooltip from '@components/Tooltip';
+import logger from '@lib/logger';
 
-import { useGenerator } from '../../contexts/GeneratorContext';
+import { useGenerator } from '@contexts/GeneratorContext';
 import { createBricksStructure } from '../utils/bricksGenerator';
 import Preview from './Preview';
 import CodeEditor from '@generator/CodeEditor';
 import StructureView from './StructureView';
 import './GeneratorComponent.scss';
 import aiModels from '@config/aiModels.json';
+import { TemplateSelector } from '@components/AITemplates';
+import AIPromptModal from '@components/AIPromptModal';
+import { QuickActionTags } from '@components/QuickActionTags';
 
 // Custom hooks
-import { useAIGeneration, useCodeFormatting, useClipboard } from './hooks';
+import { useAIGeneration, useCodeFormatting, useClipboard, useAITemplates } from './hooks';
 
 const GeneratorComponent = () => {
   const {
@@ -52,11 +56,15 @@ const GeneratorComponent = () => {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [rightPanelView, setRightPanelView] = useState('layers'); // 'layers' or 'json'
+  const [isAIPromptOpen, setIsAIPromptOpen] = useState(false);
 
   // Custom hooks
-  const aiGeneration = useAIGeneration(activeTab, html, css, js, setHtml, setCss, setJs);
   const formatting = useCodeFormatting();
   const clipboard = useClipboard();
+  const aiTemplates = useAITemplates();
+  const aiGeneration = useAIGeneration(activeTab, html, css, js, setHtml, setCss, setJs, aiTemplates);
+
+
 
   // Generate Bricks structure from current inputs
   const previewHtml = useMemo(() => {
@@ -86,6 +94,21 @@ const GeneratorComponent = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isDropdownOpen]);
+
+  // Handle quick action click - automatically trigger AI generation with template
+  const handleQuickAction = async (templateId) => {
+    // Find the template
+    const template = aiTemplates.templates.find(t => t.id === templateId);
+    if (!template) return;
+
+    // Set a descriptive prompt based on the template and trigger AI generation
+    aiGeneration.setQuickPrompt(`Apply ${template.name} to the existing code`);
+
+    // Small delay to ensure prompt is set before triggering
+    setTimeout(() => {
+      aiGeneration.handleQuickGenerate();
+    }, 50);
+  };
 
 
   useEffect(() => {
@@ -159,7 +182,7 @@ const GeneratorComponent = () => {
               </div>
             </div>
             <div className="form-control">
-              <label className="form-control__label">Selectors</label>
+              <label className="form-control__label">Merge Selectors</label>
 
               <div className="form-control__options----">
                 <span className="form-control__option">
@@ -173,7 +196,7 @@ const GeneratorComponent = () => {
                     <span className="form-control__slider"></span>
                   </label>
 
-                  <span className="form-control__text">Merge Selectors</span>
+                  {/* <span className="form-control__text"> Selectors</span> */}
                 </span>
               </div>
             </div>
@@ -284,13 +307,6 @@ const GeneratorComponent = () => {
                     <div className="code-editor__actions">
                       <button
                         className="code-editor__action"
-                        onClick={() => setIsAISettingsOpen(true)}
-                        title="AI Settings"
-                      >
-                        <MdOutlineSettings size={16} /> AI
-                      </button>
-                      <button
-                        className="code-editor__action"
                         onClick={(e) => {
                           e.stopPropagation();
                           formatting.formatCurrent(activeTab, html, css, js, setHtml, setCss, setJs);
@@ -330,79 +346,44 @@ const GeneratorComponent = () => {
                     </div>
                   </div>
 
-                  {/* Quick AI Prompt - Show always to allow key setup */}
+                  {/* Quick Action Tags - Show when code exists */}
+                  <QuickActionTags
+                    templates={aiTemplates.templates}
+                    activeTab={activeTab}
+                    hasCode={activeTab === 'html' ? !!html.trim() : activeTab === 'css' ? !!css.trim() : !!js.trim()}
+                    onActionClick={handleQuickAction}
+                    isGenerating={aiGeneration.isQuickGenerating}
+                  />
+
+                  {/* Quick AI Prompt - Show button to open modal */}
                   <div className="quick-ai-prompt">
-                    {aiGeneration.quickError && (
-                      <div className="quick-ai-error">
-                        ⚠️ {aiGeneration.quickError}
-                      </div>
-                    )}
-
-                    <div className="quick-ai-header">
-                      {/* Provider and Key Status */}
-                      <div className="quick-ai-status">
-                        <span className="provider-info">
-                          Provider: <strong>{aiGeneration.currentProvider.charAt(0).toUpperCase() + aiGeneration.currentProvider.slice(1)}</strong>
-                        </span>
-                        <span className={`key-status ${aiGeneration.hasApiKey ? 'valid' : 'invalid'}`}>
-                          {aiGeneration.hasApiKey ? '✓ Key Set' : '✗ No Key'}
-                        </span>
-                      </div>
-
-                      {/* Model Selector - Show for all providers */}
-                      <div className="quick-ai-model-selector">
-                        <label htmlFor="quick-model">Model:</label>
-                        <select
-                          id="quick-model"
-                          value={aiGeneration.selectedQuickModel}
-                          onChange={(e) => aiGeneration.setSelectedQuickModel(e.target.value)}
-                          className="quick-model-select"
-                          disabled={aiGeneration.isQuickGenerating}
-                        >
-                          {aiModels[aiGeneration.currentProvider]?.map((model) => (
-                            <option key={model.value} value={model.value}>
-                              {model.label}
-                              {/* - {model.description ? ` (${model.description})` : ''} */}
-                            </option>
-                          )) || (
-                              <option value="">No models available</option>
-                            )}
-                        </select>
-                      </div>
-
-                    </div>
-
-                    <div className="quick-ai-input">
-                      <textarea
-                        type="text"
-                        value={aiGeneration.quickPrompt}
-                        onChange={(e) => aiGeneration.setQuickPrompt(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            aiGeneration.handleQuickGenerate();
-                          }
-                        }}
-                        placeholder={aiGeneration.hasApiKey ? `Ask AI to create/modify ${activeTab.toUpperCase()} code... (e.g., ${activeTab === "html"
-                          ? '"Create a new section with a button and image"'
-                          : activeTab === "jsx"
-                            ? '"Create a React component with state"'
-                            : activeTab === "css"
-                              ? '"Change the background color to blue"'
-                              : '"Add a click event to toggle visibility"'
-                          })` : "Set API key in settings first..."}
-                        rows={3}
-                        disabled={aiGeneration.isQuickGenerating}
-                        className="quick-ai-input-field"
-                        autoComplete="off"
-                      />
+                    <div className="quick-ai-buttons">
                       <button
-                        onClick={aiGeneration.handleQuickGenerate}
-                        disabled={!aiGeneration.quickPrompt.trim() || aiGeneration.isQuickGenerating || !aiGeneration.hasApiKey}
-                        className="quick-ai-send"
-                        title="Generate/Modify Code"
+                        onClick={() => setIsAIPromptOpen(true)}
+                        className="button outline-primary quick-ai-open-button"
+                        title="Open AI Assistant"
                       >
-                        {aiGeneration.isQuickGenerating ? <FaSpinner className="spinning" /> : <FaPaperPlane />}
+                        <FaPaperPlane className="quick-ai-open-button__icon" />
+                        <div className="quick-ai-open-button__content">
+                          <span className="quick-ai-open-button__title">Ask AI</span>
+                          <span className="quick-ai-open-button__subtitle">
+                            {aiTemplates.getEnabledTemplates().length > 0
+                              ? `${aiTemplates.getEnabledTemplates().length} template${aiTemplates.getEnabledTemplates().length > 1 ? 's' : ''} selected`
+                              : 'Click to open AI assistant'
+                            }
+                          </span>
+                        </div>
+                        {aiGeneration.isQuickGenerating && (
+                          <FaSpinner className="quick-ai-open-button__spinner spinning" />
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => aiGeneration.setIsAISettingsOpen(true)}
+                        className="quick-ai-settings-button"
+                        title="AI Settings"
+                      >
+                        <FaCog />
                       </button>
                     </div>
                   </div>
@@ -518,6 +499,15 @@ const GeneratorComponent = () => {
       <AISettings
         isOpen={aiGeneration.isAISettingsOpen}
         onClose={() => aiGeneration.setIsAISettingsOpen(false)}
+      />
+
+      {/* AI Prompt Modal */}
+      <AIPromptModal
+        isOpen={isAIPromptOpen}
+        onClose={() => setIsAIPromptOpen(false)}
+        aiGeneration={aiGeneration}
+        aiTemplates={aiTemplates}
+        activeTab={activeTab}
       />
     </div>
   );
