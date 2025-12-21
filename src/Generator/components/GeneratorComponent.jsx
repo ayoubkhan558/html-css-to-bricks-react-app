@@ -20,6 +20,7 @@ import './GeneratorComponent.scss';
 import aiModels from '@config/aiModels.json';
 import { TemplateSelector } from '@components/AITemplates';
 import AIPromptModal from '@components/AIPromptModal';
+import { QuickActionTags } from '@components/QuickActionTags';
 
 // Custom hooks
 import { useAIGeneration, useCodeFormatting, useClipboard, useAITemplates } from './hooks';
@@ -93,6 +94,21 @@ const GeneratorComponent = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isDropdownOpen]);
+
+  // Handle quick action click - automatically trigger AI generation with template
+  const handleQuickAction = async (templateId) => {
+    // Find the template
+    const template = aiTemplates.templates.find(t => t.id === templateId);
+    if (!template) return;
+
+    // Set a descriptive prompt based on the template and trigger AI generation
+    aiGeneration.setQuickPrompt(`Apply ${template.name} to the existing code`);
+
+    // Small delay to ensure prompt is set before triggering
+    setTimeout(() => {
+      aiGeneration.handleQuickGenerate();
+    }, 50);
+  };
 
 
   useEffect(() => {
@@ -329,6 +345,15 @@ const GeneratorComponent = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Quick Action Tags - Show when code exists */}
+                  <QuickActionTags
+                    templates={aiTemplates.templates}
+                    activeTab={activeTab}
+                    hasCode={activeTab === 'html' ? !!html.trim() : activeTab === 'css' ? !!css.trim() : !!js.trim()}
+                    onActionClick={handleQuickAction}
+                    isGenerating={aiGeneration.isQuickGenerating}
+                  />
 
                   {/* Quick AI Prompt - Show button to open modal */}
                   <div className="quick-ai-prompt">

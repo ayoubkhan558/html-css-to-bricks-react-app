@@ -167,6 +167,19 @@ export const useAITemplates = () => {
         loadTemplates();
     }, [loadTemplates]);
 
+    /**
+     * Get quick action templates for specific tab
+     * Filters by enabled, quickAction, and appliesTo array
+     */
+    const getQuickActionTemplates = useCallback((activeTab) => {
+        return templates.filter(t =>
+            t.enabled &&
+            t.quickAction &&
+            t.appliesTo &&
+            t.appliesTo.includes(activeTab)
+        );
+    }, [templates]);
+
     return {
         templates,
         customTemplates,
@@ -178,6 +191,7 @@ export const useAITemplates = () => {
         getEnabledTemplates,
         getCombinedPrompt,
         getTemplatesByCategory,
+        getQuickActionTemplates,
         resetToDefaults,
         reload: loadTemplates
     };
