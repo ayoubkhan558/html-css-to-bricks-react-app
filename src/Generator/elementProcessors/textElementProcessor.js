@@ -1,6 +1,20 @@
 import { getElementLabel } from '@lib/bricks';
 
 /**
+ * Helper to check if element contains formatting tags
+ * @param {Node} node - The DOM node to check
+ * @returns {boolean} True if node contains formatting tags
+ */
+const hasFormattingTags = (node) => {
+  // Inline formatting tags that should trigger rich text mode
+  const formattingTags = ['strong', 'em', 'b', 'i', 'u', 's', 'mark', 'small', 'sub', 'sup', 'del', 'ins', 'code', 'kbd', 'var', 'samp', 'abbr', 'cite', 'q', 'dfn', 'span', 'a'];
+
+  // Check if any child elements are formatting tags
+  const children = Array.from(node.children || []);
+  return children.some(child => formattingTags.includes(child.tagName.toLowerCase()));
+};
+
+/**
  * Processes text-related elements (p, span, address, time, mark, blockquote)
  * @param {Node} node - The DOM node to process
  * @param {Object} element - The element object to populate
@@ -11,6 +25,7 @@ import { getElementLabel } from '@lib/bricks';
  */
 export const processTextElement = (node, element, tag, allElements, context = {}) => {
   const textContent = node.textContent.trim();
+  const hasFormatting = hasFormattingTags(node);
 
   // Handle inline elements within paragraphs
   const isInlineInParagraph = ['strong', 'em', 'small'].includes(tag) &&
@@ -33,9 +48,16 @@ export const processTextElement = (node, element, tag, allElements, context = {}
 
   // Handle standalone block elements
   if (['p', 'blockquote'].includes(tag)) {
-    element.settings.text = textContent;
-    element.name = 'text-basic';
-    element.label = getElementLabel(node, tag === 'p' ? 'Paragraph' : 'Block Quote', context);
+    // Check if element has formatting tags - if so, use rich text
+    if (hasFormatting) {
+      element.settings.text = node.innerHTML; // Use innerHTML to preserve formatting
+      element.name = 'text'; // Use rich text element
+      element.label = getElementLabel(node, tag === 'p' ? 'Paragraph' : 'Block Quote', context);
+    } else {
+      element.settings.text = textContent;
+      element.name = 'text-basic';
+      element.label = getElementLabel(node, tag === 'p' ? 'Paragraph' : 'Block Quote', context);
+    }
 
     if (tag === 'blockquote') {
       element.settings.tag = 'custom';
@@ -49,9 +71,17 @@ export const processTextElement = (node, element, tag, allElements, context = {}
   }
 
   // Default case for other elements
-  element.settings.text = textContent;
-  element.name = 'text-basic';
-  element.label = getElementLabel(node, 'Text', context);
+  // Check for formatting in inline elements as well
+  if (hasFormatting) {
+    element.settings.text = node.innerHTML;
+    element.name = 'text';
+    element.label = getElementLabel(node, 'Rich Text', context);
+  } else {
+    element.settings.text = textContent;
+    element.name = 'text-basic';
+    element.label = getElementLabel(node, 'Text', context);
+  }
+
   element.settings.tag = 'span';
   element._skipTextNodes = true;
 
