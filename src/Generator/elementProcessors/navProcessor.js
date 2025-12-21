@@ -1,14 +1,66 @@
 import { generateId } from '@lib/bricks';
 import { getElementLabel } from '@lib/bricks';
+import { matchCSSSelectorsPerClass, parseCssDeclarations } from '@generator/utils/cssParser';
+
+/**
+ * Processes CSS classes for an element and creates global classes
+ * @param {Node} node - DOM node
+ * @param {Object} options - { cssRulesMap, globalClasses, variables }
+ * @returns {Array} Array of global class IDs
+ */
+const processElementClasses = (node, options) => {
+  const { cssRulesMap, globalClasses, variables } = options;
+
+  if (!cssRulesMap || !node.classList || node.classList.length === 0) {
+    return [];
+  }
+
+  const existingClasses = Array.from(node.classList);
+  const perClassMatch = matchCSSSelectorsPerClass(node, cssRulesMap, existingClasses);
+  const { propertiesByClass, commonProperties } = perClassMatch;
+
+  const cssGlobalClassIds = [];
+
+  existingClasses.forEach((cls, index) => {
+    let targetClass = globalClasses.find(c => c.name === cls);
+    if (!targetClass) {
+      targetClass = { id: generateId(), name: cls, settings: {} };
+      globalClasses.push(targetClass);
+    }
+
+    // Get class-specific properties
+    const classProperties = propertiesByClass[cls] || {};
+
+    // For the first class, also include common properties
+    const propertiesToAssign = index === 0
+      ? { ...commonProperties, ...classProperties }
+      : classProperties;
+
+    if (Object.keys(propertiesToAssign).length > 0) {
+      const parsedSettings = parseCssDeclarations(propertiesToAssign, cls, variables);
+      Object.assign(targetClass.settings, parsedSettings);
+    }
+
+    if (!cssGlobalClassIds.includes(targetClass.id)) {
+      cssGlobalClassIds.push(targetClass.id);
+    }
+  });
+
+  return cssGlobalClassIds;
+};
 
 /**
  * Processes navigation elements into Bricks nested nav components
  * @param {Node} node - The DOM node to process
- * @param {Object} context - Optional context values (showNodeClass, etc.)
+ * @param {Object} options - { context, cssRulesMap, globalClasses, variables }
  * @returns {Array} Array of processed elements
  */
-export const processNavElement = (node, context = {}) => {
+export const processNavElement = (node, options = {}) => {
+  const { context = {}, cssRulesMap, globalClasses, variables } = options;
   const elements = []; // Array to collect all elements
+
+  // Process CSS for the nav element itself
+  const navGlobalClassIds = processElementClasses(node, options);
 
   const navElement = {
     id: generateId(),
@@ -32,7 +84,12 @@ export const processNavElement = (node, context = {}) => {
     themeStyles: {}
   };
 
-  elements.push(navElement); // Add nav element to collection
+  // Assign global classes to nav element
+  if (navGlobalClassIds.length > 0) {
+    navElement.settings._cssGlobalClasses = navGlobalClassIds;
+  }
+
+  elements.push(navElement);
 
   // Process nav items
   const itemsBlock = {
@@ -51,15 +108,37 @@ export const processNavElement = (node, context = {}) => {
     deletable: false
   };
 
-  elements.push(itemsBlock); // Add items block to collection
+  elements.push(itemsBlock);
 
-  // Process regular links
+  // Process regular links (not dropdown toggles)
   const regularLinks = Array.from(node.querySelectorAll('a:not(.dropdown-toggle):not([data-toggle="dropdown"])'));
   regularLinks.forEach(link => {
-    if (!link.closest('.dropdown-menu, .dropdown-content')) { // Skip dropdown items for now
-      const linkElement = createLinkElement(link, itemsBlock.id);
+    if (!link.closest('.dropdown-menu, .dropdown-content')) {
+      // Process CSS for link element
+      const linkGlobalClassIds = processElementClasses(link, options);
+
+      const linkElement = {
+        id: generateId(),
+        name: 'text-link',
+        parent: itemsBlock.id,
+        children: [],
+        settings: {
+          text: link.textContent.trim(),
+          link: {
+            type: 'external',
+            url: link.getAttribute('href') || '#'
+          }
+        },
+        label: 'Nav link'
+      };
+
+      // Assign global classes to link element
+      if (linkGlobalClassIds.length > 0) {
+        linkElement.settings._cssGlobalClasses = linkGlobalClassIds;
+      }
+
       itemsBlock.children.push(linkElement.id);
-      elements.push(linkElement); // Add link element to collection
+      elements.push(linkElement);
     }
   });
 
@@ -77,7 +156,7 @@ export const processNavElement = (node, context = {}) => {
       label: 'Dropdown'
     };
 
-    elements.push(dropdownElement); // Add dropdown element to collection
+    elements.push(dropdownElement);
 
     const dropdownContent = {
       id: generateId(),
@@ -95,14 +174,36 @@ export const processNavElement = (node, context = {}) => {
       deletable: false
     };
 
-    elements.push(dropdownContent); // Add dropdown content to collection
+    elements.push(dropdownContent);
 
     // Process dropdown links
     const dropdownLinks = Array.from(dropdown.querySelectorAll('.dropdown-menu a, .dropdown-content a'));
     dropdownLinks.forEach(link => {
-      const linkElement = createLinkElement(link, dropdownContent.id);
+      // Process CSS for dropdown link
+      const linkGlobalClassIds = processElementClasses(link, options);
+
+      const linkElement = {
+        id: generateId(),
+        name: 'text-link',
+        parent: dropdownContent.id,
+        children: [],
+        settings: {
+          text: link.textContent.trim(),
+          link: {
+            type: 'external',
+            url: link.getAttribute('href') || '#'
+          }
+        },
+        label: 'Nav link'
+      };
+
+      // Assign global classes
+      if (linkGlobalClassIds.length > 0) {
+        linkElement.settings._cssGlobalClasses = linkGlobalClassIds;
+      }
+
       dropdownContent.children.push(linkElement.id);
-      elements.push(linkElement); // Add dropdown link to collection
+      elements.push(linkElement);
     });
 
     dropdownElement.children.push(dropdownContent.id);
@@ -132,29 +233,11 @@ export const processNavElement = (node, context = {}) => {
     label: 'Toggle (Open: Mobile)'
   };
 
-  elements.push(closeToggle); // Add close toggle to collection
-  elements.push(openToggle); // Add open toggle to collection
+  elements.push(closeToggle);
+  elements.push(openToggle);
 
   itemsBlock.children.push(closeToggle.id);
   navElement.children.push(itemsBlock.id, openToggle.id);
 
-  return elements; // Return all elements, not just the nav element
-};
-
-// Helper function to create link elements
-const createLinkElement = (link, parentId) => {
-  return {
-    id: generateId(),
-    name: 'text-link',
-    parent: parentId,
-    children: [],
-    settings: {
-      text: link.textContent.trim(),
-      link: {
-        type: 'external',
-        url: link.getAttribute('href') || '#'
-      }
-    },
-    label: 'Nav link'
-  };
+  return elements;
 };

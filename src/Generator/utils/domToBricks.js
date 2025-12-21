@@ -245,7 +245,12 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
     node.classList.contains('breadcrumb') ||
     node.classList.contains('pagination')
   ))) {
-    return processNavElement(node, options.context || {});
+    return processNavElement(node, {
+      context: options.context || {},
+      cssRulesMap: cssRulesMap,
+      globalClasses: globalClasses,
+      variables: variables
+    });
   }
   // Structure/layout elements
   else if (tag === 'section' ||
@@ -675,7 +680,7 @@ const convertHtmlToBricks = (html, css, options) => {
     if (content.length === 0) {
       processNodes(doc.head.childNodes);
     }
-
+    // Add allElements to content (for nested elements from special processors)
     allElements.forEach(el => {
       if (!content.some(c => c.id === el.id)) {
         content.push(el);
