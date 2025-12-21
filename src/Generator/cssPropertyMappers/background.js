@@ -201,16 +201,17 @@ export const background = (...args) => {
   let position, size;
 
   values.forEach(value => {
-    if (isColor(value)) {
-      properties['background-color'] = value;
-    } else if (value.includes('url(') || value.includes('-gradient(')) {
+    // Check specific keywords first (most explicit)
+    if (value.includes('url(') || value.includes('-gradient(')) {
       properties['background-image'] = value;
-    } else if (['repeat', 'repeat-x', 'repeat-y', 'no-repeat', 'space', 'round'].includes(value)) {
+    }
+    else if (['repeat', 'repeat-x', 'repeat-y', 'no-repeat', 'space', 'round'].includes(value)) {
       properties['background-repeat'] = value;
-    } else if (['scroll', 'fixed', 'local'].includes(value)) {
+    }
+    else if (['scroll', 'fixed', 'local'].includes(value)) {
       properties['background-attachment'] = value;
-    } else if (['border-box', 'padding-box', 'content-box'].includes(value)) {
-      // This could be origin or clip, we'll assign to both for simplicity
+    }
+    else if (['border-box', 'padding-box', 'content-box'].includes(value)) {
       properties['background-origin'] = value;
       if (value === 'text') {
         properties['-webkit-background-clip'] = 'text';
@@ -218,7 +219,8 @@ export const background = (...args) => {
       } else {
         properties['background-clip'] = value;
       }
-    } else if (value.includes('/') || ['center', 'top', 'bottom', 'left', 'right'].some(pos => value.includes(pos))) {
+    }
+    else if (value.includes('/') || ['center', 'top', 'bottom', 'left', 'right'].some(pos => value.includes(pos))) {
       // Handle position and size
       if (value.includes('/')) {
         [position, size] = value.split('/').map(s => s.trim());
@@ -227,6 +229,10 @@ export const background = (...args) => {
       } else {
         properties['background-position'] = value;
       }
+    }
+    // Treat anything else as a color (including named colors, hex, rgb, hsl, css variables)
+    else {
+      properties['background-color'] = value;
     }
   });
 
