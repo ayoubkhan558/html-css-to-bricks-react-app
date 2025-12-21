@@ -17,26 +17,26 @@ export const transformsMappers = {
         case 'translateY':
         case 'translateZ':
         case 'translate3d':
-          settings._transform.translate = settings._transform.translate || {};
+          // Don't create empty translate object - set translateX/Y/Z directly
           if (func === 'translate') {
             // FIX: Handle comma-separated values properly
             const argsArray = cleanArgs.split(/[,\s]+/).filter(arg => arg.trim() !== '');
             const [x = '0', y = '0'] = argsArray;
-            settings._transform.translate.x = parseValue(x);
-            settings._transform.translate.y = parseValue(y);
+            settings._transform.translateX = parseValue(x);
+            settings._transform.translateY = parseValue(y);
           } else if (func === 'translateX') {
-            settings._transform.translate.x = parseValue(cleanArgs);
+            settings._transform.translateX = parseValue(cleanArgs);
           } else if (func === 'translateY') {
-            settings._transform.translate.y = parseValue(cleanArgs);
+            settings._transform.translateY = parseValue(cleanArgs);
           } else if (func === 'translateZ') {
-            settings._transform.translate.z = parseValue(cleanArgs);
+            settings._transform.translateZ = parseValue(cleanArgs);
           } else if (func === 'translate3d') {
             // FIX: Handle comma-separated values properly
             const argsArray = cleanArgs.split(/[,\s]+/).filter(arg => arg.trim() !== '');
             const [x = '0', y = '0', z = '0'] = argsArray;
-            settings._transform.translate.x = parseValue(x);
-            settings._transform.translate.y = parseValue(y);
-            settings._transform.translate.z = parseValue(z);
+            settings._transform.translateX = parseValue(x);
+            settings._transform.translateY = parseValue(y);
+            settings._transform.translateZ = parseValue(z);
           }
           break;
 
