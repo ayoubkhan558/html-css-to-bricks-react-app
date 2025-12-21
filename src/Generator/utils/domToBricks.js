@@ -574,6 +574,14 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
 
     if (cssGlobalClasses.length > 0) {
       element.settings._cssGlobalClasses = cssGlobalClasses;
+
+      // Update label to use class name if showNodeClass is enabled
+      if (options.context?.showNodeClass) {
+        const firstClass = globalClasses.find(c => c.id === cssGlobalClasses[0]);
+        if (firstClass) {
+          element.label = firstClass.name;
+        }
+      }
     }
   }
 

@@ -107,36 +107,7 @@ img {
 ```
 
 ```css
-.grid-container {
-  display: grid;
-  grid-template-columns: 200px 1fr;
-  grid-template-rows: auto 1fr auto;
-  grid-gap: 16px;
-  min-height: 100vh;
-}
 
-.header {
-  grid-column: 1 / -1;
-  background: #2c3e50;
-  color: white;
-  padding: 20px;
-}
-
-.sidebar {
-  background: #ecf0f1;
-  padding: 20px;
-}
-
-.main {
-  padding: 20px;
-}
-
-.footer {
-  grid-column: 1 / -1;
-  background: #34495e;
-  color: white;
-  padding: 15px;
-}
 ```
 
 **Expected Output**: Grid layout with proper template columns/rows.
