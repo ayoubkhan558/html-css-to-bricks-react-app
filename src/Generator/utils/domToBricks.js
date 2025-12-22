@@ -44,7 +44,7 @@ const hasContainerClasses = (node) => {
 const handleInlineStyles = (node, element, globalClasses, variables = {}, options = {}) => {
 
   const styleAttr = node.getAttribute('style');
-  logger.log('111 Inline styles for element:', options?.context?.inlineStyleHandling);
+  logger.log(' Inline styles for element:', options?.context?.inlineStyleHandling);
   if (!styleAttr || !styleAttr.trim()) return;
 
   switch (options?.context?.inlineStyleHandling) {
@@ -627,6 +627,8 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
  * Converts HTML and CSS to Bricks structure
  */
 const convertHtmlToBricks = (html, css, options) => {
+  logger.log('convertHtmlToBricks called', { file: 'domToBricks.js', step: 'Start' });
+
   try {
     let doc;
     if (typeof window !== 'undefined' && typeof window.DOMParser !== 'undefined') {
@@ -639,7 +641,10 @@ const convertHtmlToBricks = (html, css, options) => {
       if (typeof global.Node === 'undefined') global.Node = dom.window.Node;
     }
 
-    const { cssMap, variables, rootStyles, keyframes } = buildCssMap(css);
+    const { cssMap, variables, rootStyles, keyframes, mediaQueries } = buildCssMap(css);
+
+    logger.log('mediaQueries after buildCssMap', { file: 'domToBricks.js', step: 'CSS Parsing' }, mediaQueries);
+    logger.log('mediaQueries type and length', { file: 'domToBricks.js', step: 'CSS Parsing' }, `type: ${typeof mediaQueries}, isArray: ${Array.isArray(mediaQueries)}, length: ${mediaQueries?.length}`);
 
     const content = [];
     const globalClasses = [];
@@ -687,36 +692,54 @@ const convertHtmlToBricks = (html, css, options) => {
       }
     });
 
-    if (rootStyles) {
-      // Find the first top-level element's class (parent element)
+    // Helper to add CSS to first element's class or create new class
+    const addCustomCss = (cssContent) => {
       let targetClass = null;
       if (content.length > 0 && content[0].settings._cssGlobalClasses) {
         const firstElementClassId = content[0].settings._cssGlobalClasses[0];
         targetClass = globalClasses.find(c => c.id === firstElementClassId);
       }
 
-      // If we found the first element's class, add root styles there
-      // Otherwise fallback to first global class or create new one
       if (targetClass) {
         if (!targetClass.settings._cssCustom) {
           targetClass.settings._cssCustom = '';
         }
-        targetClass.settings._cssCustom = `${rootStyles}\n${targetClass.settings._cssCustom}`.trim();
+        targetClass.settings._cssCustom = `${targetClass.settings._cssCustom}\n${cssContent}`.trim();
       } else if (globalClasses.length > 0) {
         const firstClass = globalClasses[0];
         if (!firstClass.settings._cssCustom) {
           firstClass.settings._cssCustom = '';
         }
-        firstClass.settings._cssCustom = `${rootStyles}\n${firstClass.settings._cssCustom}`.trim();
+        firstClass.settings._cssCustom = `${firstClass.settings._cssCustom}\n${cssContent}`.trim();
       } else {
         globalClasses.push({
           id: generateId(),
           name: 'custom-css',
           settings: {
-            _cssCustom: rootStyles,
+            _cssCustom: cssContent,
           },
         });
       }
+    };
+
+    // Add root styles
+    if (rootStyles) {
+      logger.log('Adding root styles to custom CSS');
+      addCustomCss(rootStyles);
+    }
+
+    // Add media queries as custom CSS
+    logger.log('Media queries check', { file: 'domToBricks.js', step: 'Add Custom CSS' }, `count: ${mediaQueries ? mediaQueries.length : 0}, globalClasses: ${globalClasses.length}, content: ${content.length}`);
+    logger.log('Media queries array', { file: 'domToBricks.js', step: 'Add Custom CSS' }, mediaQueries);
+
+    if (mediaQueries && mediaQueries.length > 0) {
+      const mediaQueryCSS = mediaQueries.join('\n\n');
+      logger.log('Joined media query CSS', { file: 'domToBricks.js', step: 'Add Custom CSS' }, mediaQueryCSS.substring(0, 100) + '...');
+      logger.log('Calling addCustomCss with media queries', { file: 'domToBricks.js', step: 'Add Custom CSS' });
+      addCustomCss(mediaQueryCSS);
+      logger.log('addCustomCss completed', { file: 'domToBricks.js', step: 'Add Custom CSS' });
+    } else {
+      logger.log('No media queries to add', { file: 'domToBricks.js', step: 'Add Custom CSS' }, 'mediaQueries is empty/undefined');
     }
 
     // Handle @keyframes rules

@@ -57,7 +57,7 @@ export class OpenRouterProvider extends BaseProvider {
 
             return this.extractCode(text);
         } catch (error) {
-            console.error('OpenRouter generation error:', error);
+            logger.error('OpenRouter generation error:', error);
             throw error;
         }
     }

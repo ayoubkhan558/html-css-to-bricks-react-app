@@ -55,7 +55,7 @@ export class OpenAiProvider extends BaseProvider {
 
             return this.extractCode(text);
         } catch (error) {
-            console.error('OpenAI generation error:', error);
+            logger.error('OpenAI generation error:', error);
             throw error;
         }
     }

@@ -115,7 +115,7 @@ const GeneratorComponent = () => {
     try {
       if (html.trim()) {
         const includeJs = activeTab === 'js';
-        // console.log('Creating bricks structure with context:', { showNodeClass, inlineStyleHandling });
+        // logger.log('Creating bricks structure with context:', { showNodeClass, inlineStyleHandling });
         const result = createBricksStructure(html, css, includeJs ? js : '', {
           context: {
             showNodeClass,

@@ -51,7 +51,7 @@ export class GeminiProvider extends BaseProvider {
 
             return this.extractCode(text);
         } catch (error) {
-            console.error('Gemini generation error:', error);
+            logger.error('Gemini generation error:', error);
             throw error;
         }
     }

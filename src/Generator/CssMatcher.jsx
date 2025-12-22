@@ -104,7 +104,7 @@ const CSSHTMLAnalyzer = () => {
         }
       });
     } catch (error) {
-      console.warn('CSS parsing error:', error);
+      logger.warn('CSS parsing error:', error);
     }
 
     return selectors;
@@ -167,7 +167,7 @@ const CSSHTMLAnalyzer = () => {
 
       setAnalysis(elementAnalysis);
     } catch (error) {
-      console.error('Analysis error:', error);
+      logger.error('Analysis error:', error);
     }
   };
 

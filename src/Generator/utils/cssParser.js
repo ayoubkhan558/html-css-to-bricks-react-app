@@ -510,8 +510,8 @@ export function matchCSSSelectors(element, cssMap) {
         const parsedProperties = parseProperties(properties);
         Object.assign(combinedProperties, parsedProperties);
 
-        // console.log(`Element matched by: ${selector}`);
-        // console.log('Properties:', parsedProperties);
+        // logger.log(`Element matched by: ${selector}`);
+        // logger.log('Properties:', parsedProperties);
       }
     } catch (error) {
       logger.warn(`Error processing selector: ${selector}`, error);
@@ -713,50 +713,11 @@ export function buildCssMap(cssText) {
       parseValue: true
     });
 
-    // Walk the AST to extract rules
-    csstree.walk(ast, {
-      visit: 'Rule',
-      enter(node) {
-        // Generate selector string
-        const selector = csstree.generate(node.prelude);
-
-        // Generate declarations string
-        const declarations = [];
-        if (node.block && node.block.children) {
-          node.block.children.forEach(child => {
-            if (child.type === 'Declaration') {
-              const property = child.property;
-              const value = csstree.generate(child.value);
-              declarations.push(`${property}: ${value}`);
-
-              // Extract CSS variables from :root
-              if (selector === ':root' && property.startsWith('--')) {
-                variables[property] = value;
-              }
-            }
-          });
-        }
-
-        const propertiesString = declarations.join('; ');
-
-        // Handle multiple selectors separated by comma
-        selector.split(',').forEach(sel => {
-          const trimmedSelector = sel.trim();
-          if (trimmedSelector) {
-            map[trimmedSelector] = propertiesString;
-
-            if (trimmedSelector === ':root') {
-              rootStyles.push(propertiesString);
-            }
-          }
-        });
-      }
-    });
-
-    // Extract @keyframes rules
+    // Extract @keyframes and @media rules first
     csstree.walk(ast, {
       visit: 'Atrule',
       enter(node) {
+        logger.log('Found Atrule', { file: 'cssParser.js', step: 'Parse @-rules' }, node.name);
         if (node.name === 'keyframes' || node.name === '-webkit-keyframes') {
           const animationName = node.prelude ? csstree.generate(node.prelude) : '';
           const fullRule = csstree.generate(node);
@@ -765,25 +726,74 @@ export function buildCssMap(cssText) {
             rule: fullRule
           });
         }
-        // Store media queries for future use
-        if (node.name === 'media') {
-          const mediaQuery = node.prelude ? csstree.generate(node.prelude) : '';
-          const rules = csstree.generate(node.block);
-          mediaQueries.push({
-            query: mediaQuery,
-            rules: rules
-          });
+        // Store media queries as full CSS blocks
+        else if (node.name === 'media') {
+          const fullMediaRule = csstree.generate(node);
+          logger.log('Captured media query', { file: 'cssParser.js', step: 'Parse @-rules' }, fullMediaRule);
+          mediaQueries.push(fullMediaRule);
         }
       }
     });
 
+    // Process only top-level rules (not inside @media)
+    // Walk through ast.children directly to avoid nested rules
+    if (ast.children) {
+      ast.children.forEach(child => {
+        // Only process Rule nodes at top level (skip Atrule like @media, @keyframes)
+        if (child.type === 'Rule') {
+          // Generate selector string
+          const selector = csstree.generate(child.prelude);
+
+          // Generate declarations string
+          const declarations = [];
+          if (child.block && child.block.children) {
+            child.block.children.forEach(decl => {
+              if (decl.type === 'Declaration') {
+                const property = decl.property;
+                const value = csstree.generate(decl.value);
+                declarations.push(`${property}: ${value}`);
+
+                // Extract CSS variables from :root
+                if (selector === ':root' && property.startsWith('--')) {
+                  variables[property] = value;
+                }
+              }
+            });
+          }
+
+          const propertiesString = declarations.join('; ');
+
+          // Handle multiple selectors separated by comma
+          selector.split(',').forEach(sel => {
+            const trimmedSelector = sel.trim();
+            if (trimmedSelector) {
+              map[trimmedSelector] = propertiesString;
+
+              if (trimmedSelector === ':root') {
+                rootStyles.push(propertiesString);
+              }
+            }
+          });
+        }
+      });
+    }
+
   } catch (error) {
     // Log error and return empty result - css-tree handles most cases reliably
     logger.error('CSS parsing failed', error);
-    return { cssMap: {}, variables: {}, rootStyles: '', keyframes: [] };
+    return { cssMap: {}, variables: {}, rootStyles: '', keyframes: [], mediaQueries: [] };
   }
 
   // Join all root styles with semicolons to maintain valid CSS
   const combinedRootStyles = rootStyles.length > 0 ? `:root {\n  ${rootStyles.join(';\n  ')};\n}` : '';
-  return { cssMap: map, variables, rootStyles: combinedRootStyles, keyframes };
+
+  logger.log('buildCssMap returning', { file: 'cssParser.js', step: 'Build CSS Map' }, {
+    cssMapKeys: Object.keys(map),
+    variablesCount: Object.keys(variables).length,
+    keyframesCount: keyframes.length,
+    mediaQueriesCount: mediaQueries.length,
+    mediaQueries: mediaQueries
+  });
+
+  return { cssMap: map, variables, rootStyles: combinedRootStyles, keyframes, mediaQueries };
 }

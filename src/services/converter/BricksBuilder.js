@@ -33,6 +33,11 @@ export class BricksBuilder {
             this.addKeyframes(cssContext.keyframes);
         }
 
+        // Add media queries if present
+        if (cssContext.mediaQueries && cssContext.mediaQueries.length > 0) {
+            this.addMediaQueries(cssContext.mediaQueries);
+        }
+
         return this.getStructure();
     }
 
@@ -113,6 +118,33 @@ export class BricksBuilder {
                 name: 'animations',
                 settings: {
                     _cssCustom: keyframesCSS
+                }
+            });
+        }
+    }
+
+    /**
+     * Adds media queries to the first global class
+     * @param {Array} mediaQueries - Media queries array
+     */
+    addMediaQueries(mediaQueries) {
+        if (!mediaQueries || mediaQueries.length === 0) return;
+
+        const mediaQueryCSS = mediaQueries.join('\n\n');
+        const targetClass = this.getFirstTopLevelClass();
+
+        if (targetClass) {
+            if (!targetClass.settings._cssCustom) {
+                targetClass.settings._cssCustom = '';
+            }
+            targetClass.settings._cssCustom = `${targetClass.settings._cssCustom}\n\n${mediaQueryCSS}`.trim();
+        } else {
+            // Create a new class for media queries if none exists
+            this.globalClasses.push({
+                id: generateId(),
+                name: 'media-queries',
+                settings: {
+                    _cssCustom: mediaQueryCSS
                 }
             });
         }

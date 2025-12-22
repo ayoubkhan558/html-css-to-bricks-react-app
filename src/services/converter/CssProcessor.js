@@ -13,6 +13,7 @@ export class CssProcessor {
         this.variables = {};
         this.rootStyles = '';
         this.keyframes = [];
+        this.mediaQueries = [];
     }
 
     /**
@@ -32,10 +33,11 @@ export class CssProcessor {
             this.variables = result.variables || {};
             this.rootStyles = result.rootStyles || '';
             this.keyframes = result.keyframes || [];
+            this.mediaQueries = result.mediaQueries || [];
 
             return this.getContext();
         } catch (error) {
-            console.error('CSS parsing error:', error);
+            logger.error('CSS parsing error:', error);
             return this.getEmptyContext();
         }
     }
@@ -49,7 +51,8 @@ export class CssProcessor {
             cssMap: this.cssMap,
             variables: this.variables,
             rootStyles: this.rootStyles,
-            keyframes: this.keyframes
+            keyframes: this.keyframes,
+            mediaQueries: this.mediaQueries
         };
     }
 
@@ -62,7 +65,8 @@ export class CssProcessor {
             cssMap: {},
             variables: {},
             rootStyles: '',
-            keyframes: []
+            keyframes: [],
+            mediaQueries: []
         };
     }
 
@@ -150,6 +154,14 @@ export class CssProcessor {
     }
 
     /**
+     * Gets media queries
+     * @returns {Array} Media queries array
+     */
+    getMediaQueries() {
+        return this.mediaQueries;
+    }
+
+    /**
      * Resets the processor state
      */
     reset() {
@@ -157,5 +169,6 @@ export class CssProcessor {
         this.variables = {};
         this.rootStyles = '';
         this.keyframes = [];
+        this.mediaQueries = [];
     }
 }
