@@ -42,7 +42,7 @@
    }
 
    &__description {
-     font-size: 0.9375rem;
+     font-size: var(--text-sm);
      color: #9fa1a4;
      margin: 0;
      line-height: 1.5;
@@ -216,7 +216,7 @@
 
    &__button {
      padding: 0.75rem 1.5rem;
-     font-size: 0.9375rem;
+     font-size: var(--text-sm);
      border: none;
      border-radius: 6px;
      background: #ffcd1e;
@@ -285,7 +285,7 @@
        display: inline-flex;
        align-items: center;
        justify-content: space-between;
-       font-size: 0.9375rem;
+       font-size: var(--text-sm);
        margin-bottom: 1rem;
        color: #e0e0e0;
        cursor: pointer;
@@ -1159,7 +1159,7 @@
 
    p {
      margin: 0;
-     font-size: 0.9375rem;
+     font-size: var(--text-sm);
    }
  }
 
@@ -1601,4 +1601,41 @@
  [data-copied="true"] {
    background: var(--color-accent) !important;
    animation: fadeOut 2s ease 1s forwards;
+ }
+
+
+ //  info panel 
+ .info-sidebar {
+   background-color: var(--color-surface-4);
+   color: var(--color-text);
+   display: flex;
+   justify-content: flex-end;
+   gap: 15px;
+   padding: 12px 12px;
+
+   &__wrap {
+     display: flex;
+     align-items: center;
+     gap: 12px;
+
+     .info-sidebar__btn {
+       padding: 4px 12px;
+       line-height: 1;
+       text-decoration: none;
+
+       &:hover {
+         background-color: var(--color-primary-dark);
+       }
+
+       &:focus {
+         outline: none;
+       }
+     }
+
+     .info-sidebar__text {
+       font-size: 0.75rem;
+       color: var(--color-text-2);
+       font-weight: 500;
+     }
+   }
  }

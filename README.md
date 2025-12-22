@@ -5,7 +5,7 @@ A powerful web-based tool that converts HTML, CSS, and JavaScript code into Bric
 ## 🚀 Features
 
 ### Core Conversion
-- **HTML to Bricks** – Converts raw HTML into Bricks Builder's JSON structure with proper element hierarchy
+- **HTML to Bricks** – Converts raw HTML into Bricks Builder's JSON structure with proper element hierarchy.
 - **CSS Processing** – Transforms CSS styles into Bricks-compatible format with support for:
   - Typography (font-size, font-weight, color, line-height, etc.)
   - Layout (flexbox, grid, positioning, spacing)
@@ -14,7 +14,7 @@ A powerful web-based tool that converts HTML, CSS, and JavaScript code into Bric
   - Transforms and transitions
   - Filters and effects
   - Pseudo-classes (:hover, :focus, :active)
-- **JavaScript Integration** – Optionally include custom JS as a code element
+- **JavaScript Integration** – Optionally include custom JS as a code element.
 
 ### Element Support
 - **Structure**: Sections, Containers, Divs
@@ -27,11 +27,11 @@ A powerful web-based tool that converts HTML, CSS, and JavaScript code into Bric
 - **Links & Buttons**: With proper link settings
 
 ### Style Handling Options
-| Mode | Description |
-|------|-------------|
-| **Skip** | Ignores inline styles completely |
-| **Inline** | Preserves styles as inline attributes |
-| **Class** | Converts styles to Bricks global classes (recommended) |
+| Mode     | Description                                              |
+|----------|----------------------------------------------------------|
+| **Skip** | Ignores inline styles completely                          |
+| **Inline** | Preserves styles as inline attributes                   |
+| **Class** | Converts styles to Bricks global classes (recommended)   |
 
 ### AI Code Generation
 Generate HTML/CSS code using AI providers:
@@ -48,96 +48,128 @@ Generate HTML/CSS code using AI providers:
 
 ---
 
-## 🛠️ Installation
+## Source Directory (`src/`)
 
-```bash
-# Clone the repository
-git clone https://github.com/ayoubkhan558/brickify.git
+- **App Components**: Core React components such as `App.jsx` and `App.scss`.
+- **Generator Module**: Handles the conversion logic (HTML → Bricks JSON) in files like `bricksGenerator.js` and `domToBricks.js`.
+- **Element Processors**: Specialized processors for elements like buttons, forms, and images (e.g., `buttonProcessor.js`, `formProcessor.js`).
+- **CSS Mappers**: Files like `background.js` and `layout-spacing.js` convert CSS rules to Bricks format.
+- **Preview & Structure View**: Real-time UI components for preview and structure tree.
 
-# Navigate to project
-cd brickify
-
-# Install dependencies
-yarn install
-
-# Start development server
-yarn dev
-```
+### Core Utilities
+- **CSS Parser**: Converts CSS into a manageable map for Bricks conversion.
+- **DOM Traversal**: Walks the DOM to map elements to Bricks-compatible nodes.
+- **JS Processing**: Optionally integrates JS into the Bricks JSON output.
 
 ---
+
+## AI Integration
+
+Generate code with the help of AI through multiple provider options:
+- **Google Gemini**: Fast and free with an API key.
+- **OpenRouter**: Free models with no rate limits.
+- **OpenAI**: GPT-4o-mini and other models available.
+
+---
+
+## Technology Stack
+
+- **Frontend**: React 19, Vite 6
+- **Styling**: Sass, CSS Modules
+- **Code Editor**: `@uiw/react-codemirror` for HTML/CSS editing
+- **Testing**: Vitest
+- **AI Integration**: OpenAI, Google Gemini, OpenRouter APIs
+
+---
+
+## Development & Build Commands
+
+- **Start dev server**: `yarn dev`
+- **Build for production**: `yarn build`
+- **Preview production**: `yarn preview`
+- **Run linter**: `yarn lint`
+- **Run tests**: `yarn test`
+- **Run tests in watch mode**: `yarn test:watch`
+
+---
+
+## Code Quality Findings
+
+### Areas for Improvement
+- **Performance**: Memoize `getCssPropMappers()` and optimize CSS selector matching.
+- **Code Cleanup**: Remove unused imports, debug logs, and redundant functions like `convertStylesToClass()`.
+- **Architectural Suggestions**:
+  - Centralize property mappers.
+  - Consider adding TypeScript for better maintainability.
+  - Increase unit test coverage.
+
+### Recently Fixed Issues
+- **SVG Class Mapping**: Fixed issue where SVG elements didn’t receive correct CSS classes.
+
+---
+
+## Suggested Directory Additions
+```cmd
+For scalability, consider adding:
+src/hooks/ # Custom hooks for state management
+src/constants/ # Constants and enums (e.g., CSS modes)
+src/types/ # JSDoc or TypeScript definitions
+src/fixtures/ # Sample HTML/CSS/JS for testing
+tests/ # Unit and integration tests
+e2e/ # End-to-end tests
+```
+
+
+## Know Issues
+
+- Media queries are preserved but not converted to Bricks breakpoints.
+- Nested elements like sliders/navbars/forms may not convert correctly.
+- Some complex CSS selectors are added as custom CSS.
+- Some complex JavaScript code is added as custom JS.
+
 
 ## 📋 Usage
 
-1. **Paste your HTML** into the HTML editor tab
-2. **Add CSS** (optional) in the CSS tab
-3. **Add JavaScript** (optional) in the JS tab
-4. Configure output options as needed
-5. Click **Copy to Clipboard**
-6. In Bricks Builder, use **Cmd/Ctrl + Shift + V** to paste
-
----
-
-## 🔧 Development
-
-### Commands
-| Command | Description |
-|---------|-------------|
-| `yarn dev` | Start development server |
-| `yarn build` | Build for production |
-| `yarn preview` | Preview production build |
-| `yarn lint` | Run ESLint |
-| `yarn test` | Run tests |
-| `yarn test:watch` | Run tests in watch mode |
-
-### Tech Stack
-- **React 19** – UI framework
-- **Vite 6** – Build tool
-- **Sass** – Styling
-- **CodeMirror** – Code editor
-- **Vitest** – Testing
-
----
+- Paste your HTML into the HTML editor tab
+- Add CSS (optional) in the CSS tab
+- Add JavaScript (optional) in the JS tab
+- Configure output options as needed
+- Click Copy to Clipboard
+- In Bricks Builder, use Cmd/Ctrl + Shift + V to paste
 
 ## ✅ Roadmap
 
 ### Completed
-- [x] Inline styles to classes conversion
-- [x] Bricks inner selector support
-- [x] CSS animations and transitions
-- [x] Complex CSS selectors
-- [x] Pseudo-classes (:hover, :focus, etc.)
-- [x] SVG element support with classes
-- [x] AI code generation integration
-- [x] Multiple AI provider support
+
+- Inline styles to classes conversion
+- Bricks inner selector support
+- CSS animations and transitions
+- Complex CSS selectors
+- Pseudo-classes (:hover, :focus, etc.)
+
+- SVG element support with classes
+- AI code generation integration
+- Multiple AI provider support
 
 ### Planned
-- [ ] Media query handling
-- [ ] Pseudo-elements (::before, ::after)
 
----
+- Media query handling
+- Pseudo-elements (::before, ::after)
 
 ## 🐛 Known Issues
 
-- Nested forms may not convert correctly
-- Some complex CSS selectors are added as custom CSS
-- Media queries are preserved but not converted to Bricks breakpoints
+- Nested forms may not convert correctly.
+- Some complex CSS selectors are added as custom CSS.
 
----
+Media queries are preserved but not converted to Bricks breakpoints.
 
 ## 📄 License
 
 MIT License - see LICENSE file for details.
 
----
-
 ## 👤 Author
 
-Created by [Ayoub Khan](https://mayoub.dev)
-
-[![Portfolio](https://img.shields.io/badge/Portfolio-mayoub.dev-4CAF50?style=flat-square)](https://mayoub.dev)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-ayoubkhan558-0077B5?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/ayoubkhan558)
-
----
+Created by Ayoub Khan
 
 ## 🤝 Contributing
 

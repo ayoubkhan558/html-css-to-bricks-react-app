@@ -22,11 +22,11 @@ const TemplateSelector = ({ templates, onToggle }) => {
     );
 
     // Grouped view - now flat without categories
-    // Only render templates that are enabled
+    // Show all templates so users can enable/disable them
     return (
         <div className="template-selector">
             <div className="template-selector__grid">
-                {templates.filter(template => template.enabled).map(renderCheckbox)}
+                {templates.map(renderCheckbox)}
             </div>
         </div>
     );

@@ -627,8 +627,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
  * Converts HTML and CSS to Bricks structure
  */
 const convertHtmlToBricks = (html, css, options) => {
-  logger.log('convertHtmlToBricks called', { file: 'domToBricks.js', step: 'Start' });
-
   try {
     let doc;
     if (typeof window !== 'undefined' && typeof window.DOMParser !== 'undefined') {
@@ -642,9 +640,6 @@ const convertHtmlToBricks = (html, css, options) => {
     }
 
     const { cssMap, variables, rootStyles, keyframes, mediaQueries } = buildCssMap(css);
-
-    logger.log('mediaQueries after buildCssMap', { file: 'domToBricks.js', step: 'CSS Parsing' }, mediaQueries);
-    logger.log('mediaQueries type and length', { file: 'domToBricks.js', step: 'CSS Parsing' }, `type: ${typeof mediaQueries}, isArray: ${Array.isArray(mediaQueries)}, length: ${mediaQueries?.length}`);
 
     const content = [];
     const globalClasses = [];
@@ -724,22 +719,13 @@ const convertHtmlToBricks = (html, css, options) => {
 
     // Add root styles
     if (rootStyles) {
-      logger.log('Adding root styles to custom CSS');
       addCustomCss(rootStyles);
     }
 
     // Add media queries as custom CSS
-    logger.log('Media queries check', { file: 'domToBricks.js', step: 'Add Custom CSS' }, `count: ${mediaQueries ? mediaQueries.length : 0}, globalClasses: ${globalClasses.length}, content: ${content.length}`);
-    logger.log('Media queries array', { file: 'domToBricks.js', step: 'Add Custom CSS' }, mediaQueries);
-
     if (mediaQueries && mediaQueries.length > 0) {
       const mediaQueryCSS = mediaQueries.join('\n\n');
-      logger.log('Joined media query CSS', { file: 'domToBricks.js', step: 'Add Custom CSS' }, mediaQueryCSS.substring(0, 100) + '...');
-      logger.log('Calling addCustomCss with media queries', { file: 'domToBricks.js', step: 'Add Custom CSS' });
       addCustomCss(mediaQueryCSS);
-      logger.log('addCustomCss completed', { file: 'domToBricks.js', step: 'Add Custom CSS' });
-    } else {
-      logger.log('No media queries to add', { file: 'domToBricks.js', step: 'Add Custom CSS' }, 'mediaQueries is empty/undefined');
     }
 
     // Handle @keyframes rules

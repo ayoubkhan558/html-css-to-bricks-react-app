@@ -717,7 +717,6 @@ export function buildCssMap(cssText) {
     csstree.walk(ast, {
       visit: 'Atrule',
       enter(node) {
-        logger.log('Found Atrule', { file: 'cssParser.js', step: 'Parse @-rules' }, node.name);
         if (node.name === 'keyframes' || node.name === '-webkit-keyframes') {
           const animationName = node.prelude ? csstree.generate(node.prelude) : '';
           const fullRule = csstree.generate(node);
@@ -729,7 +728,6 @@ export function buildCssMap(cssText) {
         // Store media queries as full CSS blocks
         else if (node.name === 'media') {
           const fullMediaRule = csstree.generate(node);
-          logger.log('Captured media query', { file: 'cssParser.js', step: 'Parse @-rules' }, fullMediaRule);
           mediaQueries.push(fullMediaRule);
         }
       }
@@ -786,14 +784,6 @@ export function buildCssMap(cssText) {
 
   // Join all root styles with semicolons to maintain valid CSS
   const combinedRootStyles = rootStyles.length > 0 ? `:root {\n  ${rootStyles.join(';\n  ')};\n}` : '';
-
-  logger.log('buildCssMap returning', { file: 'cssParser.js', step: 'Build CSS Map' }, {
-    cssMapKeys: Object.keys(map),
-    variablesCount: Object.keys(variables).length,
-    keyframesCount: keyframes.length,
-    mediaQueriesCount: mediaQueries.length,
-    mediaQueries: mediaQueries
-  });
 
   return { cssMap: map, variables, rootStyles: combinedRootStyles, keyframes, mediaQueries };
 }
