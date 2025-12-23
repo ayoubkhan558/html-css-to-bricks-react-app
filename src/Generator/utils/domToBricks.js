@@ -498,6 +498,22 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
             const pseudoClass = pseudoClassMatch[1];
             const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
 
+            // Parse string properties to object helper
+            const parseStringProps = (props) => {
+              if (typeof props === 'object') return props;
+              if (typeof props !== 'string') return {};
+              const result = {};
+              props.split(';').filter(p => p.trim()).forEach(decl => {
+                const colonIndex = decl.indexOf(':');
+                if (colonIndex > 0) {
+                  const prop = decl.substring(0, colonIndex).trim();
+                  const val = decl.substring(colonIndex + 1).trim();
+                  if (prop && val) result[prop] = val;
+                }
+              });
+              return result;
+            };
+
             // Check if selector contains a class that matches this element
             const classMatches = baseSelector.match(/\.([a-zA-Z0-9_-]+)/g);
             const containsMatchingClass = classMatches && classMatches.some(cls =>
@@ -508,13 +524,15 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
             if (baseSelector === `#${node.id}` || baseSelector === tag ||
               (baseSelector.startsWith('.') && node.classList.contains(baseSelector.substring(1)))) {
               // Parse the pseudo-class styles
-              const pseudoStyles = parseCssDeclarations(properties, selector, variables);
+              const propsObject = parseStringProps(properties);
+              const pseudoStyles = parseCssDeclarations(propsObject, selector, variables);
               Object.entries(pseudoStyles).forEach(([prop, value]) => {
                 targetClass.settings[`${prop}:${pseudoClass}`] = value;
               });
             } else if (isMergeableSelector && (containsMatchingClass || baseSelector.startsWith('[') || baseSelector.includes('['))) {
               // Merge pseudo-class styles for complex selectors with matching class
-              const pseudoStyles = parseCssDeclarations(properties, selector, variables);
+              const propsObject = parseStringProps(properties);
+              const pseudoStyles = parseCssDeclarations(propsObject, selector, variables);
               Object.entries(pseudoStyles).forEach(([prop, value]) => {
                 targetClass.settings[`${prop}:${pseudoClass}`] = value;
               });
@@ -545,7 +563,7 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
               node.classList.contains(cls.substring(1))
             );
 
-            // Format properties helper
+            // Format properties helper for custom CSS output
             const formatProps = (props) => {
               if (typeof props === 'string') {
                 return props.split(';').filter(p => p.trim()).join(';\n  ');
@@ -555,9 +573,26 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
               return '';
             };
 
+            // Parse string properties to object
+            const parseStringProps = (props) => {
+              if (typeof props === 'object') return props;
+              if (typeof props !== 'string') return {};
+              const result = {};
+              props.split(';').filter(p => p.trim()).forEach(decl => {
+                const colonIndex = decl.indexOf(':');
+                if (colonIndex > 0) {
+                  const prop = decl.substring(0, colonIndex).trim();
+                  const val = decl.substring(colonIndex + 1).trim();
+                  if (prop && val) result[prop] = val;
+                }
+              });
+              return result;
+            };
+
             if (isMergeableSelector && (isTagSelector || containsMatchingClass || isAttributeSelector)) {
               // When merge is enabled, merge complex selector styles into the class
-              const combinedStyles = parseCssDeclarations(properties, selector, variables);
+              const propsObject = parseStringProps(properties);
+              const combinedStyles = parseCssDeclarations(propsObject, selector, variables);
               Object.assign(targetClass.settings, combinedStyles);
             } else {
               // Add as custom CSS - preserve the full selector

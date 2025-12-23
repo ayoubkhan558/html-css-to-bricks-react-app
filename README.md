@@ -13,7 +13,15 @@ A powerful web-based tool that converts HTML, CSS, and JavaScript code into Bric
   - Borders and box-shadows
   - Transforms and transitions
   - Filters and effects
-  - Pseudo-classes (:hover, :focus, :active)
+  - Pseudo-classes (:hover, :focus, :active, :visited, :disabled)
+  - Pseudo-elements (::before, ::after)
+  - **Complex Selectors**:
+    - Child selectors (`.parent > .child`)
+    - Descendant selectors (`.parent .child`)
+    - Sibling selectors (`.item + .item`, `.item ~ .item`)
+    - Attribute selectors (`.card[data-type="featured"]`)
+    - Compound class selectors (`.btn.primary`)
+    - Multiple selectors (`.card, .box`)
 - **JavaScript Integration** – Optionally include custom JS as a code element.
 
 ### Element Support
@@ -144,24 +152,34 @@ e2e/ # End-to-end tests
 - Inline styles to classes conversion
 - Bricks inner selector support
 - CSS animations and transitions
-- Complex CSS selectors
-- Pseudo-classes (:hover, :focus, etc.)
-
+- Complex CSS selectors (child, descendant, sibling, attribute, compound)
+- Pseudo-classes (:hover, :focus, :active, :visited, :disabled)
+- Pseudo-elements (::before, ::after)
 - SVG element support with classes
 - AI code generation integration
 - Multiple AI provider support
+- Native browser API selector matching (element.matches())
 
 ### Planned
 
-- Media query handling
-- Pseudo-elements (::before, ::after)
+- Media query to Bricks breakpoints conversion
+- Custom element mapping configuration
 
 ## 🐛 Known Issues
 
+- Media queries are preserved as custom CSS but not converted to Bricks breakpoints.
 - Nested forms may not convert correctly.
-- Some complex CSS selectors are added as custom CSS.
+- Some very complex JavaScript may need manual adjustment.
 
-Media queries are preserved but not converted to Bricks breakpoints.
+### Merge Selectors Option
+
+When **"Merge Selectors"** is enabled:
+- Complex selector styles (like `.card[data-type="featured"]`) are merged directly into the element's global class settings.
+- This creates cleaner output with styles applied to the class.
+
+When disabled:
+- Complex selectors are preserved as `_cssCustom` with the original selector intact.
+- This maintains CSS specificity and selector relationships.
 
 ## 📄 License
 

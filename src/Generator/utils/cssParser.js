@@ -523,7 +523,7 @@ export function matchCSSSelectors(element, cssMap) {
 
 /**
  * Enhanced CSS matching that returns properties grouped by class name
- * This prevents merging all properties into the first class when element has multiple classes
+ * Uses native browser APIs (element.matches) for reliable selector matching
  * @param {Element} element - DOM element
  * @param {Object} cssMap - CSS map
  * @param {Array} classList - Array of class names on the element
@@ -532,8 +532,7 @@ export function matchCSSSelectors(element, cssMap) {
 export function matchCSSSelectorsPerClass(element, cssMap, classList) {
   const propertiesByClass = {}; // Properties grouped by class name
   const commonProperties = {}; // Properties from non-class selectors (tag, id, etc.)
-  const doc = element.ownerDocument;
-  const unmatchedSelectors = [];
+  const unmatchedSelectors = []; // Complex selectors, pseudo-classes, etc.
 
   // Helper to parse CSS properties string into object
   const parseProperties = (propertiesString) => {
@@ -541,136 +540,125 @@ export function matchCSSSelectorsPerClass(element, cssMap, classList) {
     const declarations = propertiesString.split(';').filter(decl => decl.trim());
 
     declarations.forEach(decl => {
-      const [property, value] = decl.split(':').map(part => part.trim());
-      if (property && value) {
-        properties[property] = value;
+      const colonIndex = decl.indexOf(':');
+      if (colonIndex > 0) {
+        const property = decl.substring(0, colonIndex).trim();
+        const value = decl.substring(colonIndex + 1).trim();
+        if (property && value) {
+          properties[property] = value;
+        }
       }
     });
 
     return properties;
   };
 
-  // First, match class selectors and group by class name
-  classList.forEach(className => {
-    const classSelector = `.${className}`;
+  // Helper to safely check if element matches a selector
+  const elementMatches = (selector) => {
+    try {
+      return element.matches(selector);
+    } catch (e) {
+      return false;
+    }
+  };
 
-    Object.entries(cssMap).forEach(([selector, properties]) => {
-      // Only process selectors that are simple class selectors for this class
-      if (selector === classSelector) {
-        if (!propertiesByClass[className]) {
-          propertiesByClass[className] = {};
-        }
-        const parsedProperties = parseProperties(properties);
-        Object.assign(propertiesByClass[className], parsedProperties);
-      }
-      // Handle pseudo-class selectors for this specific class
-      else if (selector.startsWith(classSelector + ':')) {
-        const pseudoClassMatch = selector.match(/:(hover|focus|active|visited|disabled)$/);
-        if (pseudoClassMatch) {
-          // This will be handled in the pseudo-selector processing below
-          // Just mark it as matched so it doesn't get added to common
-        }
-      }
-    });
-  });
-
-  // Handle compound class selectors like .class1.class2
-  Object.entries(cssMap).forEach(([selector, properties]) => {
-    // Check if this is a compound class selector (multiple classes without spaces)
-    // e.g., .tst-link.active or .btn.primary.large
-    const compoundMatch = selector.match(/^(\.[a-zA-Z0-9_-]+){2,}$/);
-    if (compoundMatch) {
-      // Extract all classes from the compound selector
-      const selectorClasses = selector.match(/\.[a-zA-Z0-9_-]+/g).map(c => c.substring(1));
-
-      // Check if element has ALL the classes in the compound selector
-      const hasAllClasses = selectorClasses.every(cls => classList.includes(cls));
-
-      if (hasAllClasses) {
-        // Apply properties to the first class in the compound selector that exists on element
-        const targetClass = selectorClasses.find(cls => classList.includes(cls));
-        if (targetClass) {
-          if (!propertiesByClass[targetClass]) {
-            propertiesByClass[targetClass] = {};
-          }
-          const parsedProperties = parseProperties(properties);
-          Object.assign(propertiesByClass[targetClass], parsedProperties);
+  // Helper to extract the primary class from a selector
+  const extractPrimaryClass = (selector) => {
+    const classMatches = selector.match(/\.([a-zA-Z0-9_-]+)/g);
+    if (classMatches) {
+      // Return the first class that exists on the element
+      for (const cls of classMatches) {
+        const className = cls.substring(1);
+        if (classList.includes(className)) {
+          return className;
         }
       }
     }
-  });
+    return null;
+  };
 
-  // Then, match non-class selectors (tag, id, attribute, complex)
+  // Helper to check if selector is a pseudo-class/pseudo-element
+  const isPseudoSelector = (selector) => {
+    return selector.includes(':');
+  };
+
+  // Helper to check if selector is "simple" (just .class, #id, or tag)
+  const isSimpleSelector = (selector) => {
+    // Simple: .class, #id, tag (no spaces, combinators, attributes, or pseudo)
+    return /^(\.[a-zA-Z0-9_-]+|#[a-zA-Z0-9_-]+|[a-zA-Z0-9]+)$/.test(selector);
+  };
+
+  // Helper to check if selector is a compound class selector (.class1.class2)
+  const isCompoundClassSelector = (selector) => {
+    return /^(\.[a-zA-Z0-9_-]+){2,}$/.test(selector);
+  };
+
+  // Process all selectors in the cssMap
   Object.entries(cssMap).forEach(([selector, properties]) => {
     try {
-      const selectorType = getSelectorType(selector);
-
-      // Skip class selectors (already processed above)
-      if (selectorType === 'class') {
+      // Skip :root selector
+      if (selector === ':root') {
         return;
       }
 
-      // Check for pseudo-elements
-      if (selector.includes('::')) {
-        const baseSelector = selector.split('::')[0].trim();
-        try {
-          const matches = element.matches(baseSelector);
-          if (matches) {
+      const parsedProperties = parseProperties(properties);
+
+      // 1. Handle simple class selectors (.card)
+      if (isSimpleSelector(selector) && selector.startsWith('.')) {
+        const className = selector.substring(1);
+        if (classList.includes(className)) {
+          if (!propertiesByClass[className]) {
+            propertiesByClass[className] = {};
+          }
+          Object.assign(propertiesByClass[className], parsedProperties);
+        }
+        return;
+      }
+
+      // 2. Handle compound class selectors (.class1.class2)
+      if (isCompoundClassSelector(selector)) {
+        if (elementMatches(selector)) {
+          const targetClass = extractPrimaryClass(selector);
+          if (targetClass) {
+            if (!propertiesByClass[targetClass]) {
+              propertiesByClass[targetClass] = {};
+            }
+            Object.assign(propertiesByClass[targetClass], parsedProperties);
+          }
+        }
+        return;
+      }
+
+      // 3. Handle pseudo-selectors (::before, :hover, etc.)
+      if (isPseudoSelector(selector)) {
+        // Extract base selector (before the pseudo part)
+        const pseudoMatch = selector.match(/^(.+?)(:{1,2}[a-zA-Z-]+(?:\([^)]*\))?)$/);
+        if (pseudoMatch) {
+          const baseSelector = pseudoMatch[1];
+          if (elementMatches(baseSelector)) {
             unmatchedSelectors.push({ selector, properties });
           }
-        } catch (e) {
-          // Skip invalid selectors
         }
         return;
       }
 
-      // Check for pseudo-classes
-      const pseudoClassMatch = selector.match(/:(hover|focus|active|visited|disabled)$/);
-      if (pseudoClassMatch) {
-        const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
-        try {
-          const matches = element.matches(baseSelector);
-          if (matches) {
-            unmatchedSelectors.push({ selector, properties });
-          }
-        } catch (e) {
-          // Skip invalid selectors
+      // 4. Handle simple tag/id selectors
+      if (isSimpleSelector(selector)) {
+        if (elementMatches(selector)) {
+          Object.assign(commonProperties, parsedProperties);
         }
         return;
       }
 
-      // Match tag, id, and other non-class selectors
-      let matches = false;
-
-      if (selectorType === 'tag' && element.tagName.toLowerCase() === selector.toLowerCase()) {
-        matches = true;
-      } else if (selectorType === 'id' && element.id === selector.substring(1)) {
-        matches = true;
-      } else if (selectorType === 'complex') {
-        // For complex selectors, add to unmatchedSelectors (custom CSS)
-        try {
-          const matchingElements = doc.querySelectorAll(selector);
-          if (Array.from(matchingElements).includes(element)) {
-            unmatchedSelectors.push({ selector, properties });
-          }
-        } catch (err) {
-          // Skip invalid selectors
-        }
-        return;
-      } else {
-        // Try element.matches for other selectors
-        try {
-          matches = element.matches(selector);
-        } catch (e) {
-          // Skip invalid selectors
-        }
+      // 5. Handle all other complex selectors using native element.matches()
+      // This handles: child (>), descendant ( ), sibling (+, ~), attribute ([])
+      if (elementMatches(selector)) {
+        // Add to unmatchedSelectors for custom CSS processing
+        unmatchedSelectors.push({ selector, properties });
       }
 
-      if (matches) {
-        const parsedProperties = parseProperties(properties);
-        Object.assign(commonProperties, parsedProperties);
-      }
     } catch (error) {
+      // Log and skip invalid selectors
       logger.warn(`Error processing selector: ${selector}`, error);
     }
   });
