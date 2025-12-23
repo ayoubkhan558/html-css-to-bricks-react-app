@@ -484,12 +484,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         Object.assign(targetClass.settings, parsedSettings);
       }
 
-      // Transfer element attributes to the first class only
-      if (index === 0 && element.settings._attributes) {
-        targetClass.settings._attributes = element.settings._attributes;
-        delete element.settings._attributes; // Remove from element to avoid duplication
-      }
-
       // Handle pseudo-selectors for the first class only
       if (index === 0 && perClassPseudos.length > 0) {
         let customCss = '';
