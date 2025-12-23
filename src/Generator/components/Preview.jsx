@@ -33,7 +33,7 @@ const Preview = ({ html, css, activeTagIndex, highlight }) => {
             ${css}
             body { 
               margin: 0; 
-              padding: 1rem;
+              padding: 0;
               min-height: 100%;
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
               // background: #111117;

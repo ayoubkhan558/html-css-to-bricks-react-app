@@ -57,7 +57,7 @@ export class ConverterService {
 
             return this.bricksBuilder.getStructure();
         } catch (error) {
-            console.error('Conversion error:', error);
+            logger.error('Conversion error:', error);
             throw error;
         }
     }

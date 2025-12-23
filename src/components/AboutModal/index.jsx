@@ -8,15 +8,16 @@ const AboutModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="about-modal-overlay">
-      <div className="about-modal">
-        <button className="about-modal__close" onClick={onClose}>
+    <div className="modal-overlay">
+      <div className="modal modal--sm about-modal">
+        <button className="modal__close" onClick={onClose}>
           <FaTimes size={20} />
         </button>
 
-        <div className="about-modal__content">
+        <div className="modal__content">
           <div>
-            <h2> Brickify </h2>
+            <h2>Brickify</h2>
+            <p><b>Version:</b> 1.0</p>
             <p><b>Last Updated:</b> {LAST_UPDATE_DATE}</p>
           </div>
 

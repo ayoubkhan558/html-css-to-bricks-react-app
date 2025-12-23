@@ -60,7 +60,7 @@ const AISettings = ({ isOpen, onClose }) => {
       try {
         setDesignSystems(JSON.parse(savedDesignSystems));
       } catch (e) {
-        console.error('Failed to load design systems:', e);
+        logger.error('Failed to load design systems:', e);
       }
     }
   }, [isOpen]);

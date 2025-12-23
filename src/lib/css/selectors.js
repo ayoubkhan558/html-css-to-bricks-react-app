@@ -16,7 +16,7 @@ export class AdvancedSelectorMatcher {
             // Use native element.matches() for complex selector support
             return element.matches(selector);
         } catch (error) {
-            console.warn(`Invalid selector: ${selector}`, error);
+            logger.warn(`Invalid selector: ${selector}`, error);
             return false;
         }
     }
@@ -151,7 +151,7 @@ export class AdvancedSelectorMatcher {
         try {
             return Array.from(context.querySelectorAll(selector));
         } catch (error) {
-            console.warn(`Invalid selector for querySelectorAll: ${selector}`, error);
+            logger.warn(`Invalid selector for querySelectorAll: ${selector}`, error);
             return [];
         }
     }

@@ -44,7 +44,7 @@ const hasContainerClasses = (node) => {
 const handleInlineStyles = (node, element, globalClasses, variables = {}, options = {}) => {
 
   const styleAttr = node.getAttribute('style');
-  logger.log('111 Inline styles for element:', options?.context?.inlineStyleHandling);
+  logger.log(' Inline styles for element:', options?.context?.inlineStyleHandling);
   if (!styleAttr || !styleAttr.trim()) return;
 
   switch (options?.context?.inlineStyleHandling) {
@@ -484,12 +484,6 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
         Object.assign(targetClass.settings, parsedSettings);
       }
 
-      // Transfer element attributes to the first class only
-      if (index === 0 && element.settings._attributes) {
-        targetClass.settings._attributes = element.settings._attributes;
-        delete element.settings._attributes; // Remove from element to avoid duplication
-      }
-
       // Handle pseudo-selectors for the first class only
       if (index === 0 && perClassPseudos.length > 0) {
         let customCss = '';
@@ -504,55 +498,106 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
             const pseudoClass = pseudoClassMatch[1];
             const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
 
+            // Parse string properties to object helper
+            const parseStringProps = (props) => {
+              if (typeof props === 'object') return props;
+              if (typeof props !== 'string') return {};
+              const result = {};
+              props.split(';').filter(p => p.trim()).forEach(decl => {
+                const colonIndex = decl.indexOf(':');
+                if (colonIndex > 0) {
+                  const prop = decl.substring(0, colonIndex).trim();
+                  const val = decl.substring(colonIndex + 1).trim();
+                  if (prop && val) result[prop] = val;
+                }
+              });
+              return result;
+            };
+
+            // Check if selector contains a class that matches this element
+            const classMatches = baseSelector.match(/\.([a-zA-Z0-9_-]+)/g);
+            const containsMatchingClass = classMatches && classMatches.some(cls =>
+              node.classList.contains(cls.substring(1))
+            );
+
             // Check if the base selector matches our element
             if (baseSelector === `#${node.id}` || baseSelector === tag ||
               (baseSelector.startsWith('.') && node.classList.contains(baseSelector.substring(1)))) {
               // Parse the pseudo-class styles
-              const pseudoStyles = parseCssDeclarations(properties, selector, variables);
+              const propsObject = parseStringProps(properties);
+              const pseudoStyles = parseCssDeclarations(propsObject, selector, variables);
               Object.entries(pseudoStyles).forEach(([prop, value]) => {
                 targetClass.settings[`${prop}:${pseudoClass}`] = value;
               });
-            } else if (isMergeableSelector && (baseSelector === tag || baseSelector.startsWith('[') || baseSelector === `*[${baseSelector.slice(2, -1)}]`)) {
-              // Merge pseudo-class styles for element/attribute selectors if merging is enabled
-              const pseudoStyles = parseCssDeclarations(properties, selector, variables);
+            } else if (isMergeableSelector && (containsMatchingClass || baseSelector.startsWith('[') || baseSelector.includes('['))) {
+              // Merge pseudo-class styles for complex selectors with matching class
+              const propsObject = parseStringProps(properties);
+              const pseudoStyles = parseCssDeclarations(propsObject, selector, variables);
               Object.entries(pseudoStyles).forEach(([prop, value]) => {
                 targetClass.settings[`${prop}:${pseudoClass}`] = value;
               });
             } else {
               // Add as custom CSS if it doesn't match
-              // Handle properties as either string or object
               let propsFormatted;
               if (typeof properties === 'string') {
                 propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
               } else if (typeof properties === 'object') {
-                // Convert object to CSS string format
                 propsFormatted = Object.entries(properties)
                   .map(([prop, val]) => `${prop}: ${val}`)
                   .join(';\n  ');
               } else {
                 propsFormatted = '';
               }
-              // Escape dots in selectors to prevent malformed CSS
-              const escapedSelector = selector.replace(/\./g, '\\.');
-              customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
+              customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
             }
           } else {
-            // Handle regular selectors (element, attribute, etc.)
-            // If merging is enabled and it matches tag or is attribute selector, merge it
+            // Handle complex selectors (child >, attribute [], descendant, multiple, etc.)
             const isTagSelector = selector === tag;
-            const isAttributeSelector = selector.startsWith('[') || (selector.startsWith(tag) && selector.includes('['));
-            const isUniversalAttribute = selector.startsWith('*[');
+            const isAttributeSelector = selector.startsWith('[') || selector.includes('[');
+            const isChildSelector = selector.includes('>');
+            const isDescendantSelector = selector.includes(' ') && !selector.includes('>');
 
-            if (isMergeableSelector && (isTagSelector || isAttributeSelector || isUniversalAttribute)) {
-              // Merge these styles directly into the class settings
-              const combinedStyles = parseCssDeclarations(properties, selector, variables);
+            // Check if selector contains a class that matches this element
+            const classMatches = selector.match(/\.([a-zA-Z0-9_-]+)/g);
+            const containsMatchingClass = classMatches && classMatches.some(cls =>
+              node.classList.contains(cls.substring(1))
+            );
+
+            // Format properties helper for custom CSS output
+            const formatProps = (props) => {
+              if (typeof props === 'string') {
+                return props.split(';').filter(p => p.trim()).join(';\n  ');
+              } else if (typeof props === 'object') {
+                return Object.entries(props).map(([p, v]) => `${p}: ${v}`).join(';\n  ');
+              }
+              return '';
+            };
+
+            // Parse string properties to object
+            const parseStringProps = (props) => {
+              if (typeof props === 'object') return props;
+              if (typeof props !== 'string') return {};
+              const result = {};
+              props.split(';').filter(p => p.trim()).forEach(decl => {
+                const colonIndex = decl.indexOf(':');
+                if (colonIndex > 0) {
+                  const prop = decl.substring(0, colonIndex).trim();
+                  const val = decl.substring(colonIndex + 1).trim();
+                  if (prop && val) result[prop] = val;
+                }
+              });
+              return result;
+            };
+
+            if (isMergeableSelector && (isTagSelector || containsMatchingClass || isAttributeSelector)) {
+              // When merge is enabled, merge complex selector styles into the class
+              const propsObject = parseStringProps(properties);
+              const combinedStyles = parseCssDeclarations(propsObject, selector, variables);
               Object.assign(targetClass.settings, combinedStyles);
             } else {
-              // Handle as regular custom CSS
-              const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
-              // Escape dots in selectors to prevent malformed CSS
-              const escapedSelector = selector.replace(/\./g, '\\.');
-              customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
+              // Add as custom CSS - preserve the full selector
+              const propsFormatted = formatProps(properties);
+              customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
             }
           }
         });
@@ -639,7 +684,7 @@ const convertHtmlToBricks = (html, css, options) => {
       if (typeof global.Node === 'undefined') global.Node = dom.window.Node;
     }
 
-    const { cssMap, variables, rootStyles, keyframes } = buildCssMap(css);
+    const { cssMap, variables, rootStyles, keyframes, mediaQueries } = buildCssMap(css);
 
     const content = [];
     const globalClasses = [];
@@ -687,36 +732,45 @@ const convertHtmlToBricks = (html, css, options) => {
       }
     });
 
-    if (rootStyles) {
-      // Find the first top-level element's class (parent element)
+    // Helper to add CSS to first element's class or create new class
+    const addCustomCss = (cssContent) => {
       let targetClass = null;
       if (content.length > 0 && content[0].settings._cssGlobalClasses) {
         const firstElementClassId = content[0].settings._cssGlobalClasses[0];
         targetClass = globalClasses.find(c => c.id === firstElementClassId);
       }
 
-      // If we found the first element's class, add root styles there
-      // Otherwise fallback to first global class or create new one
       if (targetClass) {
         if (!targetClass.settings._cssCustom) {
           targetClass.settings._cssCustom = '';
         }
-        targetClass.settings._cssCustom = `${rootStyles}\n${targetClass.settings._cssCustom}`.trim();
+        targetClass.settings._cssCustom = `${targetClass.settings._cssCustom}\n${cssContent}`.trim();
       } else if (globalClasses.length > 0) {
         const firstClass = globalClasses[0];
         if (!firstClass.settings._cssCustom) {
           firstClass.settings._cssCustom = '';
         }
-        firstClass.settings._cssCustom = `${rootStyles}\n${firstClass.settings._cssCustom}`.trim();
+        firstClass.settings._cssCustom = `${firstClass.settings._cssCustom}\n${cssContent}`.trim();
       } else {
         globalClasses.push({
           id: generateId(),
           name: 'custom-css',
           settings: {
-            _cssCustom: rootStyles,
+            _cssCustom: cssContent,
           },
         });
       }
+    };
+
+    // Add root styles
+    if (rootStyles) {
+      addCustomCss(rootStyles);
+    }
+
+    // Add media queries as custom CSS
+    if (mediaQueries && mediaQueries.length > 0) {
+      const mediaQueryCSS = mediaQueries.join('\n\n');
+      addCustomCss(mediaQueryCSS);
     }
 
     // Handle @keyframes rules

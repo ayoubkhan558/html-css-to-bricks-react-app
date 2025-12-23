@@ -70,7 +70,7 @@ const AIPrompt = ({ isOpen, onClose, onCodeGenerated, currentHtml, currentCss, c
 
     } catch (err) {
       setError(err.message || 'Failed to generate code. Please try again.');
-      console.error('AI Error:', err);
+      logger.error('AI Error:', err);
 
       // Add helpful context for common errors
       if (err.message.includes('quota')) {

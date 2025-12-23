@@ -1,8 +1,24 @@
 // CSS Variables
 :root {
+    /* Fonts */
     --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-code: var(--font-code);
+    --font-code: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* Headings (micro hierarchy) */
+    --h1: clamp(1.3rem, 1.2rem + 0.6vw, 1.6rem);
+    --h2: clamp(1.15rem, 1.1rem + 0.45vw, 1.35rem);
+    --h3: clamp(1.05rem, 1rem + 0.35vw, 1.2rem);
+    --h4: clamp(0.95rem, 0.92rem + 0.3vw, 1.05rem);
+    --h5: clamp(0.88rem, 0.85rem + 0.25vw, 0.95rem);
+    --h6: clamp(0.82rem, 0.8rem + 0.2vw, 0.9rem);
+
+    /* Body text (extreme density) */
+    --text-lg: clamp(0.82rem, 0.8rem + 0.2vw, 0.9rem);
+    --text-md: clamp(0.78rem, 0.76rem + 0.15vw, 0.85rem);
+    --text-sm: clamp(0.7rem, 0.68rem + 0.12vw, 0.78rem);
+    --text-xs: clamp(0.6rem, 0.58rem + 0.1vw, 0.68rem);
 }
+
 
 :root {
     /* Primary (Blue Neon) */

@@ -7,20 +7,35 @@
 export const isColor = (value) => {
     if (typeof value !== 'string') return false;
     const lowerCaseValue = value.toLowerCase();
-    const colorKeywords = ['transparent', 'currentcolor'];
-    if (colorKeywords.includes(lowerCaseValue)) return true;
 
-    // Enhanced hex color detection - supports 3, 4, 6, and 8 digit hex colors
-    if (lowerCaseValue.startsWith('#')) {
-        const hexPart = lowerCaseValue.slice(1);
-        return /^[0-9a-f]{3,8}$/i.test(hexPart);
-    }
+    // Explicit color formats
+    if (lowerCaseValue.startsWith('#')) return true;
+    if (lowerCaseValue.startsWith('rgb')) return true;
+    if (lowerCaseValue.startsWith('hsl')) return true;
+    if (lowerCaseValue === 'transparent' || lowerCaseValue === 'currentcolor') return true;
 
-    if (lowerCaseValue.startsWith('rgb') || lowerCaseValue.startsWith('hsl')) return true;
+    // Exclude known non-color CSS keywords
+    const nonColorKeywords = [
+        // Background-specific
+        'repeat', 'repeat-x', 'repeat-y', 'no-repeat', 'space', 'round',
+        'scroll', 'fixed', 'local',
+        'border-box', 'padding-box', 'content-box',
+        'cover', 'contain', 'auto',
+        'center', 'top', 'bottom', 'left', 'right',
+        // Generic CSS keywords
+        'inherit', 'initial', 'unset', 'revert', 'none'
+    ];
 
-    // Basic color name check (can be expanded)
-    const namedColors = ['red', 'green', 'blue', 'white', 'black', 'yellow', 'purple', 'orange'];
-    return namedColors.includes(lowerCaseValue);
+    if (nonColorKeywords.includes(lowerCaseValue)) return false;
+
+    // If it contains url() or gradient(), it's not a simple color
+    if (lowerCaseValue.includes('url(') || lowerCaseValue.includes('-gradient(')) return false;
+
+    // If it contains position indicators (/, px, %, em, etc. but not in a color context)
+    if (lowerCaseValue.includes('/')) return false;
+
+    // Accept everything else as a potential color name or CSS variable
+    return true;
 };
 
 /**
@@ -178,7 +193,7 @@ export class AdvancedSelectorMatcher {
             // Use native element.matches() for complex selector support
             return element.matches(selector);
         } catch (error) {
-            console.warn(`Invalid selector: ${selector}`, error);
+            logger.warn(`Invalid selector: ${selector}`, error);
             return false;
         }
     }
@@ -313,7 +328,7 @@ export class AdvancedSelectorMatcher {
         try {
             return Array.from(context.querySelectorAll(selector));
         } catch (error) {
-            console.warn(`Invalid selector for querySelectorAll: ${selector}`, error);
+            logger.warn(`Invalid selector for querySelectorAll: ${selector}`, error);
             return [];
         }
     }
