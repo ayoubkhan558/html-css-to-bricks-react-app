@@ -684,10 +684,12 @@ export function matchCSSSelectorsPerClass(element, cssMap, classList) {
 
 // Helper to determine selector type
 const getSelectorType = (selector) => {
-  if (selector.startsWith('#')) return 'id';
-  if (selector.startsWith('.')) return 'class';
+  // Check for complex selectors FIRST (before class/id check)
+  // Complex selectors include: child (>), sibling (+, ~), descendant (space), attribute ([])
   if (selector.includes('>') || selector.includes('+') || selector.includes('~') ||
     selector.includes(' ') || selector.includes('[')) return 'complex';
+  if (selector.startsWith('#')) return 'id';
+  if (selector.startsWith('.')) return 'class';
   return 'tag';
 };
 

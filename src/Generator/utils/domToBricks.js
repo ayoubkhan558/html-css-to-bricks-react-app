@@ -498,6 +498,12 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
             const pseudoClass = pseudoClassMatch[1];
             const baseSelector = selector.substring(0, selector.lastIndexOf(':'));
 
+            // Check if selector contains a class that matches this element
+            const classMatches = baseSelector.match(/\.([a-zA-Z0-9_-]+)/g);
+            const containsMatchingClass = classMatches && classMatches.some(cls =>
+              node.classList.contains(cls.substring(1))
+            );
+
             // Check if the base selector matches our element
             if (baseSelector === `#${node.id}` || baseSelector === tag ||
               (baseSelector.startsWith('.') && node.classList.contains(baseSelector.substring(1)))) {
@@ -506,47 +512,57 @@ const domNodeToBricks = (node, cssRulesMap = {}, parentId = '0', globalClasses =
               Object.entries(pseudoStyles).forEach(([prop, value]) => {
                 targetClass.settings[`${prop}:${pseudoClass}`] = value;
               });
-            } else if (isMergeableSelector && (baseSelector === tag || baseSelector.startsWith('[') || baseSelector === `*[${baseSelector.slice(2, -1)}]`)) {
-              // Merge pseudo-class styles for element/attribute selectors if merging is enabled
+            } else if (isMergeableSelector && (containsMatchingClass || baseSelector.startsWith('[') || baseSelector.includes('['))) {
+              // Merge pseudo-class styles for complex selectors with matching class
               const pseudoStyles = parseCssDeclarations(properties, selector, variables);
               Object.entries(pseudoStyles).forEach(([prop, value]) => {
                 targetClass.settings[`${prop}:${pseudoClass}`] = value;
               });
             } else {
               // Add as custom CSS if it doesn't match
-              // Handle properties as either string or object
               let propsFormatted;
               if (typeof properties === 'string') {
                 propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
               } else if (typeof properties === 'object') {
-                // Convert object to CSS string format
                 propsFormatted = Object.entries(properties)
                   .map(([prop, val]) => `${prop}: ${val}`)
                   .join(';\n  ');
               } else {
                 propsFormatted = '';
               }
-              // Escape dots in selectors to prevent malformed CSS
-              const escapedSelector = selector.replace(/\./g, '\\.');
-              customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
+              customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
             }
           } else {
-            // Handle regular selectors (element, attribute, etc.)
-            // If merging is enabled and it matches tag or is attribute selector, merge it
+            // Handle complex selectors (child >, attribute [], descendant, multiple, etc.)
             const isTagSelector = selector === tag;
-            const isAttributeSelector = selector.startsWith('[') || (selector.startsWith(tag) && selector.includes('['));
-            const isUniversalAttribute = selector.startsWith('*[');
+            const isAttributeSelector = selector.startsWith('[') || selector.includes('[');
+            const isChildSelector = selector.includes('>');
+            const isDescendantSelector = selector.includes(' ') && !selector.includes('>');
 
-            if (isMergeableSelector && (isTagSelector || isAttributeSelector || isUniversalAttribute)) {
-              // Merge these styles directly into the class settings
+            // Check if selector contains a class that matches this element
+            const classMatches = selector.match(/\.([a-zA-Z0-9_-]+)/g);
+            const containsMatchingClass = classMatches && classMatches.some(cls =>
+              node.classList.contains(cls.substring(1))
+            );
+
+            // Format properties helper
+            const formatProps = (props) => {
+              if (typeof props === 'string') {
+                return props.split(';').filter(p => p.trim()).join(';\n  ');
+              } else if (typeof props === 'object') {
+                return Object.entries(props).map(([p, v]) => `${p}: ${v}`).join(';\n  ');
+              }
+              return '';
+            };
+
+            if (isMergeableSelector && (isTagSelector || containsMatchingClass || isAttributeSelector)) {
+              // When merge is enabled, merge complex selector styles into the class
               const combinedStyles = parseCssDeclarations(properties, selector, variables);
               Object.assign(targetClass.settings, combinedStyles);
             } else {
-              // Handle as regular custom CSS
-              const propsFormatted = properties.split(';').filter(p => p.trim()).join(';\n  ');
-              // Escape dots in selectors to prevent malformed CSS
-              const escapedSelector = selector.replace(/\./g, '\\.');
-              customCss += `${escapedSelector} {\n  ${propsFormatted};\n}\n`;
+              // Add as custom CSS - preserve the full selector
+              const propsFormatted = formatProps(properties);
+              customCss += `${selector} {\n  ${propsFormatted};\n}\n`;
             }
           }
         });
